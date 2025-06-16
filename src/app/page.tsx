@@ -19,7 +19,7 @@ import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIco
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
-type AppStep = "upload" | "analyzing" | "generatingScenario" | "generatingImages" | "generatingQnA" | "ready";
+type AppStep = "upload" | "analyzing" | "generatingScenario" | "generatingImages" | "ready";
 
 interface AnimationFrameData {
   sceneDescription: string;
@@ -40,6 +40,7 @@ export default function AnimatePdfPage() {
   
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [imageGenerationStarted, setImageGenerationStarted] = useState(false);
 
   const { toast } = useToast();
   const playerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,6 +56,7 @@ export default function AnimatePdfPage() {
     setQaPairs(null);
     setCurrentFrameIndex(0);
     setIsPlaying(false);
+    setImageGenerationStarted(false);
     if (playerIntervalRef.current) {
       clearInterval(playerIntervalRef.current);
       playerIntervalRef.current = null;
@@ -71,6 +73,7 @@ export default function AnimatePdfPage() {
     setStoryboardImages([]);
     setQaPairs(null);
     setCurrentFrameIndex(0);
+    setImageGenerationStarted(false);
 
     try {
       const analysisInput: AnalyzePdfInput = { pdfDataUri: dataUri };
@@ -94,7 +97,7 @@ export default function AnimatePdfPage() {
 
   useEffect(() => {
     if (step === "generatingScenario" && pdfSummary) {
-      const processScenarioAndQnA = async () => {
+      const processScenario = async () => {
         try {
           // Generate Scenario
           const scenarioInput: GenerateAnimationScenarioInput = { pdfSummary };
@@ -105,58 +108,61 @@ export default function AnimatePdfPage() {
           }
           
           setAnimationFrames(scenarioResult.frames);
-          setStoryboardSceneDescriptions(scenarioResult.frames.map(f => f.sceneDescription));
-          setStoryboardKeyTopics(scenarioResult.frames.map(f => f.keyTopic));
+          const newSceneDescriptions = scenarioResult.frames.map(f => f.sceneDescription);
+          const newKeyTopics = scenarioResult.frames.map(f => f.keyTopic);
+
+          setStoryboardSceneDescriptions(newSceneDescriptions);
+          setStoryboardKeyTopics(newKeyTopics);
           setStoryboardImages(Array(scenarioResult.frames.length).fill(null));
           setCurrentFrameIndex(0);
 
           toast({
             title: "Animasyon Senaryosu Oluşturuldu",
-            description: "Şimdi her kare için görseller ve ardından mini test oluşturuluyor...",
+            description: "Şimdi her kare için görseller ve mini test eş zamanlı oluşturuluyor...",
           });
+
           setStep("generatingImages"); // Proceed to image generation
 
-          // Generate Q&A (can happen after scenario is set, doesn't need to block image gen start)
-          try {
-            setStep("generatingQnA");
-            const qaInput: GenerateQaInput = { pdfSummary };
-            const qaResult: GenerateQaOutput = await generateQa(qaInput);
-            setQaPairs(qaResult.qaPairs);
-             toast({
-              title: "Mini Test Oluşturuldu",
-              description: "Sorular ve cevaplar hazır!",
+          // Start Q&A generation in parallel (no await here)
+          generateQa({ pdfSummary })
+            .then(qaResult => {
+              setQaPairs(qaResult.qaPairs);
+              toast({ // This toast is optional or can be combined if image gen is also done
+                title: "Mini Test Oluşturuldu",
+                description: "Sorular ve cevaplar hazır!",
+              });
+            })
+            .catch(qnaError => {
+               console.error("Q&A Generation Error:", qnaError);
+               toast({
+                  title: "Mini Test Oluşturma Başarısız Oldu",
+                  description: (qnaError as Error).message || "Sorular ve cevaplar oluşturulamadı.",
+                  variant: "destructive",
+               });
+               setQaPairs([]); 
             });
-          } catch (qnaError) {
-             console.error("Q&A Generation Error:", qnaError);
-             toast({
-                title: "Mini Test Oluşturma Başarısız Oldu",
-                description: (qnaError as Error).message || "Sorular ve cevaplar oluşturulamadı.",
-                variant: "destructive",
-             });
-             setQaPairs([]); // Set to empty array to prevent further attempts or indicate failure
-          }
-
 
         } catch (error) {
-          console.error("Scenario or Q&A Generation Error:", error);
+          console.error("Scenario Generation Error:", error);
           toast({
-            title: "Senaryo veya Test Oluşturma Başarısız Oldu",
-            description: (error as Error).message || "Animasyon senaryosu veya test oluşturulamadı.",
+            title: "Senaryo Oluşturma Başarısız Oldu",
+            description: (error as Error).message || "Animasyon senaryosu oluşturulamadı.",
             variant: "destructive",
           });
           setStep("upload"); 
         }
       };
-      processScenarioAndQnA();
+      processScenario();
     }
   }, [step, pdfSummary, toast]);
 
   useEffect(() => {
-    if (step === "generatingImages" && storyboardSceneDescriptions.length > 0) {
+    if (step === "generatingImages" && storyboardSceneDescriptions.length > 0 && !imageGenerationStarted) {
+      setImageGenerationStarted(true); // Mark as started to prevent re-triggering
       const generateAllImages = async () => {
         toast({
-          title: "Kare Görselleri Oluşturuluyor",
-          description: `${storyboardSceneDescriptions.length} kare için görseller oluşturuluyor. Bu biraz zaman alabilir...`,
+          title: "Kare Görselleri ve Mini Test Hazırlanıyor",
+          description: `${storyboardSceneDescriptions.length} kare için görseller ve test soruları oluşturuluyor. Bu biraz zaman alabilir...`,
         });
 
         const imageGenerationPromises = storyboardSceneDescriptions.map(async (description, index) => {
@@ -186,13 +192,11 @@ export default function AnimatePdfPage() {
           title: "Görsel Oluşturma Tamamlandı!",
           description: "Tüm kare görselleri işlendi. Animasyonunuz önizlemeye hazır.",
         });
-        // If Q&A was still generating or failed, this will just move to ready.
-        // If Q&A is done, it's fine. If it failed, qaPairs might be null or empty.
         setStep("ready");
       };
       generateAllImages();
     }
-  }, [step, storyboardSceneDescriptions, toast]);
+  }, [step, storyboardSceneDescriptions, imageGenerationStarted, toast]);
 
 
   const handlePlay = useCallback(() => {
@@ -252,8 +256,8 @@ export default function AnimatePdfPage() {
   }, [isPlaying, storyboardSceneDescriptions.length]);
 
 
-  const isLoading = step === "analyzing" || step === "generatingScenario" || step === "generatingImages" || step === "generatingQnA";
-  const isProcessing = step === "analyzing" || step === "generatingScenario" || step === "generatingImages" || step === "generatingQnA";
+  const isLoading = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
+  const isProcessing = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
 
 
   return (
@@ -279,20 +283,17 @@ export default function AnimatePdfPage() {
             {step === "analyzing" && <FileText className="h-5 w-5 animate-pulse text-primary" />}
             {step === "generatingScenario" && <Sparkles className="h-5 w-5 animate-spin text-primary" />}
             {step === "generatingImages" && <ImageIcon className="h-5 w-5 animate-spin text-primary" />}
-            {step === "generatingQnA" && <HelpCircle className="h-5 w-5 animate-spin text-primary" />}
-            {!["analyzing", "generatingScenario", "generatingImages", "generatingQnA"].includes(step) && <Loader2 className="h-5 w-5 animate-spin text-primary" /> }
+            {!["analyzing", "generatingScenario", "generatingImages"].includes(step) && <Loader2 className="h-5 w-5 animate-spin text-primary" /> }
 
             <AlertTitle className="font-headline">
               {step === "analyzing" && "PDF Analiz Ediliyor..."}
               {step === "generatingScenario" && "Senaryo Oluşturuluyor..."}
-              {step === "generatingImages" && `Görseller Oluşturuluyor (${storyboardImages.filter(img => img !== null).length}/${storyboardSceneDescriptions.length})...`}
-              {step === "generatingQnA" && "Mini Test Hazırlanıyor..."}
+              {step === "generatingImages" && `Görseller ve Mini Test Hazırlanıyor... (${storyboardImages.filter(img => img !== null).length}/${storyboardSceneDescriptions.length} görsel tamamlandı)`}
             </AlertTitle>
             <AlertDescription>
               {step === "analyzing" && "Yapay zekamız PDF'inizi okuyor ve anahtar temaları çıkarıyor. Lütfen bekleyin..."}
               {step === "generatingScenario" && "PDF özetine dayalı ilgi çekici bir animasyon senaryosu hazırlanıyor. Sabırlı olun!"}
-              {step === "generatingImages" && "Yapay zekamız şimdi her animasyon karesi için benzersiz bir görsel oluşturuyor. Bu birkaç dakika sürebilir."}
-              {step === "generatingQnA" && "Öğrenmenizi pekiştirmek için konuyla ilgili sorular ve cevaplar hazırlanıyor."}
+              {step === "generatingImages" && "Yapay zekamız animasyon kareleri için görseller ve öğrenmenizi pekiştirmek için mini test hazırlıyor. Bu süreç biraz zaman alabilir."}
             </AlertDescription>
           </Alert>
         )}
@@ -354,3 +355,4 @@ export default function AnimatePdfPage() {
     </div>
   );
 }
+
