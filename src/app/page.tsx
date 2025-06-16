@@ -4,17 +4,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { analyzePdf, AnalyzePdfInput, AnalyzePdfOutput } from '@/ai/flows/analyze-pdf';
 import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnimationScenarioOutput } from '@/ai/flows/generate-animation-scenario';
+import { generateFrameImage, GenerateFrameImageInput, GenerateFrameImageOutput } from '@/ai/flows/generate-frame-image-flow';
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
 import { ScenarioDisplay } from '@/components/custom/scenario-display';
 import { AnimationPreview } from '@/components/custom/animation-preview';
 import { PlaybackControls } from '@/components/custom/playback-controls';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw } from "lucide-react";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
-type AppStep = "upload" | "analyzing" | "generatingScenario" | "ready";
+type AppStep = "upload" | "analyzing" | "generatingScenario" | "generatingImages" | "ready";
 
 export default function AnimatePdfPage() {
   const [step, setStep] = useState<AppStep>("upload");
@@ -24,6 +25,7 @@ export default function AnimatePdfPage() {
   const [animationScenario, setAnimationScenario] = useState<string | null>(null);
   
   const [storyboardFrames, setStoryboardFrames] = useState<string[]>([]);
+  const [storyboardImages, setStoryboardImages] = useState<(string | null)[]>([]);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -36,6 +38,7 @@ export default function AnimatePdfPage() {
     setPdfSummary(null);
     setAnimationScenario(null);
     setStoryboardFrames([]);
+    setStoryboardImages([]);
     setCurrentFrameIndex(0);
     setIsPlaying(false);
     if (playerIntervalRef.current) {
@@ -47,9 +50,10 @@ export default function AnimatePdfPage() {
   const handlePdfUpload = async (file: File, dataUri: string) => {
     setPdfFile(file);
     setStep("analyzing");
-    setPdfSummary(null); // Reset previous summary/scenario
+    setPdfSummary(null); 
     setAnimationScenario(null);
     setStoryboardFrames([]);
+    setStoryboardImages([]);
     setCurrentFrameIndex(0);
 
     try {
@@ -58,7 +62,7 @@ export default function AnimatePdfPage() {
       setPdfSummary(analysisResult.summary);
       toast({
         title: "PDF Analysis Complete",
-        description: "Summary extracted successfully. Generating animation scenario...",
+        description: "Summary extracted. Generating animation scenario...",
       });
       setStep("generatingScenario");
     } catch (error) {
@@ -68,7 +72,7 @@ export default function AnimatePdfPage() {
         description: (error as Error).message || "Could not analyze the PDF.",
         variant: "destructive",
       });
-      setStep("upload"); // Revert to upload step
+      setStep("upload");
     }
   };
 
@@ -81,30 +85,74 @@ export default function AnimatePdfPage() {
           setAnimationScenario(scenarioResult.animationScenario);
           
           const frames = scenarioResult.animationScenario
-            .split(/\n\s*\n/) // Split by one or more empty lines
+            .split(/\n\s*\n/) 
             .map(frame => frame.trim())
             .filter(frame => frame.length > 0);
           
           setStoryboardFrames(frames);
+          setStoryboardImages(Array(frames.length).fill(null)); // Initialize with nulls
           setCurrentFrameIndex(0);
           toast({
             title: "Animation Scenario Generated",
-            description: "You can now preview the animation.",
+            description: "Now generating images for each frame...",
           });
-          setStep("ready");
+          setStep("generatingImages");
         } catch (error) {
           console.error("Scenario Generation Error:", error);
           toast({
             title: "Scenario Generation Failed",
-            description: (error as Error).message || "Could not generate the animation scenario.",
+            description: (error as Error).message || "Could not generate animation scenario.",
             variant: "destructive",
           });
-          setStep("upload"); // Revert or allow re-analysis/re-generation
+          setStep("upload"); 
         }
       };
       generateScenario();
     }
   }, [step, pdfSummary, toast]);
+
+  useEffect(() => {
+    if (step === "generatingImages" && storyboardFrames.length > 0) {
+      const generateAllImages = async () => {
+        toast({
+          title: "Generating Frame Images",
+          description: `Creating visuals for ${storyboardFrames.length} frames. This may take some time...`,
+        });
+
+        const imageGenerationPromises = storyboardFrames.map(async (description, index) => {
+          try {
+            const imageInput: GenerateFrameImageInput = { frameDescription: description };
+            const imageResult = await generateFrameImage(imageInput);
+            setStoryboardImages(prevImages => {
+              const newImages = [...prevImages];
+              if (index < newImages.length) {
+                newImages[index] = imageResult.imageDataUri;
+              }
+              return newImages;
+            });
+          } catch (error) {
+            console.error(`Error generating image for frame ${index + 1}:`, error);
+            // Image will remain null, AnimationPreview will show placeholder
+            toast({
+                title: `Image Gen Error (Frame ${index + 1})`,
+                description: (error as Error).message || "Could not generate image for this frame.",
+                variant: "destructive",
+            });
+          }
+        });
+
+        await Promise.allSettled(imageGenerationPromises);
+        
+        toast({
+          title: "Image Generation Complete!",
+          description: "All frame images processed. Your animation is ready to preview.",
+        });
+        setStep("ready");
+      };
+      generateAllImages();
+    }
+  }, [step, storyboardFrames, toast]);
+
 
   const handlePlay = useCallback(() => {
     if (storyboardFrames.length > 0 && currentFrameIndex < storyboardFrames.length -1) {
@@ -144,11 +192,11 @@ export default function AnimatePdfPage() {
           if (prev < storyboardFrames.length - 1) {
             return prev + 1;
           }
-          setIsPlaying(false); // Stop at the end
+          setIsPlaying(false); 
           if (playerIntervalRef.current) clearInterval(playerIntervalRef.current);
           return prev;
         });
-      }, 3000); // 3 seconds per frame
+      }, 3000); 
     } else {
       if (playerIntervalRef.current) {
         clearInterval(playerIntervalRef.current);
@@ -163,7 +211,9 @@ export default function AnimatePdfPage() {
   }, [isPlaying, storyboardFrames.length]);
 
 
-  const isLoading = step === "analyzing" || step === "generatingScenario";
+  const isLoading = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
+  const isProcessing = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
+
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 md:p-8 space-y-8 font-body">
@@ -183,16 +233,23 @@ export default function AnimatePdfPage() {
           </section>
         )}
 
-        {(step === "analyzing" || step === "generatingScenario") && (
+        {isProcessing && (
           <Alert className="max-w-lg mx-auto shadow-md">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            {step === "analyzing" && <FileText className="h-5 w-5 animate-pulse text-primary" />}
+            {step === "generatingScenario" && <Sparkles className="h-5 w-5 animate-spin text-primary" />}
+            {step === "generatingImages" && <ImageIcon className="h-5 w-5 animate-spin text-primary" />}
+            {!["analyzing", "generatingScenario", "generatingImages"].includes(step) && <Loader2 className="h-5 w-5 animate-spin text-primary" /> }
+
+
             <AlertTitle className="font-headline">
-              {step === "analyzing" ? "Analyzing PDF" : "Generating Scenario"}
+              {step === "analyzing" && "Analyzing PDF..."}
+              {step === "generatingScenario" && "Generating Scenario..."}
+              {step === "generatingImages" && `Generating Images (${storyboardImages.filter(img => img !== null).length}/${storyboardFrames.length})...`}
             </AlertTitle>
             <AlertDescription>
-              {step === "analyzing"
-                ? "Our AI is reading your PDF and extracting key themes. Please wait..."
-                : "Crafting an engaging animation script based on the PDF summary. Hold tight!"}
+              {step === "analyzing" && "Our AI is reading your PDF and extracting key themes. Please wait..."}
+              {step === "generatingScenario" && "Crafting an engaging animation script based on the PDF summary. Hold tight!"}
+              {step === "generatingImages" && "Our AI is now creating a unique image for each animation frame. This might take a few moments."}
             </AlertDescription>
           </Alert>
         )}
@@ -206,7 +263,12 @@ export default function AnimatePdfPage() {
             <Separator className="my-8" />
 
             <section aria-labelledby="animation-preview-section-title" className="space-y-6">
-              <AnimationPreview frames={storyboardFrames} currentFrameIndex={currentFrameIndex} />
+              <AnimationPreview 
+                frames={storyboardFrames} 
+                storyboardImages={storyboardImages}
+                currentFrameIndex={currentFrameIndex}
+                isGeneratingInitialImages={step === "generatingImages"}
+              />
               <PlaybackControls
                 isPlaying={isPlaying}
                 onPlay={handlePlay}
@@ -217,7 +279,7 @@ export default function AnimatePdfPage() {
                 onReset={handleAnimationReset}
                 currentFrameIndex={currentFrameIndex}
                 totalFrames={storyboardFrames.length}
-                disabled={storyboardFrames.length === 0}
+                disabled={storyboardFrames.length === 0 || step === "generatingImages"}
               />
             </section>
             
