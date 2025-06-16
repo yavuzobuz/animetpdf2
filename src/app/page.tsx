@@ -10,7 +10,7 @@ import { AnimationPreview } from '@/components/custom/animation-preview';
 import { PlaybackControls } from '@/components/custom/playback-controls';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Sparkles, FileText, Clapperboard } from "lucide-react";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
