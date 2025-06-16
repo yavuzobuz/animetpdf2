@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { analyzePdf, AnalyzePdfInput, AnalyzePdfOutput } from '@/ai/flows/analyze-pdf';
 import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnimationScenarioOutput } from '@/ai/flows/generate-animation-scenario';
-import { generateFrameImage, GenerateFrameImageInput, GenerateFrameImageOutput } from '@/ai/flows/generate-frame-image-flow';
+import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate-frame-image-flow';
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
 import { ScenarioDisplay } from '@/components/custom/scenario-display';
 import { AnimationPreview } from '@/components/custom/animation-preview';
@@ -27,7 +27,9 @@ export default function AnimatePdfPage() {
   
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfSummary, setPdfSummary] = useState<string | null>(null);
-  const [animationFrames, setAnimationFrames] = useState<AnimationFrameData[] | null>(null);
+  // animationFrames still holds the structured scenario (description + keyTopic per frame)
+  // This is used for image generation and the AnimationPreview component.
+  const [animationFrames, setAnimationFrames] = useState<AnimationFrameData[] | null>(null); 
   
   const [storyboardSceneDescriptions, setStoryboardSceneDescriptions] = useState<string[]>([]);
   const [storyboardKeyTopics, setStoryboardKeyTopics] = useState<string[]>([]);
@@ -95,7 +97,7 @@ export default function AnimatePdfPage() {
             throw new Error("Oluşturulan senaryo kare içermiyor.");
           }
           
-          setAnimationFrames(scenarioResult.frames);
+          setAnimationFrames(scenarioResult.frames); // Store the full scenario data
           setStoryboardSceneDescriptions(scenarioResult.frames.map(f => f.sceneDescription));
           setStoryboardKeyTopics(scenarioResult.frames.map(f => f.keyTopic));
           setStoryboardImages(Array(scenarioResult.frames.length).fill(null));
@@ -261,10 +263,10 @@ export default function AnimatePdfPage() {
           </Alert>
         )}
 
-        {step === "ready" && animationFrames && animationFrames.length > 0 && (
+        {step === "ready" && pdfSummary && storyboardSceneDescriptions.length > 0 && (
           <>
-            <section aria-labelledby="scenario-section-title">
-              <ScenarioDisplay framesData={animationFrames} />
+            <section aria-labelledby="summary-section-title">
+              <ScenarioDisplay pdfSummary={pdfSummary} />
             </section>
             
             <Separator className="my-8" />
@@ -308,4 +310,3 @@ export default function AnimatePdfPage() {
     </div>
   );
 }
-
