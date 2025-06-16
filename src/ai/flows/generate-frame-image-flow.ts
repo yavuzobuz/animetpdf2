@@ -46,7 +46,7 @@ const generateFrameImageFlow = ai.defineFlow(
   async (input: GenerateFrameImageInput) => {
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-exp', // IMPORTANT: Use image generation model
-      prompt: `Generate a visual representation for the following animation scene: ${input.frameDescription}. The image should be clear and illustrative of the key elements. Style: Clean, vibrant, suitable for an explanatory animation.`,
+      prompt: `Generate a PURELY VISUAL representation for the following animation scene description. The image should ONLY contain visual elements and NO TEXT, NO NUMBERS, and NO SCENE LABELS. It must be clear and illustrative of the key elements in the description. Style: Clean, vibrant, suitable for an explanatory animation. Scene description: ${input.frameDescription}`,
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE
         safetySettings: [
