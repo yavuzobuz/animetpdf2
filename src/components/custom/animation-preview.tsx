@@ -1,26 +1,32 @@
 
 "use client";
 
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
+import { Loader2, AlertTriangle, Info } from 'lucide-react';
 
 interface AnimationPreviewProps {
-  sceneDescriptions: string[]; // text descriptions for alt text and frame count
-  currentKeyTopic: string; // Key topic for the current frame
-  storyboardImages: (string | null)[]; // data URIs for images
+  sceneDescriptions: string[]; 
+  currentSceneDescription: string; // Full description for the current frame, for the dialog
+  currentKeyTopic: string; 
+  storyboardImages: (string | null)[]; 
   currentFrameIndex: number;
-  isGeneratingInitialImages: boolean; // True during the bulk "generatingImages" step
+  isGeneratingInitialImages: boolean;
 }
 
 export function AnimationPreview({ 
   sceneDescriptions, 
+  currentSceneDescription,
   currentKeyTopic,
   storyboardImages, 
   currentFrameIndex,
   isGeneratingInitialImages 
 }: AnimationPreviewProps) {
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   if (sceneDescriptions.length === 0 || currentFrameIndex < 0 || currentFrameIndex >= sceneDescriptions.length) {
     return (
@@ -35,7 +41,7 @@ export function AnimationPreview({
     );
   }
 
-  const currentSceneDescription = sceneDescriptions[currentFrameIndex];
+  // const currentSceneDescriptionForDialog = sceneDescriptions[currentFrameIndex]; // Already passed as prop
   const currentImageUrl = storyboardImages[currentFrameIndex];
   const isLoadingThisFrameImage = isGeneratingInitialImages && !currentImageUrl;
 
@@ -55,7 +61,7 @@ export function AnimationPreview({
           ) : currentImageUrl ? (
             <Image
               src={currentImageUrl}
-              alt={`Animasyon karesi ${currentFrameIndex + 1}: ${currentSceneDescription.substring(0, 100)}...`}
+              alt={`Animasyon karesi ${currentFrameIndex + 1}: ${sceneDescriptions[currentFrameIndex]?.substring(0, 100)}...`}
               width={600}
               height={338}
               className="object-contain"
@@ -79,11 +85,40 @@ export function AnimationPreview({
             </div>
           )}
         </div>
-        <ScrollArea className="h-24 w-full rounded-md border p-3 bg-muted/20">
-          <p className="text-sm font-body whitespace-pre-wrap font-semibold text-primary">{currentKeyTopic || "Anahtar konu yükleniyor..."}</p>
-        </ScrollArea>
+
+        <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="link" className="p-0 h-auto text-left w-full block hover:no-underline focus:outline-none">
+              <ScrollArea 
+                className="h-24 w-full rounded-md border p-3 bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors"
+                onClick={() => setIsDetailDialogOpen(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsDetailDialogOpen(true);}}
+                aria-label="Daha fazla detay için tıklayın"
+              >
+                <p className="text-sm font-body whitespace-pre-wrap font-semibold text-primary">{currentKeyTopic || "Anahtar konu yükleniyor..."}</p>
+                <div className="absolute bottom-1 right-1 opacity-60">
+                   <Info size={16} /> <span className="sr-only">Detayları gör</span>
+                </div>
+              </ScrollArea>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="font-headline">Sahne Detayı (Kare {currentFrameIndex + 1})</DialogTitle>
+              <DialogDescription>
+                Bu kare için oluşturulan tam sahne açıklaması.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] mt-4 pr-3">
+              <p className="text-sm whitespace-pre-wrap">{currentSceneDescription}</p>
+            </ScrollArea>
+            <Button onClick={() => setIsDetailDialogOpen(false)} variant="outline" className="mt-4">Kapat</Button>
+          </DialogContent>
+        </Dialog>
+
       </CardContent>
     </Card>
   );
 }
-

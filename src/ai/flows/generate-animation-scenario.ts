@@ -3,7 +3,7 @@
 'use server';
 /**
  * @fileOverview Generates an animation scenario (script) in Turkish based on a given text summary,
- * including a scene description and a key topic for each frame.
+ * including a scene description (with metaphors) and a key topic for each frame.
  *
  * - generateAnimationScenario - A function that generates the animation scenario in Turkish.
  * - GenerateAnimationScenarioInput - The input type for the generateAnimationScenario function.
@@ -24,8 +24,8 @@ export type GenerateAnimationScenarioInput = z.infer<
 >;
 
 const AnimationFrameSchema = z.object({
-  sceneDescription: z.string().describe('Sahnenin Türkçe dilinde detaylı açıklaması. Görsel öğeler, karakter eylemleri (varsa) ve o sahne için önemli mesajlar veya anlatım içermelidir.'),
-  keyTopic: z.string().describe('Bu sahnenin Türkçe dilindeki anahtar konusu; kısa, öz ve etkili olmalıdır.')
+  sceneDescription: z.string().describe('Sahnenin Türkçe dilinde detaylı açıklaması. Görsel öğeler, karakter eylemleri (varsa), o sahne için önemli mesajlar veya anlatım içermelidir. Karmaşık kavramları açıklamak için basit metaforlar (örneğin, işbirliğini bir yapbozun parçaları olarak göstermek gibi) ve ikon fikirleri kullanmaya çalışın.'),
+  keyTopic: z.string().describe('Bu sahnenin Türkçe dilindeki anahtar konusu; kısa, öz ve etkili olmalıdır. Bu, animasyon adımı için kısa bir metinsel açıklama görevi görür.')
 });
 
 const GenerateAnimationScenarioOutputSchema = z.object({
@@ -48,26 +48,26 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateAnimationScenarioOutputSchema},
   prompt: `You are an expert scenario writer for animated videos. Your task is to create a structured animation script IN TURKISH based on the provided PDF summary (also in Turkish).
 The output MUST be a JSON array of objects. Each object in the array represents a single animation frame and MUST contain two string properties:
-1.  'sceneDescription': A detailed description of the scene in Turkish. This should provide enough detail for an animator to visualize and create the scene, including visual elements, character actions (if any), and key messages or narration for that scene.
-2.  'keyTopic': A concise and impactful key topic or main takeaway for that specific scene, also in Turkish. This will be displayed prominently with the frame.
+1.  'sceneDescription': A detailed description of the scene in Turkish. This should provide enough detail for an animator to visualize and create the scene, including visual elements, character actions (if any), key messages or narration for that scene. IMPORTANT: Where possible, suggest simple metaphors or icon ideas to explain complex concepts (e.g., "ortaklığı bir el sıkışma ikonu ile gösterin" or "verimliliği hızla dönen bir dişli metaforuyla anlatın").
+2.  'keyTopic': A concise and impactful key topic or main takeaway for that specific scene, also in Turkish. This will serve as a brief textual explanation for the animation step and will be displayed prominently with the frame.
 
 Example of the required JSON output format (in Turkish):
 [
   {
-    "sceneDescription": "Sahne 1: Kalabalık bir şehir caddesinin geniş açılı çekimi. Arabalar hareket ediyor, insanlar yürüyor. Anlatıcı: 'Dünya sürekli değişiyor...'",
+    "sceneDescription": "Sahne 1: Kalabalık bir şehir caddesinin geniş açılı çekimi. Arabalar hareket ediyor, insanlar yürüyor. Anlatıcı: 'Dünya sürekli değişiyor...' Belki bir zamanlayıcı ikonu kullanılabilir.",
     "keyTopic": "Sürekli Değişim ve Hareket"
   },
   {
-    "sceneDescription": "Sahne 2: Bir mikroskoba bakan bir bilim insanının yakın çekimi. Bilim İnsanı (V.O.): 'Ve bu değişimin merkezinde yenilik var.'",
+    "sceneDescription": "Sahne 2: Bir mikroskoba bakan bir bilim insanının yakın çekimi. Bilim İnsanı (V.O.): 'Ve bu değişimin merkezinde yenilik var.' Yeniliği parlayan bir ampul metaforuyla gösterebiliriz.",
     "keyTopic": "Yeniliğin Merkezi Rolü"
   },
   {
-    "sceneDescription": "Sahne 3: Parlak bir ampulün yavaşça aydınlanması, fikir ve buluşu simgeliyor. Anlatıcı: 'Her fikir, bir ışık yakar.'",
-    "keyTopic": "Fikirlerin Aydınlatıcı Gücü"
+    "sceneDescription": "Sahne 3: Büyüyen bir filizi gösteren bir metafor, gelişimi simgeliyor. Anlatıcı: 'Her fikir, bir ışık yakar, bir tohum eker.'",
+    "keyTopic": "Fikirlerin Büyüme Potansiyeli"
   }
 ]
 
-Now, based on the following summary (in Turkish), generate the animation scenario as a JSON array IN TURKISH, strictly following the format described above:
+Now, based on the following summary (in Turkish), generate the animation scenario as a JSON array IN TURKISH, strictly following the format described above, incorporating metaphors and icon suggestions in 'sceneDescription' where appropriate:
 
 Summary (Özet):
 {{{pdfSummary}}}
@@ -90,4 +90,3 @@ const generateAnimationScenarioFlow = ai.defineFlow(
     return output;
   }
 );
-
