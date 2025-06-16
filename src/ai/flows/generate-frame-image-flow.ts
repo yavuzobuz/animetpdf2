@@ -66,10 +66,6 @@ const generateFrameImageFlow = ai.defineFlow(
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
             threshold: 'BLOCK_NONE',
           },
-          {
-            category: 'HARM_CATEGORY_CIVIC_INTEGRITY', // Added this category
-            threshold: 'BLOCK_NONE',
-          },
         ]
       },
     });
