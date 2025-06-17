@@ -11,8 +11,9 @@ import { Loader2, AlertTriangle, Info } from 'lucide-react';
 
 interface AnimationPreviewProps {
   sceneDescriptions: string[]; 
-  currentSceneDescription: string; // Full description for the current frame, for the dialog
+  currentSceneDescription: string; 
   currentKeyTopic: string; 
+  currentFrameSummary: string;
   storyboardImages: (string | null)[]; 
   currentFrameIndex: number;
   isGeneratingInitialImages: boolean;
@@ -22,6 +23,7 @@ export function AnimationPreview({
   sceneDescriptions, 
   currentSceneDescription,
   currentKeyTopic,
+  currentFrameSummary,
   storyboardImages, 
   currentFrameIndex,
   isGeneratingInitialImages 
@@ -41,7 +43,6 @@ export function AnimationPreview({
     );
   }
 
-  // const currentSceneDescriptionForDialog = sceneDescriptions[currentFrameIndex]; // Already passed as prop
   const currentImageUrl = storyboardImages[currentFrameIndex];
   const isLoadingThisFrameImage = isGeneratingInitialImages && !currentImageUrl;
 
@@ -61,7 +62,7 @@ export function AnimationPreview({
           ) : currentImageUrl ? (
             <Image
               src={currentImageUrl}
-              alt={`Animasyon karesi ${currentFrameIndex + 1}: ${sceneDescriptions[currentFrameIndex]?.substring(0, 100)}...`}
+              alt={`Animasyon karesi ${currentFrameIndex + 1}: ${currentKeyTopic}`}
               width={600}
               height={338}
               className="object-contain"
@@ -88,27 +89,28 @@ export function AnimationPreview({
 
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="link" className="p-0 h-auto text-left w-full block hover:no-underline focus:outline-none">
-              <ScrollArea 
-                className="h-24 w-full rounded-md border p-3 bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors"
-                onClick={() => setIsDetailDialogOpen(true)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsDetailDialogOpen(true);}}
-                aria-label="Daha fazla detay için tıklayın"
-              >
-                <p className="text-sm font-body whitespace-pre-wrap font-semibold text-primary">{currentKeyTopic || "Anahtar konu yükleniyor..."}</p>
-                <div className="absolute bottom-1 right-1 opacity-60">
-                   <Info size={16} /> <span className="sr-only">Detayları gör</span>
-                </div>
+            <div 
+              className="w-full rounded-md border p-3 bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors relative"
+              onClick={() => setIsDetailDialogOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsDetailDialogOpen(true);}}
+              aria-label="Daha fazla detay için tıklayın"
+            >
+              <h4 className="text-md font-headline font-semibold text-primary mb-1">{currentKeyTopic || "Anahtar konu yükleniyor..."}</h4>
+              <ScrollArea className="h-16"> {/* Adjust height as needed */}
+                <p className="text-sm font-body whitespace-pre-wrap text-foreground/80">{currentFrameSummary || "Açıklama yükleniyor..."}</p>
               </ScrollArea>
-            </Button>
+              <div className="absolute bottom-1 right-1 opacity-60">
+                 <Info size={16} /> <span className="sr-only">Detayları gör (tam sahne açıklaması)</span>
+              </div>
+            </div>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle className="font-headline">Sahne Detayı (Kare {currentFrameIndex + 1})</DialogTitle>
+              <DialogTitle className="font-headline">Tam Sahne Açıklaması (Kare {currentFrameIndex + 1})</DialogTitle>
               <DialogDescription>
-                Bu kare için oluşturulan tam sahne açıklaması.
+                Bu kare için yapay zeka tarafından oluşturulan detaylı sahne açıklaması.
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="max-h-[60vh] mt-4 pr-3">
@@ -122,3 +124,4 @@ export function AnimationPreview({
     </Card>
   );
 }
+

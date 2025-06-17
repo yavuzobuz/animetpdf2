@@ -24,6 +24,7 @@ type AppStep = "upload" | "analyzing" | "generatingScenario" | "generatingImages
 interface AnimationFrameData {
   sceneDescription: string;
   keyTopic: string;
+  frameSummary: string; 
 }
 
 export default function AnimatePdfPage() {
@@ -35,6 +36,7 @@ export default function AnimatePdfPage() {
   
   const [storyboardSceneDescriptions, setStoryboardSceneDescriptions] = useState<string[]>([]);
   const [storyboardKeyTopics, setStoryboardKeyTopics] = useState<string[]>([]);
+  const [storyboardFrameSummaries, setStoryboardFrameSummaries] = useState<string[]>([]);
   const [storyboardImages, setStoryboardImages] = useState<(string | null)[]>([]);
   const [qaPairs, setQaPairs] = useState<QAPair[] | null>(null);
   
@@ -52,6 +54,7 @@ export default function AnimatePdfPage() {
     setAnimationFrames(null);
     setStoryboardSceneDescriptions([]);
     setStoryboardKeyTopics([]);
+    setStoryboardFrameSummaries([]);
     setStoryboardImages([]);
     setQaPairs(null);
     setCurrentFrameIndex(0);
@@ -70,6 +73,7 @@ export default function AnimatePdfPage() {
     setAnimationFrames(null);
     setStoryboardSceneDescriptions([]);
     setStoryboardKeyTopics([]);
+    setStoryboardFrameSummaries([]);
     setStoryboardImages([]);
     setQaPairs(null);
     setCurrentFrameIndex(0);
@@ -110,9 +114,12 @@ export default function AnimatePdfPage() {
           setAnimationFrames(scenarioResult.frames);
           const newSceneDescriptions = scenarioResult.frames.map(f => f.sceneDescription);
           const newKeyTopics = scenarioResult.frames.map(f => f.keyTopic);
+          const newFrameSummaries = scenarioResult.frames.map(f => f.frameSummary);
+
 
           setStoryboardSceneDescriptions(newSceneDescriptions);
           setStoryboardKeyTopics(newKeyTopics);
+          setStoryboardFrameSummaries(newFrameSummaries);
           setStoryboardImages(Array(scenarioResult.frames.length).fill(null));
           setCurrentFrameIndex(0);
 
@@ -127,7 +134,7 @@ export default function AnimatePdfPage() {
           generateQa({ pdfSummary })
             .then(qaResult => {
               setQaPairs(qaResult.qaPairs);
-              toast({ // This toast is optional or can be combined if image gen is also done
+              toast({ 
                 title: "Mini Test Oluşturuldu",
                 description: "Sorular ve cevaplar hazır!",
               });
@@ -158,7 +165,7 @@ export default function AnimatePdfPage() {
 
   useEffect(() => {
     if (step === "generatingImages" && storyboardSceneDescriptions.length > 0 && !imageGenerationStarted) {
-      setImageGenerationStarted(true); // Mark as started to prevent re-triggering
+      setImageGenerationStarted(true); 
       const generateAllImages = async () => {
         toast({
           title: "Kare Görselleri ve Mini Test Hazırlanıyor",
@@ -311,6 +318,7 @@ export default function AnimatePdfPage() {
                 sceneDescriptions={storyboardSceneDescriptions}
                 currentSceneDescription={storyboardSceneDescriptions[currentFrameIndex] || ""}
                 currentKeyTopic={storyboardKeyTopics[currentFrameIndex] || ""}
+                currentFrameSummary={storyboardFrameSummaries[currentFrameIndex] || ""}
                 storyboardImages={storyboardImages}
                 currentFrameIndex={currentFrameIndex}
                 isGeneratingInitialImages={step === "generatingImages"}
