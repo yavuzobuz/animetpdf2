@@ -2,9 +2,17 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle, Info } from 'lucide-react'; // Info ikonu eklendi
+import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle, Info, Languages } from 'lucide-react'; // Info ve Languages ikonları eklendi
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const PdfAnimateLogo = () => (
   <svg
@@ -61,7 +69,7 @@ export function Navbar() {
     { href: "/", label: "Ana Sayfa", icon: <Home className="mr-2 h-5 w-5" /> },
     { href: "/animate", label: "Anime Et", icon: <Film className="mr-2 h-5 w-5" /> },
     { href: "/faq", label: "SSS", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
-    { href: "/about", label: "Hakkımızda", icon: <Info className="mr-2 h-5 w-5" /> }, // Hakkımızda linki eklendi
+    { href: "/about", label: "Hakkımızda", icon: <Info className="mr-2 h-5 w-5" /> },
     { href: "/login", label: "Giriş Yap", icon: <LogIn className="mr-2 h-5 w-5" /> },
     { href: "/signup", label: "Kayıt Ol", icon: <UserPlus className="mr-2 h-5 w-5" /> },
   ];
@@ -76,49 +84,76 @@ export function Navbar() {
           </Button>
         </Link>
 
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Menüyü Aç</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="top" className="w-full bg-primary text-foreground p-0 border-b-primary-dark/50">
-            <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-foreground/20">
-              <SheetTitle asChild>
-                <Link href="/" passHref>
-                  <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
-                    <PdfAnimateLogo />
-                    AnimatePDF
+        <div className="flex items-center space-x-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
+                <Languages className="h-6 w-6" />
+                <span className="sr-only">Dil Seçin</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-primary border-primary-dark/30 text-foreground">
+              <DropdownMenuLabel className="text-foreground/80">Dil Seçin</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-foreground/20" />
+              <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer">
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer">
+                Türkçe
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer" disabled>
+                Français (Yakında)
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer" disabled>
+                Deutsch (Yakında)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Menüyü Aç</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="top" className="w-full bg-primary text-foreground p-0 border-b-primary-dark/50">
+              <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-foreground/20">
+                <SheetTitle asChild>
+                  <Link href="/" passHref>
+                    <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
+                      <PdfAnimateLogo />
+                      AnimatePDF
+                    </Button>
+                  </Link>
+                </SheetTitle>
+                <SheetClose asChild>
+                  <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
+                    <X className="h-6 w-6" />
+                    <span className="sr-only">Menüyü Kapat</span>
                   </Button>
-                </Link>
-              </SheetTitle>
-              <SheetClose asChild>
-                <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
-                  <X className="h-6 w-6" />
-                  <span className="sr-only">Menüyü Kapat</span>
-                </Button>
-              </SheetClose>
-            </SheetHeader>
-            <div className="p-4">
-              <ul className="space-y-2">
-                {navLinks.map((item) => (
-                  <li key={item.label}>
-                    <SheetClose asChild>
-                       <Link
-                        href={item.href}
-                        className="flex items-center text-md font-medium text-foreground hover:text-foreground hover:bg-background/10 transition-colors px-3 py-3 rounded-md w-full"
-                      >
-                        {item.icon}
-                        {item.label}
-                      </Link>
-                    </SheetClose>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </SheetContent>
-        </Sheet>
+                </SheetClose>
+              </SheetHeader>
+              <div className="p-4">
+                <ul className="space-y-2">
+                  {navLinks.map((item) => (
+                    <li key={item.label}>
+                      <SheetClose asChild>
+                        <Link
+                          href={item.href}
+                          className="flex items-center text-md font-medium text-foreground hover:text-foreground hover:bg-background/10 transition-colors px-3 py-3 rounded-md w-full"
+                        >
+                          {item.icon}
+                          {item.label}
+                        </Link>
+                      </SheetClose>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </nav>
   );
