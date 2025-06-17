@@ -46,7 +46,7 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 space-y-8 font-body bg-background">
       <AnimatedSection tag="div" className="w-full max-w-md">
-        <Card className="w-full animate-border-glow transition-all duration-300">
+        <Card className="w-full transition-all duration-300">
           <CardHeader className="text-center">
             <LogIn className="h-12 w-12 mx-auto text-primary mb-2" />
             <CardTitle className="text-3xl font-bold font-headline text-primary">Giriş Yap</CardTitle>
@@ -82,7 +82,7 @@ export default function LoginPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full text-primary-foreground text-lg py-6 rounded-lg animate-border-glow transition-all duration-300 bg-gradient-to-br from-primary-dark to-primary"
+                className="w-full text-primary-foreground text-lg py-6 rounded-lg transition-all duration-300 bg-gradient-to-br from-primary-dark to-primary"
                 disabled={isLoading}
               >
                 {isLoading ? (
