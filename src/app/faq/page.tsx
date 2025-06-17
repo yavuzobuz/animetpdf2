@@ -6,12 +6,13 @@ import React, { useState, useRef, useEffect, FormEvent } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AnimatedSection from '@/components/custom/animated-section';
-import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2 } from 'lucide-react';
+import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 
 import { faqChat, type FaqChatInput, type FaqChatOutput } from '@/ai/flows/faq-chat-flow';
 
@@ -71,7 +72,6 @@ const faqItems = [
   }
 ];
 
-// Helper function to stringify FAQ content for the chatbot
 const getFaqContentAsString = (): string => {
   return faqItems.map(item => `Soru: ${item.question}\nCevap: ${item.answer}`).join('\n\n');
 };
@@ -80,6 +80,7 @@ export default function FaqPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [isChatbotDialogOpen, setIsChatbotDialogOpen] = useState(false);
   const { toast } = useToast();
   const chatScrollAreaRef = useRef<HTMLDivElement>(null);
   const [faqContentString] = useState(getFaqContentAsString());
@@ -94,8 +95,10 @@ export default function FaqPage() {
   };
 
   useEffect(() => {
-    scrollToChatBottom();
-  }, [chatMessages]);
+    if(isChatbotDialogOpen){
+        setTimeout(scrollToChatBottom, 100); // Allow dialog to render
+    }
+  }, [chatMessages, isChatbotDialogOpen]);
 
   const handleChatSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -143,82 +146,6 @@ export default function FaqPage() {
         </div>
       </AnimatedSection>
 
-       <AnimatedSection sectionId="faq-chatbot" className="py-8 md:py-12 bg-background" delay="delay-50">
-        <div className="container mx-auto px-6 max-w-3xl">
-          <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-2xl font-headline flex items-center text-primary">
-                <MessageSquare className="mr-2 h-6 w-6" /> SSS Chatbot
-              </CardTitle>
-              <CardDescription>
-                Aşağıdaki SSS listesindeki bilgilere dayanarak sorularınızı yanıtlayabilirim.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64 w-full rounded-md border p-3 bg-muted/20" ref={chatScrollAreaRef}>
-                {chatMessages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <Bot size={48} className="mb-2 opacity-50" />
-                    <p>Sorularınızı bekliyorum...</p>
-                  </div>
-                )}
-                {chatMessages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-start gap-3 my-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {msg.sender === 'bot' && (
-                      <div className="flex-shrink-0 p-2 bg-primary text-primary-foreground rounded-full shadow">
-                        <Bot size={18} />
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[75%] p-3 rounded-lg shadow-md ${
-                        msg.sender === 'user'
-                          ? 'bg-accent text-accent-foreground rounded-br-none'
-                          : 'bg-card text-card-foreground rounded-bl-none'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                    </div>
-                    {msg.sender === 'user' && (
-                      <div className="flex-shrink-0 p-2 bg-secondary text-secondary-foreground rounded-full shadow">
-                         <User size={18} />
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {isChatLoading && (
-                   <div className="flex justify-start gap-3 my-3">
-                      <div className="flex-shrink-0 p-2 bg-primary text-primary-foreground rounded-full shadow">
-                        <Bot size={18} />
-                      </div>
-                      <div className="max-w-[75%] p-3 rounded-lg shadow-md bg-card text-card-foreground rounded-bl-none">
-                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      </div>
-                  </div>
-                )}
-              </ScrollArea>
-              <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2">
-                <Input
-                  type="text"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder="Sorunuzu buraya yazın..."
-                  className="flex-grow shadow-sm focus:ring-primary focus:border-primary"
-                  disabled={isChatLoading}
-                  aria-label="SSS Chatbot sorusu"
-                />
-                <Button type="submit" disabled={isChatLoading || !userInput.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow hover:shadow-md">
-                  {isChatLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  <span className="sr-only">Gönder</span>
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </AnimatedSection>
-
       <AnimatedSection sectionId="faq-content" className="py-12 md:py-16 bg-background" delay="delay-100">
         <div className="container mx-auto px-6 max-w-3xl">
           <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
@@ -243,6 +170,98 @@ export default function FaqPage() {
           </Card>
         </div>
       </AnimatedSection>
+
+      <Dialog open={isChatbotDialogOpen} onOpenChange={setIsChatbotDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 animate-bounce"
+            aria-label="SSS Asistanını Aç"
+          >
+            <MessageSquare className="h-7 w-7" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[500px] p-0">
+          <Card className="w-full shadow-none border-none rounded-lg">
+            <DialogHeader className="p-4 border-b">
+              <DialogTitle className="text-xl font-headline flex items-center text-primary">
+                <Bot className="mr-2 h-6 w-6" /> SSS Asistanı
+              </DialogTitle>
+              <DialogDescription>
+                Sorularınızı yanıtlamak için buradayım. Sadece aşağıdaki SSS listesindeki bilgilere dayanarak cevap verebilirim.
+              </DialogDescription>
+            </DialogHeader>
+            <CardContent className="p-4">
+              <ScrollArea className="h-72 w-full rounded-md border p-3 bg-muted/20" ref={chatScrollAreaRef}>
+                {chatMessages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <Bot size={48} className="mb-2 opacity-50" />
+                    <p>Sorularınızı bekliyorum...</p>
+                  </div>
+                )}
+                {chatMessages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-start gap-3 my-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {msg.sender === 'bot' && (
+                      <div className="flex-shrink-0 p-2 bg-primary text-primary-foreground rounded-full shadow">
+                        <Bot size={18} />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[85%] p-3 rounded-lg shadow-md ${
+                        msg.sender === 'user'
+                          ? 'bg-accent text-accent-foreground rounded-br-none'
+                          : 'bg-card text-card-foreground rounded-bl-none border'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                    </div>
+                    {msg.sender === 'user' && (
+                      <div className="flex-shrink-0 p-2 bg-secondary text-secondary-foreground rounded-full shadow">
+                         <User size={18} />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isChatLoading && (
+                   <div className="flex justify-start gap-3 my-3">
+                      <div className="flex-shrink-0 p-2 bg-primary text-primary-foreground rounded-full shadow">
+                        <Bot size={18} />
+                      </div>
+                      <div className="max-w-[85%] p-3 rounded-lg shadow-md bg-card text-card-foreground rounded-bl-none border">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      </div>
+                  </div>
+                )}
+              </ScrollArea>
+              <form onSubmit={handleChatSubmit} className="mt-4 flex items-center gap-2">
+                <Input
+                  type="text"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  placeholder="Sorunuzu buraya yazın..."
+                  className="flex-grow shadow-sm focus:ring-primary focus:border-primary"
+                  disabled={isChatLoading}
+                  aria-label="SSS Chatbot sorusu"
+                />
+                <Button type="submit" disabled={isChatLoading || !userInput.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow hover:shadow-md">
+                  {isChatLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  <span className="sr-only">Gönder</span>
+                </Button>
+              </form>
+            </CardContent>
+             <div className="p-4 border-t flex justify-end">
+                <DialogClose asChild>
+                    <Button variant="outline">Kapat</Button>
+                </DialogClose>
+            </div>
+          </Card>
+        </DialogContent>
+      </Dialog>
+
 
       <footer className="relative w-full mt-auto bg-primary text-foreground">
         <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
@@ -293,3 +312,6 @@ export default function FaqPage() {
     </div>
   );
 }
+
+
+    
