@@ -29,14 +29,14 @@ export default function AboutPage() {
           <div className="container mx-auto px-6 max-w-3xl">
             {/* Card bileşeni kaldırıldı, içerik doğrudan section'ın arka planını kullanacak */}
             <div className="mb-6"> {/* Başlık için bir sarmalayıcı */}
-              <h2 className="text-2xl font-headline text-primary">AnimatePDF & Zubo Bilişim</h2>
+              <h2 className="text-2xl font-headline text-primary-dark">AnimatePDF & Zubo Bilişim</h2>
             </div>
             <div className="space-y-6 text-foreground/80 text-lg">
               <p className="text-justify">
                 AnimatePDF, karmaşık bilgileri anlaşılır ve etkileşimli deneyimlere dönüştürme vizyonuyla geliştirilmiş bir projedir.
                 Amacımız, yapay zeka teknolojilerini kullanarak öğrenme ve bilgi paylaşım süreçlerini daha verimli ve keyifli hale getirmektir.
               </p>
-              <p className="font-semibold text-primary text-justify">
+              <p className="font-semibold text-primary-dark text-justify">
                 AnimatePDF bir <span className="text-foreground font-bold">Zubo Bilişim</span> ürünüdür.
               </p>
               <p className="text-justify">
