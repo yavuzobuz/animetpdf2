@@ -48,15 +48,14 @@ const generateFrameImageFlow = ai.defineFlow(
     outputSchema: GenerateFrameImageOutputSchema,
   },
   async (input: GenerateFrameImageInput) => {
-    let promptText = `Generate a PURELY VISUAL representation for the following animation scene description. The image should ONLY contain visual elements and NO TEXT, NO NUMBERS, and NO SCENE LABELS. If the description suggests metaphors or icons (e.g., 'a handshake icon for partnership', 'a growing plant for development'), try to incorporate these visual ideas. It must be clear and illustrative of the key elements in the description.`;
-
+    let styleInstruction = "";
     if (input.animationStyle && input.animationStyle.trim() !== "") {
-      promptText += ` Visual Style: ${input.animationStyle}.`;
+      styleInstruction = `Visual Style: ${input.animationStyle}.`;
     } else {
-      // Default style if not provided or empty
-      promptText += ` Visual Style: Clean, vibrant, suitable for an explanatory animation.`;
+      styleInstruction = `Visual Style: Clean, vibrant, suitable for an explanatory animation.`;
     }
-    promptText += ` Scene description: ${input.frameDescription}`;
+
+    const promptText = `Your primary goal is to generate an image for an animation frame. CRUCIAL INSTRUCTION: The image MUST be purely visual. It MUST NOT contain any text, letters, words, numbers, or any form of writing. Generate ONLY visual elements. Depict the scene based on the following description, using metaphors and icons if suggested. ${styleInstruction} Scene description: ${input.frameDescription}. IMPORTANT REMINDER: Absolutely NO TEXT or writing in the image.`;
 
     const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash-exp', 
