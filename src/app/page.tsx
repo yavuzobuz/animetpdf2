@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github } from 'lucide-react';
+import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github, Volume2 } from 'lucide-react';
 import AnimatedSection from '@/components/custom/animated-section';
 import { Separator } from '@/components/ui/separator';
 
@@ -28,6 +28,11 @@ export default function LandingPage() {
       description: "Her senaryo adımı için yapay zeka ile benzersiz ve konsepte uygun görseller üretilir, anlatımınızı güçlendirir.",
     },
     {
+      icon: <Volume2 className="h-10 w-10 text-primary mb-4" />,
+      title: "Otomatik Türkçe Seslendirme",
+      description: "Animasyon karelerindeki anahtar konular için doğal ve akıcı Türkçe seslendirmeler oluşturarak içeriğinizi daha erişilebilir hale getirin.",
+    },
+    {
       icon: <MousePointerClick className="h-10 w-10 text-primary mb-4" />,
       title: "İnteraktif Detay Keşfi",
       description: "Animasyon karelerindeki anahtar konulara tıklayarak, o sahnenin detaylı açıklamalarını ve arka planını keşfedin.",
@@ -39,15 +44,15 @@ export default function LandingPage() {
     },
     {
       icon: <MessageSquareText className="h-10 w-10 text-primary mb-4" />,
-      title: "Tamamen Türkçe İçerik",
-      description: "Uygulama içerisindeki tüm özetler, senaryolar, açıklamalar ve testler akıcı ve doğal bir Türkçe ile sunulur.",
-    }
+      title: "PDF İçeriğiyle İnteraktif Sohbet",
+      description: "Yapay zeka destekli sohbet botu ile PDF özetiniz hakkında sorular sorun, önemli bilgileri hızla bulun ve içeriği daha derinlemesine anlayın.",
+    },
   ];
 
   const howItWorksSteps = [
     { icon: <UploadCloud className="h-12 w-12 text-primary mx-auto mb-4" />, title: "1. PDF Yükle", description: "Animasyona dönüştürmek istediğiniz PDF dosyasını seçin ve güvenle yükleyin." },
     { icon: <Cpu className="h-12 w-12 text-primary mx-auto mb-4" />, title: "2. Yapay Zeka Analizi", description: "Gelişmiş yapay zekamız belgenizi anında analiz eder, Türkçe özetler ve senaryo için hazırlar." },
-    { icon: <Film className="h-12 w-12 text-primary mx-auto mb-4" />, title: "3. Otomatik Oluşturma", description: "Özetlenmiş içerikten hareketle animasyon senaryosu, kare görselleri ve mini testler otomatik olarak oluşturulur." },
+    { icon: <Film className="h-12 w-12 text-primary mx-auto mb-4" />, title: "3. Otomatik Oluşturma", description: "Özetlenmiş içerikten hareketle animasyon senaryosu, kare görselleri, seslendirmeler ve mini testler otomatik olarak oluşturulur." },
     { icon: <Eye className="h-12 w-12 text-primary mx-auto mb-4" />, title: "4. İzle & Etkileşim Kur", description: "Hazırlanan animasyonunuzu izleyin, detayları keşfedin ve interaktif testlerle öğrenmenizi pekiştirin." },
   ];
 
