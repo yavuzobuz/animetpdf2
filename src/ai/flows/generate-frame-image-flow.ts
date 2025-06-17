@@ -58,7 +58,7 @@ const generateFrameImageFlow = ai.defineFlow(
     }
     promptText += ` Scene description: ${input.frameDescription}`;
 
-    const {media} = await ai.generate({
+    const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash-exp', 
       prompt: promptText,
       config: {
@@ -84,10 +84,14 @@ const generateFrameImageFlow = ai.defineFlow(
       },
     });
 
-    if (!media || !media.url) {
-      throw new Error('Image generation failed or returned no media URL.');
+    const mediaParts = response.media;
+
+    if (!mediaParts || mediaParts.length === 0 || !mediaParts[0].url) {
+      console.error("Image generation failed. Full AI response:", JSON.stringify(response, null, 2));
+      throw new Error('Image generation failed or returned no media URL. Check server console for details.');
     }
-    return { imageDataUri: media.url };
+    
+    return { imageDataUri: mediaParts[0].url };
   }
 );
 
