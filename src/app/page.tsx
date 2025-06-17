@@ -142,47 +142,51 @@ export default function LandingPage() {
         </div>
       </AnimatedSection>
 
-      <footer className="w-full py-12 border-t border-border mt-auto bg-primary">
-        <div className="container mx-auto px-6">
+      <footer className="relative w-full mt-auto bg-primary text-foreground">
+        {/* Curve Element: Color of the page background, its bottom edge is curved upwards */}
+        <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
+
+        {/* Content Container: Spacing adjusted for the curve */}
+        <div className="relative container mx-auto px-6 pt-28 pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
             <div>
-              <h5 className="font-bold text-lg mb-3 text-foreground font-headline flex items-center">
-                <Clapperboard className="h-6 w-6 mr-2 text-foreground" /> AnimatePDF
+              <h5 className="font-bold text-lg mb-3 font-headline flex items-center">
+                <Clapperboard className="h-6 w-6 mr-2" /> AnimatePDF
               </h5>
-              <p className="text-sm text-foreground">
+              <p className="text-sm">
                 PDF belgelerinizi saniyeler içinde ilgi çekici animasyonlu hikayelere ve interaktif öğrenme deneyimlerine dönüştürün.
               </p>
             </div>
             <div>
-              <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bağlantılar</h5>
+              <h5 className="font-bold text-lg mb-3 font-headline">Bağlantılar</h5>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Hakkımızda</Link></li>
-                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Gizlilik Politikası</Link></li>
-                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Kullanım Koşulları</Link></li>
-                <li><Link href="/animate" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Uygulamayı Kullan</Link></li>
+                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Hakkımızda</Link></li>
+                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Gizlilik Politikası</Link></li>
+                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Kullanım Koşulları</Link></li>
+                <li><Link href="/animate" className="text-sm hover:opacity-80 transition-opacity">Uygulamayı Kullan</Link></li>
               </ul>
             </div>
             <div>
-              <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bizi Takip Edin</h5>
+              <h5 className="font-bold text-lg mb-3 font-headline">Bizi Takip Edin</h5>
               <div className="flex space-x-4">
-                <Link href="#" aria-label="Twitter" className="text-foreground hover:text-foreground/80 transition-colors">
+                <Link href="#" aria-label="Twitter" className="hover:opacity-80 transition-opacity">
                   <Twitter className="h-6 w-6" />
                 </Link>
-                <Link href="#" aria-label="LinkedIn" className="text-foreground hover:text-foreground/80 transition-colors">
+                <Link href="#" aria-label="LinkedIn" className="hover:opacity-80 transition-opacity">
                   <Linkedin className="h-6 w-6" />
                 </Link>
-                <Link href="#" aria-label="GitHub" className="text-foreground hover:text-foreground/80 transition-colors">
+                <Link href="#" aria-label="GitHub" className="hover:opacity-80 transition-opacity">
                   <Github className="h-6 w-6" />
                 </Link>
               </div>
             </div>
           </div>
           <Separator className="mb-8 bg-border/70" />
-          <p className="text-sm text-foreground text-center">
+          <p className="text-sm text-center">
             &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
-            <Sparkles className="inline-block h-4 w-4 mx-1 text-foreground" />
+            <Sparkles className="inline-block h-4 w-4 mx-1" />
             Üretken Yapay Zeka
-            <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-foreground" />
+            <Cpu className="inline-block h-4 w-4 ml-1 mr-1" />
             ile güçlendirilmiştir.
           </p>
         </div>
