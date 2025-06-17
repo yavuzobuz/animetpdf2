@@ -15,7 +15,7 @@ const PdfAnimateLogo = () => (
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="h-14 w-14 mr-2 animate-pulse"
+    className="h-16 w-16 mr-2 animate-pulse"
   >
     {/* Main body - uses currentColor for fill (app's primary color, e.g., light blue) */}
     <rect x="2" y="2" width="46" height="71" rx="7" fill="currentColor" stroke="none" />
