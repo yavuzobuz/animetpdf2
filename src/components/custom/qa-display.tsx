@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, CheckCircle2, XCircle, Info } from "lucide-react";
+import { HelpCircle, CheckCircle2, XCircle, Info, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface QAPair {
@@ -21,32 +21,43 @@ interface QaDisplayProps {
   qaPairs: QAPair[] | null;
 }
 
+interface AnswerData {
+  selectedOption: number;
+  isCorrect: boolean;
+}
+
 interface SingleQaItemProps {
   qaItem: QAPair;
   index: number;
+  onAttempt: (questionIndex: number, selectedOption: number, isCorrect: boolean) => void;
+  answerData?: AnswerData;
 }
 
-function SingleQaItem({ qaItem, index }: SingleQaItemProps) {
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
+function SingleQaItem({ qaItem, index, onAttempt, answerData }: SingleQaItemProps) {
+  const [localSelectedOption, setLocalSelectedOption] = useState<number | null>(null);
+
+  const isAnswered = answerData !== undefined;
+  const displayedSelection = isAnswered ? answerData.selectedOption : localSelectedOption;
+  const isCorrectIfAnswered = isAnswered ? answerData.isCorrect : false;
 
   const handleCheckAnswer = () => {
-    if (selectedOptionIndex !== null) {
-      setIsAnswered(true);
+    if (localSelectedOption !== null && !isAnswered) {
+      const isCorrect = localSelectedOption === qaItem.correctAnswerIndex;
+      onAttempt(index, localSelectedOption, isCorrect);
     }
   };
 
   const getOptionLabelClass = (optionIndex: number) => {
     if (!isAnswered) return "text-foreground";
     if (optionIndex === qaItem.correctAnswerIndex) return "text-green-600 font-semibold";
-    if (optionIndex === selectedOptionIndex && optionIndex !== qaItem.correctAnswerIndex) return "text-red-600 line-through";
+    if (optionIndex === displayedSelection && optionIndex !== qaItem.correctAnswerIndex) return "text-red-600 line-through";
     return "text-muted-foreground";
   };
 
   const getOptionIndicator = (optionIndex: number) => {
     if (!isAnswered) return null;
     if (optionIndex === qaItem.correctAnswerIndex) return <CheckCircle2 className="h-5 w-5 text-green-600 ml-2" />;
-    if (optionIndex === selectedOptionIndex && optionIndex !== qaItem.correctAnswerIndex) return <XCircle className="h-5 w-5 text-red-600 ml-2" />;
+    if (optionIndex === displayedSelection && optionIndex !== qaItem.correctAnswerIndex) return <XCircle className="h-5 w-5 text-red-600 ml-2" />;
     return null;
   };
 
@@ -58,8 +69,8 @@ function SingleQaItem({ qaItem, index }: SingleQaItemProps) {
         </AccordionTrigger>
         <AccordionContent className="space-y-4 px-4 pb-4">
           <RadioGroup
-            value={selectedOptionIndex !== null ? selectedOptionIndex.toString() : undefined}
-            onValueChange={(value) => setSelectedOptionIndex(parseInt(value))}
+            value={displayedSelection !== null ? displayedSelection.toString() : undefined}
+            onValueChange={(value) => !isAnswered && setLocalSelectedOption(parseInt(value))}
             disabled={isAnswered}
             className="space-y-2"
           >
@@ -70,8 +81,8 @@ function SingleQaItem({ qaItem, index }: SingleQaItemProps) {
                   id={`q${index}-opt${optIndex}`}
                   disabled={isAnswered}
                   className={cn(
-                    isAnswered && selectedOptionIndex === optIndex && optIndex === qaItem.correctAnswerIndex && "border-green-500 ring-green-500",
-                    isAnswered && selectedOptionIndex === optIndex && optIndex !== qaItem.correctAnswerIndex && "border-red-500 ring-red-500",
+                    isAnswered && displayedSelection === optIndex && optIndex === qaItem.correctAnswerIndex && "border-green-500 ring-green-500",
+                    isAnswered && displayedSelection === optIndex && optIndex !== qaItem.correctAnswerIndex && "border-red-500 ring-red-500",
                   )}
                 />
                 <Label htmlFor={`q${index}-opt${optIndex}`} className={cn("flex-1 cursor-pointer", getOptionLabelClass(optIndex))}>
@@ -82,23 +93,23 @@ function SingleQaItem({ qaItem, index }: SingleQaItemProps) {
             ))}
           </RadioGroup>
           {!isAnswered && (
-            <Button onClick={handleCheckAnswer} disabled={selectedOptionIndex === null} className="bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-[0_0_15px_hsl(var(--primary)/0.6)] transition-shadow">
+            <Button onClick={handleCheckAnswer} disabled={localSelectedOption === null} className="bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-[0_0_15px_hsl(var(--primary)/0.6)] transition-shadow">
               Cevabı Kontrol Et
             </Button>
           )}
           {isAnswered && (
             <div className={cn(
               "mt-3 p-3 rounded-md text-sm",
-              selectedOptionIndex === qaItem.correctAnswerIndex ? "bg-green-100 border border-green-300 text-green-700" : "bg-red-100 border border-red-300 text-red-700"
+              isCorrectIfAnswered ? "bg-green-100 border border-green-300 text-green-700" : "bg-red-100 border border-red-300 text-red-700"
             )}>
               <div className="flex items-start">
                 <Info className="h-5 w-5 mr-2 mt-0.5 shrink-0" />
                 <div>
                   <p className="font-semibold mb-1">
-                    {selectedOptionIndex === qaItem.correctAnswerIndex ? "Doğru Cevap!" : "Yanlış Cevap."}
+                    {isCorrectIfAnswered ? "Doğru Cevap!" : "Yanlış Cevap."}
                   </p>
                   <p>{qaItem.explanation}</p>
-                  {selectedOptionIndex !== qaItem.correctAnswerIndex && (
+                  {!isCorrectIfAnswered && (
                     <p className="mt-1">Doğru şık: <span className="font-semibold">{qaItem.options[qaItem.correctAnswerIndex]}</span></p>
                   )}
                 </div>
@@ -113,6 +124,15 @@ function SingleQaItem({ qaItem, index }: SingleQaItemProps) {
 
 
 export function QaDisplay({ qaPairs }: QaDisplayProps) {
+  const [answeredMap, setAnsweredMap] = useState<Record<number, AnswerData>>({});
+
+  const handleAttempt = (questionIndex: number, selectedOption: number, isCorrect: boolean) => {
+    setAnsweredMap(prev => ({
+      ...prev,
+      [questionIndex]: { selectedOption, isCorrect }
+    }));
+  };
+
   if (!qaPairs || qaPairs.length === 0) {
     return (
        <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
@@ -126,21 +146,39 @@ export function QaDisplay({ qaPairs }: QaDisplayProps) {
     );
   }
 
+  const numCorrect = Object.values(answeredMap).filter(ans => ans.isCorrect).length;
+  const numAttempted = Object.keys(answeredMap).length;
+
   return (
     <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-headline flex items-center">
           <HelpCircle className="mr-2 h-6 w-6 text-primary" /> Mini Test
         </CardTitle>
-        <CardDescription>Aşağıdaki çoktan seçmeli sorularla konuyu ne kadar anladığınızı test edin.</CardDescription>
+        <CardDescription className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+          <span>Aşağıdaki çoktan seçmeli sorularla konuyu ne kadar anladığınızı test edin.</span>
+          {qaPairs.length > 0 && (
+            <span className="text-sm font-medium text-primary mt-2 sm:mt-0 flex items-center">
+              <Award className="mr-1 h-4 w-4" />
+              Skor: {numCorrect} / {numAttempted} (Toplam: {qaPairs.length})
+            </span>
+          )}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Accordion type="single" collapsible className="w-full space-y-3">
           {qaPairs.map((qa, index) => (
-            <SingleQaItem qaItem={qa} index={index} key={index} />
+            <SingleQaItem 
+              qaItem={qa} 
+              index={index} 
+              key={index} 
+              onAttempt={handleAttempt}
+              answerData={answeredMap[index]}
+            />
           ))}
         </Accordion>
       </CardContent>
     </Card>
   );
 }
+
