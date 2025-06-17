@@ -22,7 +22,7 @@ const pricingContent = {
     freePrice: "$0",
     freeFrequency: "/ay",
     freeFeatures: [
-      "Ayda 1 PDF (max 10 sayfa)",
+      "Ayda 5 PDF (max 5 sayfa/PDF)", // Güncellendi
       "PDF başına max 3 animasyon karesi",
       "Standart görsel kalitesi",
       "Animasyonlarda filigran",
@@ -30,11 +30,11 @@ const pricingContent = {
     ],
     freeButton: "Ücretsiz Başla",
     standardTitle: "Standart Plan",
-    standardPrice: "$14",
+    standardPrice: "$9", // Güncellendi
     standardFrequency: "/ay",
     standardFeatures: [
-      "Ayda 10 PDF (max 50 sayfa/PDF)",
-      "PDF başına max 15 animasyon karesi",
+      "Ayda 10 PDF (max 30 sayfa/PDF)", // Güncellendi
+      "PDF başına max 10 animasyon karesi", // Güncellendi
       "Yüksek kaliteli görseller",
       "Filigransız animasyonlar",
       "Tüm temel interaktif özellikler",
@@ -42,11 +42,11 @@ const pricingContent = {
     ],
     standardButton: "Standart'ı Seç",
     proTitle: "Profesyonel Plan",
-    proPrice: "$32",
+    proPrice: "$19", // Güncellendi
     proFrequency: "/ay",
     proFeatures: [
-      "Ayda 30 PDF (max 100 sayfa/PDF)",
-      "PDF başına max 25 animasyon karesi",
+      "Ayda 25 PDF (max 75 sayfa/PDF)", // Güncellendi
+      "PDF başına max 20 animasyon karesi", // Güncellendi
       "En yüksek kalitede görseller",
       "Gelişmiş animasyon stilleri (Yakında)",
       "Tüm özelliklere tam erişim",
@@ -74,7 +74,7 @@ const pricingContent = {
     freePrice: "$0",
     freeFrequency: "/month",
     freeFeatures: [
-      "1 PDF per month (max 10 pages)",
+      "5 PDFs per month (max 5 pages/PDF)", // Updated
       "Max 3 animation frames/PDF",
       "Standard image quality",
       "Watermark on animations",
@@ -82,11 +82,11 @@ const pricingContent = {
     ],
     freeButton: "Get Started Free",
     standardTitle: "Standard Plan",
-    standardPrice: "$14",
+    standardPrice: "$9", // Updated
     standardFrequency: "/month",
     standardFeatures: [
-      "10 PDFs per month (max 50 pages/PDF)",
-      "Max 15 animation frames/PDF",
+      "10 PDFs per month (max 30 pages/PDF)", // Updated
+      "Max 10 animation frames/PDF", // Updated
       "High-quality images",
       "No watermarks on animations",
       "All core interactive features",
@@ -94,11 +94,11 @@ const pricingContent = {
     ],
     standardButton: "Choose Standard",
     proTitle: "Professional Plan",
-    proPrice: "$32",
+    proPrice: "$19", // Updated
     proFrequency: "/month",
     proFeatures: [
-      "30 PDFs per month (max 100 pages/PDF)",
-      "Max 25 animation frames/PDF",
+      "25 PDFs per month (max 75 pages/PDF)", // Updated
+      "Max 20 animation frames/PDF", // Updated
       "Highest quality images",
       "Advanced animation styles (Coming Soon)",
       "Full access to all features",
@@ -143,7 +143,7 @@ export default function PricingPage({ params }: PricingPageProps) {
       frequency: c.standardFrequency,
       features: c.standardFeatures,
       buttonText: c.standardButton,
-      buttonLink: `/${currentLang}/signup`, // Placeholder, ideally to a payment page
+      buttonLink: `/${currentLang}/signup`, 
       highlight: true,
       icon: <Star className="h-8 w-8 text-yellow-500 mb-4" />
     },
@@ -153,7 +153,7 @@ export default function PricingPage({ params }: PricingPageProps) {
       frequency: c.proFrequency,
       features: c.proFeatures,
       buttonText: c.proButton,
-      buttonLink: `/${currentLang}/signup`, // Placeholder
+      buttonLink: `/${currentLang}/signup`, 
       highlight: false,
       icon: <Sparkles className="h-8 w-8 text-primary mb-4" />
     }
