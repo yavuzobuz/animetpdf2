@@ -36,7 +36,7 @@ export function Navbar() {
               <SheetTitle asChild>
                 <Link href="/" passHref>
                   <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
-                    <Clapperboard className="h-7 w-7 mr-2" />
+                    <Clapperboard className="h-7 w-7 mr-2 animate-pulse" />
                     AnimatePDF
                   </Button>
                 </Link>
