@@ -5,7 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github, Volume2, GitFork } from 'lucide-react';
+import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github, Volume2, GitFork, Info } from 'lucide-react';
 import AnimatedSection from '@/components/custom/animated-section';
 import { Separator } from '@/components/ui/separator';
 
@@ -58,7 +58,7 @@ export default function LandingPage() {
     { icon: <UploadCloud className="h-12 w-12 text-primary mx-auto mb-4" />, title: "1. PDF Yükle", description: "Animasyona dönüştürmek istediğiniz PDF dosyasını seçin ve güvenle yükleyin." },
     { icon: <Cpu className="h-12 w-12 text-primary mx-auto mb-4" />, title: "2. Yapay Zeka Analizi", description: "Gelişmiş yapay zekamız belgenizi anında analiz eder, Türkçe özetler ve senaryo için hazırlar." },
     { icon: <Film className="h-12 w-12 text-primary mx-auto mb-4" />, title: "3. Otomatik Oluşturma", description: "Özetlenmiş içerikten hareketle animasyon senaryosu, kare görselleri, seslendirmeler, mini testler ve akış diyagramları otomatik olarak oluşturulur." },
-    { icon: <Eye className="h-12 w-12 text-primary mx-auto mb-4" />, title: "4. İzle & Etkileşim Kur", description: "Hazırlanan animasyonunuzu izleyin, sesli anlatımlarını dinleyin, detayları keşfedin, interaktif testlerle öğrenmenizi pekiştirin ve PDF içeriğiyle sohbet edin." },
+    { icon: <Eye className="h-12 w-12 text-primary mx-auto mb-4" />, title: "4. İzle, Dinle, Etkileşim Kur & Sohbet Et", description: "Hazırlanan animasyonunuzu izleyin, sesli anlatımlarını dinleyin, detayları keşfedin, interaktif testlerle öğrenmenizi pekiştirin ve PDF içeriğiyle sohbet edin." },
   ];
 
   return (
@@ -167,7 +167,7 @@ export default function LandingPage() {
             <div>
               <h5 className="font-bold text-lg mb-3 font-headline">Bağlantılar</h5>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Hakkımızda</Link></li>
+                <li><Link href="/about" className="text-sm hover:opacity-80 transition-opacity">Hakkımızda</Link></li>
                 <li><Link href="/faq" className="text-sm hover:opacity-80 transition-opacity">SSS</Link></li>
                 <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Gizlilik Politikası</Link></li>
                 <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Kullanım Koşulları</Link></li>
@@ -191,7 +191,7 @@ export default function LandingPage() {
           </div>
           <Separator className="mb-8 bg-foreground/30" />
           <p className="text-sm text-center">
-            &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
+            &copy; {new Date().getFullYear()} AnimatePDF - Zubo Bilişim. Tüm hakları saklıdır.
             <Sparkles className="inline-block h-4 w-4 mx-1" />
             Üretken Yapay Zeka
             <Cpu className="inline-block h-4 w-4 ml-1 mr-1" />

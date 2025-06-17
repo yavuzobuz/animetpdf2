@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect, FormEvent } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AnimatedSection from '@/components/custom/animated-section';
-import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X } from 'lucide-react';
+import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X, Info } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -281,6 +281,7 @@ export default function FaqPage() {
               <ul className="space-y-2">
                 <li><Link href="/" className="text-sm hover:opacity-80 transition-opacity">Ana Sayfa</Link></li>
                 <li><Link href="/animate" className="text-sm hover:opacity-80 transition-opacity">Uygulamayı Kullan</Link></li>
+                <li><Link href="/about" className="text-sm hover:opacity-80 transition-opacity">Hakkımızda</Link></li>
                 <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Gizlilik Politikası</Link></li>
                 <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Kullanım Koşulları</Link></li>
               </ul>
@@ -302,7 +303,7 @@ export default function FaqPage() {
           </div>
           <Separator className="mb-8 bg-foreground/30" />
           <p className="text-sm text-center">
-            &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
+            &copy; {new Date().getFullYear()} AnimatePDF - Zubo Bilişim. Tüm hakları saklıdır.
             <Sparkles className="inline-block h-4 w-4 mx-1" />
             Üretken Yapay Zeka
             <Cpu className="inline-block h-4 w-4 ml-1 mr-1" />
