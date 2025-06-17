@@ -29,8 +29,8 @@ export default function LandingPage() {
     },
     {
       icon: <Volume2 className="h-10 w-10 text-primary mb-4" />,
-      title: "Otomatik Türkçe Seslendirme",
-      description: "Animasyon karelerindeki anahtar konular için doğal ve akıcı Türkçe seslendirmeler oluşturarak içeriğinizi daha erişilebilir hale getirin.",
+      title: "Karelere Özel Sesli Anlatım",
+      description: "Her animasyon karesinin anahtar mesajını, yapay zeka destekli doğal seslendirme ile vurgulayın, içeriğinizi daha etkileşimli ve akılda kalıcı kılın.",
     },
     {
       icon: <MousePointerClick className="h-10 w-10 text-primary mb-4" />,
