@@ -2,9 +2,62 @@
 "use client";
 
 import Link from 'next/link';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const AnimatedSection: React.FC<{ children: React.ReactNode, className?: string, sectionId?: string, tag?: keyof JSX.IntrinsicElements }> = ({ children, className, sectionId, tag = 'section' }) => {
+  const ref = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const currentRef = ref.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          if (currentRef) {
+            observer.unobserve(currentRef);
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1, // Adjust this value to control when the animation triggers
+      }
+    );
+
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
+  const Tag = tag;
+
+  return (
+    <Tag
+      id={sectionId}
+      ref={ref as any}
+      className={cn(
+        "opacity-0 translate-y-8 transform transition-all duration-1000 ease-out",
+        isVisible && "opacity-100 translate-y-0",
+        className
+      )}
+    >
+      {children}
+    </Tag>
+  );
+};
+
 
 export default function LandingPage() {
   const features = [
@@ -49,7 +102,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
-      <header className="py-20 md:py-32 bg-gradient-to-br from-primary/10 via-background to-background">
+      <AnimatedSection tag="header" className="py-20 md:py-32 bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="container mx-auto px-6 text-center">
           <Clapperboard className="h-20 w-20 text-primary mx-auto mb-6 animate-pulse" />
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 font-headline">
@@ -64,9 +117,9 @@ export default function LandingPage() {
             </Button>
           </Link>
         </div>
-      </header>
+      </AnimatedSection>
 
-      <section id="features" className="py-16 md:py-24 bg-background">
+      <AnimatedSection sectionId="features" className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">Neden AnimatePDF?</h2>
@@ -88,9 +141,9 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </AnimatedSection>
 
-      <section id="how-it-works" className="py-16 md:py-24 bg-muted/30">
+      <AnimatedSection sectionId="how-it-works" className="py-16 md:py-24 bg-muted/30">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">Nasıl Çalışır?</h2>
@@ -108,9 +161,9 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </AnimatedSection>
       
-      <section id="cta" className="py-20 md:py-32 bg-gradient-to-tr from-primary/10 via-background to-background">
+      <AnimatedSection sectionId="cta" className="py-20 md:py-32 bg-gradient-to-tr from-primary/10 via-background to-background">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6 font-headline">
             Bilgiyi Dönüştürmeye Hazır mısınız?
@@ -124,7 +177,7 @@ export default function LandingPage() {
             </Button>
           </Link>
         </div>
-      </section>
+      </AnimatedSection>
 
       <footer className="w-full text-center py-8 border-t border-border mt-auto">
         <p className="text-sm text-muted-foreground">
@@ -134,3 +187,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
