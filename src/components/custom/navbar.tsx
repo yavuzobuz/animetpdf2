@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, LogIn, UserPlus, Film, Menu, X } from 'lucide-react';
+import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 
@@ -60,6 +60,7 @@ export function Navbar() {
   const navLinks = [
     { href: "/", label: "Ana Sayfa", icon: <Home className="mr-2 h-5 w-5" /> },
     { href: "/animate", label: "Anime Et", icon: <Film className="mr-2 h-5 w-5" /> },
+    { href: "/faq", label: "SSS", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
     { href: "/login", label: "Giriş Yap", icon: <LogIn className="mr-2 h-5 w-5" /> },
     { href: "/signup", label: "Kayıt Ol", icon: <UserPlus className="mr-2 h-5 w-5" /> },
   ];
