@@ -98,7 +98,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {howItWorksSteps.map((step, index) => (
-              <div key={index} className="p-6 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow text-center flex flex-col items-center">
+              <div key={index} className="p-6 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center flex flex-col items-center">
                 <div className="p-4 bg-primary/10 rounded-full mb-6 inline-block">
                    {step.icon}
                 </div>
@@ -134,5 +134,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
