@@ -5,13 +5,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { analyzePdf, AnalyzePdfInput, AnalyzePdfOutput } from '@/ai/flows/analyze-pdf';
 import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnimationScenarioOutput } from '@/ai/flows/generate-animation-scenario';
 import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate-frame-image-flow';
-import { generateQa, GenerateQaInput, GenerateQaOutput } from '@/ai/flows/generate-qa-flow';
+import { generateQa, GenerateQaInput, GenerateQaOutput, QAPair as AIQAPair } from '@/ai/flows/generate-qa-flow';
 
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
 import { ScenarioDisplay } from '@/components/custom/scenario-display';
 import { AnimationPreview } from '@/components/custom/animation-preview';
 import { PlaybackControls } from '@/components/custom/playback-controls';
-import { QaDisplay, QAPair } from '@/components/custom/qa-display';
+import { QaDisplay } from '@/components/custom/qa-display'; // QAPair type will be used from here for component props
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -38,7 +38,7 @@ export default function AnimatePdfPage() {
   const [storyboardKeyTopics, setStoryboardKeyTopics] = useState<string[]>([]);
   const [storyboardFrameSummaries, setStoryboardFrameSummaries] = useState<string[]>([]);
   const [storyboardImages, setStoryboardImages] = useState<(string | null)[]>([]);
-  const [qaPairs, setQaPairs] = useState<QAPair[] | null>(null);
+  const [qaPairs, setQaPairs] = useState<AIQAPair[] | null>(null); // Use the AIQAPair type from the flow
   
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -363,4 +363,3 @@ export default function AnimatePdfPage() {
     </div>
   );
 }
-
