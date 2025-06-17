@@ -144,10 +144,10 @@ export default function LandingPage() {
 
       <footer className="relative w-full mt-auto bg-primary text-foreground">
         {/* Curve Element: Color of the page background, its bottom edge is curved upwards */}
-        <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
+        <div className="absolute top-0 left-0 w-full h-20 bg-background rounded-bl-full rounded-br-full"></div>
 
         {/* Content Container: Spacing adjusted for the curve */}
-        <div className="relative container mx-auto px-6 pt-28 pb-12">
+        <div className="relative container mx-auto px-6 pt-32 pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
             <div>
               <h5 className="font-bold text-lg mb-3 font-headline flex items-center">
@@ -181,7 +181,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <Separator className="mb-8 bg-border/70" />
+          <Separator className="mb-8 bg-foreground/30" />
           <p className="text-sm text-center">
             &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
             <Sparkles className="inline-block h-4 w-4 mx-1" />
@@ -194,3 +194,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
