@@ -53,7 +53,7 @@ export default function LandingPage() {
     { icon: <UploadCloud className="h-12 w-12 text-primary mx-auto mb-4" />, title: "1. PDF Yükle", description: "Animasyona dönüştürmek istediğiniz PDF dosyasını seçin ve güvenle yükleyin." },
     { icon: <Cpu className="h-12 w-12 text-primary mx-auto mb-4" />, title: "2. Yapay Zeka Analizi", description: "Gelişmiş yapay zekamız belgenizi anında analiz eder, Türkçe özetler ve senaryo için hazırlar." },
     { icon: <Film className="h-12 w-12 text-primary mx-auto mb-4" />, title: "3. Otomatik Oluşturma", description: "Özetlenmiş içerikten hareketle animasyon senaryosu, kare görselleri, seslendirmeler ve mini testler otomatik olarak oluşturulur." },
-    { icon: <Eye className="h-12 w-12 text-primary mx-auto mb-4" />, title: "4. İzle & Etkileşim Kur", description: "Hazırlanan animasyonunuzu izleyin, detayları keşfedin ve interaktif testlerle öğrenmenizi pekiştirin." },
+    { icon: <Eye className="h-12 w-12 text-primary mx-auto mb-4" />, title: "4. İzle & Etkileşim Kur", description: "Hazırlanan animasyonunuzu izleyin, sesli anlatımlarını dinleyin, detayları keşfedin, interaktif testlerle öğrenmenizi pekiştirin ve PDF içeriğiyle sohbet edin." },
   ];
 
   return (
