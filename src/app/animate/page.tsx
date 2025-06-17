@@ -17,17 +17,30 @@ import { QaDisplay } from '@/components/custom/qa-display';
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
-type AppStep = "upload" | "analyzing" | "generatingScenario" | "generatingImages" | "ready";
+type AppStep = "upload" | "analyzing" | "generatingScenario" | "styleSelection" | "generatingImages" | "ready";
 
 interface AnimationFrameData {
   sceneDescription: string;
   keyTopic: string;
   frameSummary: string;
 }
+
+const animationStyleOptions = [
+  { value: "Clean, vibrant", label: "Temiz ve Canlı (Varsayılan)" },
+  { value: "Cartoon", label: "Çizgi Film" },
+  { value: "Minimalist", label: "Minimalist" },
+  { value: "Photorealistic", label: "Fotogerçekçi" },
+  { value: "Sketch", label: "Eskiz Stili" },
+  { value: "Watercolor", label: "Suluboya Efekti" },
+  { value: "Pixel Art", label: "Piksel Sanatı" },
+  { value: "Abstract", label: "Soyut" },
+];
 
 export default function AnimatePdfAppPage() {
   const [step, setStep] = useState<AppStep>("upload");
@@ -42,6 +55,7 @@ export default function AnimatePdfAppPage() {
   const [storyboardImages, setStoryboardImages] = useState<(string | null)[]>([]);
   const [qaPairs, setQaPairs] = useState<AIQAPair[] | null>(null);
 
+  const [selectedAnimationStyle, setSelectedAnimationStyle] = useState<string>(animationStyleOptions[0].value);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageGenerationStarted, setImageGenerationStarted] = useState(false);
@@ -59,6 +73,7 @@ export default function AnimatePdfAppPage() {
     setStoryboardFrameSummaries([]);
     setStoryboardImages([]);
     setQaPairs(null);
+    setSelectedAnimationStyle(animationStyleOptions[0].value);
     setCurrentFrameIndex(0);
     setIsPlaying(false);
     setImageGenerationStarted(false);
@@ -80,6 +95,9 @@ export default function AnimatePdfAppPage() {
     setQaPairs(null);
     setCurrentFrameIndex(0);
     setImageGenerationStarted(false);
+    // selectedAnimationStyle is kept as is, or could be reset here if desired
+    // setSelectedAnimationStyle(animationStyleOptions[0].value);
+
 
     try {
       const analysisInput: AnalyzePdfInput = { pdfDataUri: dataUri };
@@ -126,12 +144,11 @@ export default function AnimatePdfAppPage() {
 
           toast({
             title: "Animasyon Senaryosu Oluşturuldu",
-            description: "Şimdi her kare için görseller ve mini test eş zamanlı oluşturuluyor...",
+            description: "Şimdi animasyon stilini seçin. Ardından her kare için görseller ve mini test eş zamanlı oluşturulacak...",
           });
 
-          setStep("generatingImages");
+          setStep("styleSelection"); 
 
-          // Generate Q&A in parallel, don't await here
           generateQa({ pdfSummary })
             .then(qaResult => {
               setQaPairs(qaResult.qaPairs);
@@ -170,12 +187,15 @@ export default function AnimatePdfAppPage() {
       const generateAllImages = async () => {
         toast({
           title: "Kare Görselleri ve Mini Test Hazırlanıyor",
-          description: `${storyboardSceneDescriptions.length} kare için görseller ve test soruları oluşturuluyor. Bu biraz zaman alabilir...`,
+          description: `${storyboardSceneDescriptions.length} kare için görseller (${selectedAnimationStyle} stiliyle) ve test soruları oluşturuluyor. Bu biraz zaman alabilir...`,
         });
 
         const imageGenerationPromises = storyboardSceneDescriptions.map(async (description, index) => {
           try {
-            const imageInput: GenerateFrameImageInput = { frameDescription: description };
+            const imageInput: GenerateFrameImageInput = { 
+              frameDescription: description,
+              animationStyle: selectedAnimationStyle 
+            };
             const imageResult = await generateFrameImage(imageInput);
             setStoryboardImages(prevImages => {
               const newImages = [...prevImages];
@@ -204,7 +224,7 @@ export default function AnimatePdfAppPage() {
       };
       generateAllImages();
     }
-  }, [step, storyboardSceneDescriptions, imageGenerationStarted, toast]);
+  }, [step, storyboardSceneDescriptions, imageGenerationStarted, toast, selectedAnimationStyle]);
 
 
   const handlePlay = useCallback(() => {
@@ -265,7 +285,7 @@ export default function AnimatePdfAppPage() {
 
 
   const isLoading = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
-  const isProcessing = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
+  const isProcessingAlertVisible = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
 
 
   return (
@@ -286,14 +306,13 @@ export default function AnimatePdfAppPage() {
           </AnimatedSection>
         )}
 
-        {isProcessing && (
+        {isProcessingAlertVisible && (
           <AnimatedSection tag="div" className="flex justify-center" delay="delay-100">
             <Alert className="max-w-lg mx-auto shadow-md border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
               {step === "analyzing" && <FileText className="h-5 w-5 animate-pulse text-primary" />}
               {step === "generatingScenario" && <Sparkles className="h-5 w-5 animate-spin text-primary" />}
               {step === "generatingImages" && <ImageIcon className="h-5 w-5 animate-spin text-primary" />}
-              {!["analyzing", "generatingScenario", "generatingImages"].includes(step) && <Loader2 className="h-5 w-5 animate-spin text-primary" /> }
-
+              
               <AlertTitle className="font-headline">
                 {step === "analyzing" && "PDF Analiz Ediliyor..."}
                 {step === "generatingScenario" && "Senaryo Oluşturuluyor..."}
@@ -302,11 +321,47 @@ export default function AnimatePdfAppPage() {
               <AlertDescription>
                 {step === "analyzing" && "Yapay zekamız PDF'inizi okuyor ve anahtar temaları çıkarıyor. Lütfen bekleyin..."}
                 {step === "generatingScenario" && "PDF özetine dayalı ilgi çekici bir animasyon senaryosu hazırlanıyor. Sabırlı olun!"}
-                {step === "generatingImages" && "Yapay zekamız animasyon kareleri için görseller ve öğrenmenizi pekiştirmek için mini test hazırlıyor. Bu süreç biraz zaman alabilir."}
+                {step === "generatingImages" && `Yapay zekamız animasyon kareleri için "${selectedAnimationStyle}" stilinde görseller ve öğrenmenizi pekiştirmek için mini test hazırlıyor. Bu süreç biraz zaman alabilir.`}
               </AlertDescription>
             </Alert>
           </AnimatedSection>
         )}
+
+        {step === "styleSelection" && animationFrames && (
+          <AnimatedSection sectionId="style-selection-section" className="flex justify-center" delay="delay-100">
+            <Card className="w-full max-w-lg shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="text-2xl font-headline flex items-center">
+                    <Palette className="mr-2 h-6 w-6 text-primary" /> Animasyon Stilini Seçin
+                </CardTitle>
+                <CardDescription>Oluşturulacak görseller için bir stil belirleyin. Bu stil tüm karelere uygulanacaktır.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Select value={selectedAnimationStyle} onValueChange={setSelectedAnimationStyle}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Bir stil seçin..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {animationStyleOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={() => {
+                    toast({ title: "Stil Seçildi", description: `Görseller "${selectedAnimationStyle}" stilinde oluşturulacak.`});
+                    setStep("generatingImages");
+                  }} 
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  disabled={!selectedAnimationStyle}
+                >
+                  <ImageIcon className="mr-2 h-4 w-4" /> Görselleri Oluşturmaya Başla
+                </Button>
+              </CardContent>
+            </Card>
+          </AnimatedSection>
+        )}
+
 
         {step === "ready" && pdfSummary && storyboardSceneDescriptions.length > 0 && (
           <>
@@ -324,7 +379,7 @@ export default function AnimatePdfAppPage() {
                 currentFrameSummary={storyboardFrameSummaries[currentFrameIndex] || ""}
                 storyboardImages={storyboardImages}
                 currentFrameIndex={currentFrameIndex}
-                isGeneratingInitialImages={step === "generatingImages"}
+                isGeneratingInitialImages={step === "generatingImages" && storyboardImages.some(img => img === null)}
               />
               <PlaybackControls
                 isPlaying={isPlaying}
@@ -336,7 +391,7 @@ export default function AnimatePdfAppPage() {
                 onReset={handleAnimationReset}
                 currentFrameIndex={currentFrameIndex}
                 totalFrames={storyboardSceneDescriptions.length}
-                disabled={storyboardSceneDescriptions.length === 0 || step === "generatingImages"}
+                disabled={storyboardSceneDescriptions.length === 0 || (step === "generatingImages" && storyboardImages.some(img => img === null))}
               />
             </AnimatedSection>
 
@@ -358,47 +413,47 @@ export default function AnimatePdfAppPage() {
         )}
       </main>
 
-      <footer className="w-full py-12 border-t border-border mt-auto bg-primary">
+      <footer className="w-full py-12 border-t border-border mt-auto bg-primary text-foreground">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
             <div>
-              <h5 className="font-bold text-lg mb-3 text-foreground font-headline flex items-center">
-                <Clapperboard className="h-6 w-6 mr-2 text-foreground" /> AnimatePDF
+              <h5 className="font-bold text-lg mb-3 font-headline flex items-center">
+                <Clapperboard className="h-6 w-6 mr-2" /> AnimatePDF
               </h5>
-              <p className="text-sm text-foreground">
+              <p className="text-sm">
                 PDF belgelerinizi saniyeler içinde ilgi çekici animasyonlu hikayelere ve interaktif öğrenme deneyimlerine dönüştürün.
               </p>
             </div>
             <div>
-              <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bağlantılar</h5>
+              <h5 className="font-bold text-lg mb-3 font-headline">Bağlantılar</h5>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Hakkımızda</Link></li>
-                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Gizlilik Politikası</Link></li>
-                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Kullanım Koşulları</Link></li>
-                <li><Link href="/" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Ana Sayfa</Link></li>
+                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Hakkımızda</Link></li>
+                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Gizlilik Politikası</Link></li>
+                <li><Link href="#" className="text-sm hover:opacity-80 transition-opacity">Kullanım Koşulları</Link></li>
+                <li><Link href="/" className="text-sm hover:opacity-80 transition-opacity">Ana Sayfa</Link></li>
               </ul>
             </div>
             <div>
-              <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bizi Takip Edin</h5>
+              <h5 className="font-bold text-lg mb-3 font-headline">Bizi Takip Edin</h5>
               <div className="flex space-x-4">
-                <Link href="#" aria-label="Twitter" className="text-foreground hover:text-foreground/80 transition-colors">
+                <Link href="#" aria-label="Twitter" className="hover:opacity-80 transition-opacity">
                   <Twitter className="h-6 w-6" />
                 </Link>
-                <Link href="#" aria-label="LinkedIn" className="text-foreground hover:text-foreground/80 transition-colors">
+                <Link href="#" aria-label="LinkedIn" className="hover:opacity-80 transition-opacity">
                   <Linkedin className="h-6 w-6" />
                 </Link>
-                <Link href="#" aria-label="GitHub" className="text-foreground hover:text-foreground/80 transition-colors">
+                <Link href="#" aria-label="GitHub" className="hover:opacity-80 transition-opacity">
                   <Github className="h-6 w-6" />
                 </Link>
               </div>
             </div>
           </div>
-          <Separator className="mb-8 bg-border/70" />
-          <p className="text-sm text-foreground text-center">
+          <Separator className="mb-8 bg-foreground/30" />
+          <p className="text-sm text-center">
             &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
-            <Sparkles className="inline-block h-4 w-4 mx-1 text-foreground" />
+            <Sparkles className="inline-block h-4 w-4 mx-1" />
             Üretken Yapay Zeka
-            <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-foreground" />
+            <Cpu className="inline-block h-4 w-4 ml-1 mr-1" />
             ile güçlendirilmiştir.
           </p>
         </div>
@@ -406,3 +461,4 @@ export default function AnimatePdfAppPage() {
     </div>
   );
 }
+
