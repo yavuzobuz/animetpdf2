@@ -18,17 +18,17 @@ const PdfAnimateLogo = () => (
     strokeLinejoin="round"
     className="h-7 w-7 mr-2 animate-pulse"
   >
-    {/* Stylized Document Page */}
-    <path d="M6.5 2H14.5L19 6.5V20C19 21.1046 18.1046 22 17 22H7C5.89543 22 5 21.1046 5 20V4C5 2.89543 5.89543 2 7 2H7.5" strokeWidth="1.5"/>
-    <polyline points="14 2 14 7 19 7" strokeWidth="1.5"/>
-
-    {/* Dynamic Play Button - slightly larger and offset, filled */}
-    <path d="M9.5 11.5L16.5 15.5L16.5 7.5L9.5 11.5Z" fill="currentColor" strokeWidth="1"/>
-
-    {/* Subtle motion/transformation arc */}
-    <path d="M5.5 15C6 12.5 7.5 10 10 9.5" strokeDasharray="2 2" strokeWidth="1"/>
+    {/* Arka Plan Sayfa Katmanı (hafif opak) */}
+    <path d="M8 2H16L20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V7L8 2Z" opacity="0.5" strokeWidth="1.2"/>
+    {/* Ön Plan Sayfa Katmanı (daha belirgin) */}
+    <path d="M7 4H14.5L18 7.5V17C18 17.8284 17.3284 18.5 16.5 18.5H7.5C6.67157 18.5 6 17.8284 6 17V5C6 4.44772 6.44772 4 7 4Z" />
+    {/* Köşesi Kıvrık Detayı (Dog-ear) */}
+    <polyline points="14.5 4 14.5 7.5 18 7.5" />
+    {/* Merkezi Oynatma Simgesi (dolu) */}
+    <path d="M10.5 14.5L15.5 11.25L10.5 8V14.5Z" fill="currentColor" strokeWidth="1"/>
   </svg>
 );
+
 
 export function Navbar() {
   const navLinks = [
