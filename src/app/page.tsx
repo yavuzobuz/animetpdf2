@@ -26,7 +26,7 @@ const AnimatedSection: React.FC<{ children: React.ReactNode, className?: string,
       {
         root: null,
         rootMargin: '0px',
-        threshold: 0.1, // Adjust this value to control when the animation triggers
+        threshold: 0.1,
       }
     );
 
@@ -112,7 +112,10 @@ export default function LandingPage() {
             Karmaşık PDF belgelerinizi saniyeler içinde etkileyici animasyonlu hikayelere, açıklayıcı videolara ve interaktif mini testlere dönüştürün. Tamamen Türkçe!
           </p>
           <Link href="/animate" passHref>
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl transform transition-all hover:scale-105 active:scale-95">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl hover:shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+            >
               Hemen Ücretsiz Başla <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
@@ -129,7 +132,10 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="bg-card shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg overflow-hidden flex flex-col text-center">
+              <Card 
+                key={index} 
+                className="bg-card shadow-lg hover:shadow-xl hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 rounded-lg overflow-hidden flex flex-col text-center"
+              >
                 <CardHeader className="items-center p-6 bg-muted/20">
                   {feature.icon}
                   <CardTitle className="text-xl font-semibold text-foreground font-headline mt-2">{feature.title}</CardTitle>
@@ -151,7 +157,10 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {howItWorksSteps.map((step, index) => (
-              <div key={index} className="p-6 bg-card rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 text-center flex flex-col items-center">
+              <div 
+                key={index} 
+                className="p-6 bg-card rounded-lg shadow-md hover:shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 text-center flex flex-col items-center"
+              >
                 <div className="p-4 bg-primary/10 rounded-full mb-6 inline-block">
                    {step.icon}
                 </div>
@@ -172,7 +181,10 @@ export default function LandingPage() {
             AnimatePDF ile öğrenmeyi ve öğretmeyi bir sonraki seviyeye taşıyın. Statik PDF'lere veda edin, dinamik hikayelere merhaba deyin!
           </p>
           <Link href="/animate" passHref>
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl transform transition-all hover:scale-105 active:scale-95">
+            <Button 
+              size="lg" 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl hover:shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+            >
               PDF'ini Şimdi Anime Et <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
