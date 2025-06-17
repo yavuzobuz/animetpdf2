@@ -391,7 +391,7 @@ export default function AnimatePdfAppPage() {
           <Clapperboard className="inline-block h-12 w-12 mr-2 -mt-1 animate-pulse" /> AnimatePDF
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          PDF'lerinizi zahmetsizce animasyonlu hikayelere dönüştürün.
+          PDF'inizi Yükleyin; Otomatik Özet, Animasyon, Ses, Test, Sohbet ve Diyagram ile Bilgiyi Keşfedin!
         </p>
       </AnimatedSection>
 

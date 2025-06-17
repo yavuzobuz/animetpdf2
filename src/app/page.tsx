@@ -70,7 +70,7 @@ export default function LandingPage() {
             AnimatePDF: PDF'lerinizi Hayata Geçirin!
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
-            Karmaşık PDF belgelerinizi saniyeler içinde etkileyici animasyonlu hikayelere, açıklayıcı videolara ve interaktif mini testlere dönüştürün. Tamamen Türkçe!
+            PDF'lerinizi Hayata Geçirin: Saniyeler İçinde Otomatik Özet, Akıcı Animasyon, Etkileşimli Sohbet, Mini Testler ve Açıklayıcı Diyagramlar! Tamamen Türkçe!
           </p>
           <Link href="/animate" passHref>
             <Button
