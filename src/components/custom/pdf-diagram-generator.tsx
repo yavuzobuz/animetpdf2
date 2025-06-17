@@ -32,19 +32,19 @@ const parseFlowDescription = (description: string): FlowStep[] => {
     if (!trimmedLine) return;
 
     let text = trimmedLine;
-    let type: FlowStep['type'] = 'process'; 
+    let type: FlowStep['type'] = 'process';
     let indentLevel = 0;
 
     const leadingSpaces = line.match(/^(\s*)/)?.[0].length || 0;
 
     if (line.match(/^\s*\*\s*EVET ise/i) || line.match(/^\s*\*\s*HAYIR ise/i)) {
-      indentLevel = 1; 
+      indentLevel = 1;
       text = trimmedLine.replace(/^\*?\s*/, '');
       type = 'branch-label';
-    } else if (line.match(/^\s*\d+\.\s+\*\*/)) { // Top-level bolded keywords like **BAŞLANGIÇ**
+    } else if (line.match(/^\s*\d+\.\s+\*\*/)) { 
        indentLevel = 0;
        text = trimmedLine.replace(/^\d*\.?\s*/, '').replace(/\*\*/g, '');
-    } else if (line.match(/^\s*\d+\./)) { // Numbered steps
+    } else if (line.match(/^\s*\d+\./)) { 
         if (leadingSpaces >= 6 && line.match(/^\s{6,}\d+\./)) indentLevel = 2;
         else if (leadingSpaces >= 2 && line.match(/^\s{2,}\d+\./) ) indentLevel = 1;
         else indentLevel = 0;
@@ -56,11 +56,11 @@ const parseFlowDescription = (description: string): FlowStep[] => {
       else if (leadingSpaces >= 2) indentLevel = 1;
       else indentLevel = 0;
     }
-     else { // Fallback for unnumbered lines or other structures
+     else { 
       if (leadingSpaces >= 6) indentLevel = 2;
       else if (leadingSpaces >= 2) indentLevel = 1;
       else indentLevel = 0;
-      type = 'raw'; 
+      type = 'raw';
       text = trimmedLine;
     }
     
@@ -69,7 +69,7 @@ const parseFlowDescription = (description: string): FlowStep[] => {
     if (normalizedTextForTypeDetection.startsWith('BAŞLANGIÇ')) {
       type = 'start';
       text = 'BAŞLANGIÇ';
-      indentLevel = 0; 
+      indentLevel = 0;
     } else if (normalizedTextForTypeDetection.startsWith('BİTİŞ')) {
       type = 'end';
       text = 'BİTİŞ';
@@ -83,9 +83,8 @@ const parseFlowDescription = (description: string): FlowStep[] => {
     } else if (normalizedTextForTypeDetection.startsWith('KARAR:')) {
       type = 'decision';
     } else if (normalizedTextForTypeDetection.includes('EVET İSE') || normalizedTextForTypeDetection.includes('HAYIR İSE')) {
-      // This ensures branch labels get correct type even if not caught by regex
       type = 'branch-label';
-      if (!line.match(/^\s*\*\s/)) indentLevel = Math.max(indentLevel,1); // Ensure branch labels have at least indent 1
+      if (!line.match(/^\s*\*\s/)) indentLevel = Math.max(indentLevel,1);
     }
     
     steps.push({ id: `step-${index}`, text: text.replace(/^[:\s]+/, ''), type, indentLevel });
@@ -100,14 +99,14 @@ const getStepStyles = (type: FlowStep['type']): string => {
       return 'bg-green-100 border-green-500 text-green-700 rounded-full px-6 py-2 text-center shadow-sm font-medium min-w-[150px]';
     case 'end':
       return 'bg-red-100 border-red-500 text-red-700 rounded-full px-6 py-2 text-center shadow-sm font-medium min-w-[150px]';
-    case 'io': 
+    case 'io':
       return 'bg-blue-100 border-blue-500 text-blue-700 px-4 py-3 shadow-sm transform -skew-x-12 min-w-[200px] text-center';
     case 'process':
       return 'bg-purple-100 border-purple-500 text-purple-700 px-4 py-3 rounded-md shadow-sm min-w-[200px]';
-    case 'decision': 
+    case 'decision':
       return 'bg-yellow-100 border-yellow-500 text-yellow-700 p-3 shadow-sm transform rotate-45 w-auto inline-block aspect-square flex items-center justify-center min-w-[100px] min-h-[100px]';
     case 'branch-label':
-      return 'font-semibold text-primary mt-2 mb-1 px-2'; 
+      return 'font-semibold text-primary mt-2 mb-1 px-2';
     case 'comment':
       return 'bg-slate-100 border-slate-400 border-dashed text-slate-600 italic px-4 py-2 rounded-md text-xs max-w-md';
     case 'raw':
@@ -169,7 +168,7 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
   };
 
   if (!pdfSummary) {
-    return null; 
+    return null;
   }
 
   return (
@@ -221,24 +220,18 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
                   const indentStyle = getIndentClasses(step.indentLevel);
                   const isLastOverallStep = idx === parsedSteps.length - 1;
                   
-                  const isBoxType = !['branch-label', 'raw'].includes(step.type);
+                  const isBoxType = !['branch-label', 'raw', 'comment'].includes(step.type);
                   
                   let showArrow = isBoxType && step.type !== 'end' && !isLastOverallStep;
                   
-                  // Don't show arrow if next step is a branch label at a lower or same indent, or an end step
                   if (showArrow && idx + 1 < parsedSteps.length) {
                     const nextStep = parsedSteps[idx+1];
                     if (nextStep.type === 'end') {
-                       // if current is decision, and next is end, it is possible.
-                       // but if current is process and next is end, no arrow
                        if (step.type !== 'decision') showArrow = false;
                     }
-                    // If next step is a branch label and not more indented, it means we are not flowing into it directly
                     if (nextStep.type === 'branch-label' && nextStep.indentLevel <= step.indentLevel) {
-                       // Allow arrow from decision to branch label
                        if (step.type !== 'decision') showArrow = false;
                     }
-                    // If exiting a deeply nested structure to a much higher level (e.g. end of a branch returning to main flow that ends)
                     if (nextStep.indentLevel < step.indentLevel -1 && nextStep.type === 'end') {
                         showArrow = false;
                     }
@@ -248,11 +241,11 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
                    }
 
 
-                  if (step.type === 'branch-label' || step.type === 'raw') {
+                  if (step.type === 'branch-label' || step.type === 'raw' || step.type === 'comment') {
                     return (
                       <div
                         key={step.id}
-                        className={cn('text-sm whitespace-pre-wrap py-1', stepStyle, indentStyle)}
+                        className={cn('text-sm whitespace-pre-wrap py-1', stepStyle, indentStyle, step.type === 'comment' ? 'my-1 border' : '')}
                       >
                         {step.text}
                       </div>
@@ -286,8 +279,8 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
 
                             {showArrow && (
                                 <div className={cn("flex flex-col items-center my-1", step.indentLevel === 0 || step.type === 'decision' || step.type === 'io' ? 'self-center' : 'self-start ml-[calc(var(--min-box-width,200px)/2)] transform -translate-x-1/2')}>
-                                    <div className="h-4 w-0.5 bg-slate-400" /> 
-                                    <div className="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-[6px] border-t-slate-400" />
+                                    <div className="h-4 w-[1px] bg-slate-500" /> 
+                                    <div className="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[5px] border-t-slate-500" />
                                 </div>
                             )}
                         </div>
@@ -314,5 +307,7 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
     </Card>
   );
 }
+
+    
 
     
