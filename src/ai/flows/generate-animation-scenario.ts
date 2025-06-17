@@ -26,7 +26,7 @@ export type GenerateAnimationScenarioInput = z.infer<
 const AnimationFrameSchema = z.object({
   sceneDescription: z.string().describe('Sahnenin Türkçe dilinde detaylı açıklaması. Görsel öğeler, karakter eylemleri (varsa), o sahne için önemli mesajlar veya anlatım içermelidir. Karmaşık kavramları açıklamak için basit metaforlar (örneğin, işbirliğini bir yapbozun parçaları olarak göstermek gibi) ve ikon fikirleri kullanmaya çalışın.'),
   keyTopic: z.string().describe('Bu sahnenin Türkçe dilindeki anahtar konusu; kısa, öz ve etkili olmalıdır. Bu, animasyon adımı için kısa bir metinsel açıklama görevi görür.'),
-  frameSummary: z.string().describe('Bu sahnenin Türkçe dilindeki kısa ve doğrudan bir özeti (1-2 cümle). Bu metin, sahnenin ana mesajını ve içeriğini kullanıcıya doğrudan anlatmalı, sahnenin ne yaptığını veya neyi vurguladığını (örneğin, "bu sahnede ... vurgulanır" veya "... gösterilir" gibi) açıklamamalıdır. Örneğin, "Hücreler canlıların büyümesi, onarımı ve üremesi için bölünür." gibi olmalıdır.')
+  frameSummary: z.string().describe('Bu sahnenin Türkçe dilindeki kısa (1-2 cümle) ve DOĞRUDAN özetidir. Bu metin, sahnenin ana mesajını ve içeriğini kullanıcıya doğrudan anlatmalı, sahnenin bu bilgiyi NASIL sunduğunu (örneğin, "bu sahnede ... vurgulanır", "... gösterilir", "... sembolize edilir" gibi ifadelerden KAÇINARAK) açıklamamalıdır. Bunun yerine, bilgiyi doğrudan ifade edin. Örneğin: "Hücreler canlıların büyümesi, onarımı ve üremesi için bölünür."')
 });
 
 const GenerateAnimationScenarioOutputSchema = z.object({
@@ -51,28 +51,28 @@ const prompt = ai.definePrompt({
 The output MUST be a JSON array of objects. Each object in the array represents a single animation frame and MUST contain three string properties:
 1.  'sceneDescription': A detailed description of the scene in Turkish. This should provide enough detail for an animator to visualize and create the scene, including visual elements, character actions (if any), key messages or narration for that scene. IMPORTANT: Where possible, suggest simple metaphors or icon ideas to explain complex concepts (e.g., "ortaklığı bir el sıkışma ikonu ile gösterin" or "verimliliği hızla dönen bir dişli metaforuyla anlatın").
 2.  'keyTopic': A concise and impactful key topic or main takeaway for that specific scene, also in Turkish. This will serve as a brief textual explanation for the animation step and will be displayed prominently with the frame.
-3.  'frameSummary': A short (1-2 sentences), DIRECT summary of the scene's content, IN TURKISH. This summary will be displayed to the user directly below the 'keyTopic' in the animation preview. It should CLEARLY and CONCISELY explain WHAT THE FRAME IS ABOUT, not describe how it's presented (e.g., AVOID phrases like "bu karede ... gösterilir" or "... vurgulanır"). Instead, directly state the information, for example: "Hücreler büyümek, onarmak ve nesli devam ettirmek için bölünür."
+3.  'frameSummary': A short (1-2 sentences), DIRECT summary of the scene's content, IN TURKISH. This summary will be displayed to the user directly below the 'keyTopic' in the animation preview. It should CLEARLY and CONCISELY explain WHAT THE FRAME IS ABOUT by directly stating the information or message. AVOID meta-commentary about how the frame presents information (e.g., AVOID phrases like "bu karede ... gösterilir", "... vurgulanır", or "... sembolize edilir"). Instead, directly state the information, for example: "Hücreler büyümek, onarmak ve nesli devam ettirmek için bölünür."
 
-Example of the required JSON output format (in Turkish):
+Example of the required JSON output format (in Turkish), PAY CLOSE ATTENTION TO 'frameSummary' to ensure it's a DIRECT statement:
 [
   {
     "sceneDescription": "Sahne 1: Kalabalık bir şehir caddesinin geniş açılı çekimi. Arabalar hareket ediyor, insanlar yürüyor. Anlatıcı: 'Dünya sürekli değişiyor...' Belki bir zamanlayıcı ikonu kullanılabilir.",
     "keyTopic": "Sürekli Değişim ve Hareket",
-    "frameSummary": "Dünya durmaksızın değişir ve hareket halindedir; bu durum kalabalık bir şehir caddesi üzerinden gösterilir. Bu sürekli akış, yeniliğe olan ihtiyacı ortaya koyar."
+    "frameSummary": "Dünya sürekli değişir ve hareketlidir; bu durum, canlıların ve sistemlerin adaptasyonunu zorunlu kılar. Sürekli akış, yeniliğe olan ihtiyacı ortaya koyar."
   },
   {
     "sceneDescription": "Sahne 2: Bir mikroskoba bakan bir bilim insanının yakın çekimi. Bilim İnsanı (V.O.): 'Ve bu değişimin merkezinde yenilik var.' Yeniliği parlayan bir ampul metaforuyla gösterebiliriz.",
     "keyTopic": "Yeniliğin Merkezi Rolü",
-    "frameSummary": "Değişimin itici gücü olan yenilik, bir bilim insanının mikroskobu ve parlayan bir ampul metaforu ile sembolize edilir."
+    "frameSummary": "Yenilik, değişimin temel itici gücüdür ve bilimsel keşifler ile parlak fikirler bu süreci yönlendirir."
   },
   {
     "sceneDescription": "Sahne 3: Büyüyen bir filizi gösteren bir metafor, gelişimi simgeliyor. Anlatıcı: 'Her fikir, bir ışık yakar, bir tohum eker.'",
     "keyTopic": "Fikirlerin Büyüme Potansiyeli",
-    "frameSummary": "Her yeni fikir, tıpkı büyüyen bir filiz gibi, gelişim ve ilerleme potansiyeli taşır."
+    "frameSummary": "Her yeni fikir, tıpkı büyüyen bir filiz gibi, içinde büyük bir gelişim ve ilerleme potansiyeli barındırır."
   }
 ]
 
-Now, based on the following summary (in Turkish), generate the animation scenario as a JSON array IN TURKISH, strictly following the format described above, incorporating metaphors and icon suggestions in 'sceneDescription' where appropriate, and ensuring 'frameSummary' is a concise and DIRECT explanation of the scene.
+Now, based on the following summary (in Turkish), generate the animation scenario as a JSON array IN TURKISH, strictly following the format described above, incorporating metaphors and icon suggestions in 'sceneDescription' where appropriate, and ensuring 'frameSummary' is a concise and DIRECT explanation of the scene's core message.
 
 Summary (Özet):
 {{{pdfSummary}}}
