@@ -87,7 +87,7 @@ const faqContentData = {
     footerRights: "All rights reserved.",
     footerPoweredBy: "Powered by Generative AI",
     items: [
-        { question: "What is AnimatePDF and what does it do?", answer: "AnimatePDF is an AI application that automatically extracts Turkish summaries from your uploaded PDF documents and generates animation scripts, frame visuals, and voiceovers from these summaries. It also offers the ability to create interactive mini-quizzes, chat with PDF content, and generate textual flow diagrams illustrating processes." },
+        { question: "What is AnimatePDF and what does it do?", answer: "AnimatePDF is an AI application that automatically extracts English summaries from your uploaded PDF documents and generates animation scripts, frame visuals, and voiceovers from these summaries. It also offers the ability to create interactive mini-quizzes, chat with PDF content, and generate textual flow diagrams illustrating processes." },
         { question: "What types of PDFs can I upload?", answer: "Text-based PDFs yield the best results. Performance in text extraction and analysis may decrease for PDFs with many complex graphics or scanned (image format) PDFs. It's important for the content to be clear and well-structured." },
         { question: "How are animation scripts, visuals, and voiceovers created?", answer: "The summary extracted from your PDF is sent to advanced generative AI models. These models produce script steps suitable for the summary, scene descriptions (with metaphor and icon suggestions), visuals based on these descriptions (in your chosen style), and voiceovers for the key topics of the frames." },
         { question: "What is the quality of the visuals and can I choose the style?", answer: "The quality of AI-generated visuals can vary depending on the chosen style and the complexity of the PDF content. Our aim is to provide clear, aesthetic visuals suitable for your narrative. You can determine the visual tone of your animation by choosing from different artistic styles such as 'Clean and Vibrant', 'Cartoon', 'Minimalist', 'Photorealistic', 'Sketch', and 'Watercolor'." },
@@ -131,7 +131,14 @@ export default function FaqPage({ params }: FaqPageProps) {
 
   useEffect(() => {
     setFaqContentString(getFaqContentAsString(currentLang));
-  }, [currentLang]);
+    // Reset chat when language changes
+    setChatMessages([]);
+    setUserInput('');
+    // Optionally provide a default bot message in the new language
+    if (isChatbotDialogOpen) {
+      setChatMessages([{ sender: 'bot', text: content.chatbotWaiting }]);
+    }
+  }, [currentLang, content.chatbotWaiting, isChatbotDialogOpen]);
 
 
   const scrollToChatBottom = () => {
@@ -145,7 +152,11 @@ export default function FaqPage({ params }: FaqPageProps) {
 
   useEffect(() => {
     if(isChatbotDialogOpen){
-        setTimeout(scrollToChatBottom, 100); 
+        // Add a slight delay to ensure the DOM is updated before scrolling
+        const timer = setTimeout(() => {
+            scrollToChatBottom();
+        }, 50); 
+        return () => clearTimeout(timer);
     }
   }, [chatMessages, isChatbotDialogOpen]);
 
@@ -160,8 +171,9 @@ export default function FaqPage({ params }: FaqPageProps) {
 
     try {
       const input: FaqChatInput = {
-        faqContent: faqContentString, // Use the language-specific FAQ content
+        faqContent: faqContentString, 
         userQuery: newUserMessage.text,
+        userLanguage: currentLang, // Pass the current language of the page
       };
       const response = await faqChat(input);
       const botMessage: ChatMessage = { sender: 'bot', text: response.botResponse };
@@ -179,6 +191,12 @@ export default function FaqPage({ params }: FaqPageProps) {
       setIsChatLoading(false);
     }
   };
+
+   useEffect(() => {
+    if (isChatbotDialogOpen && chatMessages.length === 0) {
+      setChatMessages([{ sender: 'bot', text: content.chatbotWaiting }]);
+    }
+  }, [isChatbotDialogOpen, chatMessages.length, content.chatbotWaiting]);
 
 
   return (
@@ -222,13 +240,21 @@ export default function FaqPage({ params }: FaqPageProps) {
         </AnimatedSection>
       </main>
 
-      <Dialog open={isChatbotDialogOpen} onOpenChange={setIsChatbotDialogOpen}>
+      <Dialog open={isChatbotDialogOpen} onOpenChange={(open) => {
+        setIsChatbotDialogOpen(open);
+        if (!open) {
+          // Optional: clear chat when closing, or maintain state
+          // setChatMessages([]); 
+        } else if (chatMessages.length === 0) {
+           setChatMessages([{ sender: 'bot', text: content.chatbotWaiting }]);
+        }
+      }}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
             size="icon"
             className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 animate-bounce z-50"
-            aria-label="SSS Asistanını Aç"
+            aria-label={content.chatbotDialogTitle}
           >
             <MessageSquare className="h-7 w-7" />
           </Button>
@@ -245,12 +271,7 @@ export default function FaqPage({ params }: FaqPageProps) {
             </DialogHeader>
             <CardContent className="p-4">
               <ScrollArea className="h-72 w-full rounded-md border p-3 bg-muted/20" ref={chatScrollAreaRef}>
-                {chatMessages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <Bot size={48} className="mb-2 opacity-50" />
-                    <p>{content.chatbotWaiting}</p>
-                  </div>
-                )}
+                {/* Initial message is now handled by useEffect/onOpenChange */}
                 {chatMessages.map((msg, index) => (
                   <div
                     key={index}
@@ -296,7 +317,7 @@ export default function FaqPage({ params }: FaqPageProps) {
                   placeholder={content.chatbotPlaceholder}
                   className="flex-grow shadow-sm focus:ring-primary focus:border-primary"
                   disabled={isChatLoading}
-                  aria-label="SSS Chatbot sorusu"
+                  aria-label={content.chatbotPlaceholder}
                 />
                 <Button type="submit" disabled={isChatLoading || !userInput.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow hover:shadow-md">
                   {isChatLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -360,3 +381,4 @@ export default function FaqPage({ params }: FaqPageProps) {
     </div>
   );
 }
+
