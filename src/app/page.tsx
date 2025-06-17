@@ -65,7 +65,7 @@ export default function LandingPage() {
           <Link href="/animate" passHref>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+              className="text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-primary-dark to-primary"
             >
               Hemen Ücretsiz Başla <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -134,7 +134,7 @@ export default function LandingPage() {
           <Link href="/animate" passHref>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+              className="text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-primary-dark to-primary"
             >
               PDF'ini Şimdi Anime Et <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
