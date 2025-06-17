@@ -218,7 +218,7 @@ export default function FaqPage({ params }: FaqPageProps) {
           <div className="container mx-auto px-6 max-w-3xl">
             <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
               <CardHeader>
-                <CardTitle className="text-2xl font-headline text-primary">{content.accordionTitle}</CardTitle>
+                <CardTitle className="text-2xl font-headline text-primary-dark">{content.accordionTitle}</CardTitle>
                 <CardDescription>{content.accordionDesc}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -262,7 +262,7 @@ export default function FaqPage({ params }: FaqPageProps) {
         <DialogContent className="sm:max-w-[500px] p-0">
           <Card className="w-full shadow-none border-none rounded-lg">
             <DialogHeader className="p-4 border-b">
-              <DialogTitle className="text-xl font-headline flex items-center text-primary">
+              <DialogTitle className="text-xl font-headline flex items-center text-primary-dark">
                 <Bot className="mr-2 h-6 w-6" /> {content.chatbotDialogTitle}
               </DialogTitle>
               <DialogDescription>
