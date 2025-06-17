@@ -6,26 +6,52 @@ import { Home, LogIn, UserPlus, Film, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 
-// Yeni ve daha yaratıcı SVG Logo Komponenti
 const PdfAnimateLogo = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
+    viewBox="0 0 50 75"
     fill="none"
     stroke="currentColor"
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="h-7 w-7 mr-2 animate-pulse"
+    className="h-8 w-8 mr-2 animate-pulse"
   >
-    {/* Arka Plan Sayfa Katmanı (hafif opak) */}
-    <path d="M8 2H16L20 6V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V7L8 2Z" opacity="0.5" strokeWidth="1.2"/>
-    {/* Ön Plan Sayfa Katmanı (daha belirgin) */}
-    <path d="M7 4H14.5L18 7.5V17C18 17.8284 17.3284 18.5 16.5 18.5H7.5C6.67157 18.5 6 17.8284 6 17V5C6 4.44772 6.44772 4 7 4Z" />
-    {/* Köşesi Kıvrık Detayı (Dog-ear) */}
-    <polyline points="14.5 4 14.5 7.5 18 7.5" />
-    {/* Merkezi Oynatma Simgesi (dolu) */}
-    <path d="M10.5 14.5L15.5 11.25L10.5 8V14.5Z" fill="currentColor" strokeWidth="1"/>
+    {/* Main body - uses currentColor for fill (app's primary color, e.g., light blue) */}
+    <rect x="2" y="2" width="46" height="71" rx="7" fill="currentColor" stroke="none" />
+
+    {/* Top panel - white background */}
+    <rect x="5" y="5" width="40" height="24" rx="4" fill="white" stroke="none" />
+
+    {/* Bars in top panel - filled with currentColor */}
+    <rect x="9" y="13" width="5" height="11" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 1 (short) */}
+    <rect x="17" y="9" width="5" height="19" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 2 (tall) */}
+    <rect x="25" y="9" width="5" height="19" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 3 (tall) */}
+    <rect x="33" y="11" width="5" height="15" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 4 (medium) */}
+
+    {/* Middle section containing play button and lines (on main body's currentColor background) */}
+    {/* Play button: White circle, currentColor triangle */}
+    <circle cx="17" cy="46" r="7" fill="white" stroke="none" />
+    <path d="M14.5 42.5 L14.5 49.5 L21 46 Z" fill="currentColor" stroke="none"/>
+
+    {/* Horizontal lines - white */}
+    <rect x="28" y="43" width="13" height="2.5" rx="1" fill="white" stroke="none"/>
+    <rect x="28" y="47.5" width="13" height="2.5" rx="1" fill="white" stroke="none"/>
+
+    {/* "ANIM" text tab area - white background for the tab */}
+    <rect x="9" y="58" width="32" height="10" rx="2.5" fill="white" stroke="none"/>
+    {/* "ANIM" text - filled with currentColor, centered in the white tab */}
+    <text
+      x="25"
+      y="65.2" 
+      fontFamily="Inter, sans-serif"
+      fontSize="7"
+      fill="currentColor"
+      textAnchor="middle"
+      fontWeight="bold"
+    >
+      ANIM
+    </text>
   </svg>
 );
 
