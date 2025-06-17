@@ -171,7 +171,7 @@ export default function AnimatePdfAppPage() {
                   description: (qnaError as Error).message || "Sorular ve cevaplar oluşturulamadı.",
                   variant: "destructive",
                });
-               setQaPairs([]); // Set to empty array to avoid null issues
+               setQaPairs([]); 
             });
 
         } catch (error) {
@@ -204,8 +204,8 @@ export default function AnimatePdfAppPage() {
             .catch(error => ({ index, type: 'image', error }))
         );
 
-        const audioPromises = storyboardKeyTopics.map((keyTopic, index) => // Using keyTopic for brevity in audio
-          generateSpeech({ text: keyTopic, languageCode: 'tr-TR' }) // Assuming Turkish voiceover
+        const audioPromises = storyboardKeyTopics.map((keyTopic, index) => 
+          generateSpeech({ text: keyTopic, languageCode: 'tr-TR' }) 
             .then(result => ({ index, type: 'audio', data: result.audioDataUri }))
             .catch(error => ({ index, type: 'audio', error }))
         );
@@ -240,8 +240,7 @@ export default function AnimatePdfAppPage() {
               });
             }
           } else {
-            // This case handles rejections from Promise.allSettled if an individual promise was not structured to catch its own error.
-            // However, the .catch within map should prevent this.
+            
             console.error("Unhandled promise rejection in content generation:", settledResult.reason);
           }
         });
@@ -298,7 +297,6 @@ export default function AnimatePdfAppPage() {
     setIsPlaying(false);
     if (audioRef.current) {
       audioRef.current.pause();
-      // Audio will be loaded and played if user hits play for the new frame via useEffect for currentFrameIndex
     }
   }, [storyboardSceneDescriptions.length]);
 
@@ -327,15 +325,15 @@ export default function AnimatePdfAppPage() {
               audioRef.current.src = storyboardAudioUrls[nextIdx]!;
               audioRef.current.play().catch(e => console.error("Error playing next audio:", e));
             } else if (audioRef.current) {
-              audioRef.current.pause(); // Pause if no audio for next frame
+              audioRef.current.pause(); 
             }
             return nextIdx;
           }
-          setIsPlaying(false); // End of animation
+          setIsPlaying(false); 
           if (playerIntervalRef.current) clearInterval(playerIntervalRef.current);
           return prev;
         });
-      }, 3000); // Adjust interval as needed, consider audio length later
+      }, 3000); 
     } else {
       if (playerIntervalRef.current) {
         clearInterval(playerIntervalRef.current);
@@ -350,12 +348,11 @@ export default function AnimatePdfAppPage() {
     };
   }, [isPlaying, storyboardSceneDescriptions.length, currentFrameIndex, storyboardAudioUrls]);
 
-  // Effect to load audio when frame changes, but only play if isPlaying is true
    useEffect(() => {
     if (audioRef.current && storyboardAudioUrls[currentFrameIndex]) {
       if (audioRef.current.src !== storyboardAudioUrls[currentFrameIndex]) {
         audioRef.current.src = storyboardAudioUrls[currentFrameIndex]!;
-        audioRef.current.load(); // Ensure it's loaded
+        audioRef.current.load(); 
       }
       if (isPlaying) {
         audioRef.current.play().catch(e => console.error("Error playing audio on frame change:", e));
@@ -363,7 +360,7 @@ export default function AnimatePdfAppPage() {
         audioRef.current.pause();
       }
     } else if (audioRef.current) {
-        audioRef.current.pause(); // Pause if no audio for current frame
+        audioRef.current.pause(); 
     }
   }, [currentFrameIndex, storyboardAudioUrls, isPlaying]);
 
@@ -506,11 +503,8 @@ export default function AnimatePdfAppPage() {
       </main>
 
       <footer className="relative w-full mt-auto bg-primary text-foreground">
-        {/* Curve Element: Color of the page background, its bottom edge is curved upwards */}
-        <div className="absolute top-0 left-0 w-full h-20 bg-background rounded-bl-full rounded-br-full"></div>
-        
-        {/* Content Container: Spacing adjusted for the curve */}
-        <div className="relative container mx-auto px-6 pt-32 pb-12">
+        <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
+        <div className="relative container mx-auto px-6 pt-28 pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
             <div>
               <h5 className="font-bold text-lg mb-3 font-headline flex items-center">
@@ -557,5 +551,4 @@ export default function AnimatePdfAppPage() {
     </div>
   );
 }
-
     

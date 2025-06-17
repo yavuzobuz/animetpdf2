@@ -143,11 +143,8 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <footer className="relative w-full mt-auto bg-primary text-foreground">
-        {/* Curve Element: Color of the page background, its bottom edge is curved upwards */}
-        <div className="absolute top-0 left-0 w-full h-20 bg-background rounded-bl-full rounded-br-full"></div>
-
-        {/* Content Container: Spacing adjusted for the curve */}
-        <div className="relative container mx-auto px-6 pt-32 pb-12">
+        <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
+        <div className="relative container mx-auto px-6 pt-28 pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
             <div>
               <h5 className="font-bold text-lg mb-3 font-headline flex items-center">
@@ -194,5 +191,4 @@ export default function LandingPage() {
     </div>
   );
 }
-
     
