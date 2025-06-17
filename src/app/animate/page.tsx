@@ -16,7 +16,7 @@ import { QaDisplay } from '@/components/custom/qa-display';
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle } from "lucide-react";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
@@ -359,7 +359,11 @@ export default function AnimatePdfAppPage() {
 
       <footer className="w-full max-w-4xl text-center py-8 mt-auto">
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} AnimatePDF. Üretken Yapay Zeka ile güçlendirilmiştir.
+          &copy; {new Date().getFullYear()} AnimatePDF.
+          <Sparkles className="inline-block h-4 w-4 mx-1 text-primary" />
+          Üretken Yapay Zeka
+          <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-primary" />
+          ile güçlendirilmiştir.
         </p>
       </footer>
     </div>

@@ -143,7 +143,11 @@ export default function LandingPage() {
 
       <footer className="w-full text-center py-8 border-t border-border mt-auto">
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} AnimatePDF. Üretken Yapay Zeka ile güçlendirilmiştir.
+          &copy; {new Date().getFullYear()} AnimatePDF.
+          <Sparkles className="inline-block h-4 w-4 mx-1 text-primary" />
+          Üretken Yapay Zeka
+          <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-primary" />
+          ile güçlendirilmiştir.
         </p>
       </footer>
     </div>
