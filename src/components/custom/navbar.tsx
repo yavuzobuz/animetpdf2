@@ -2,25 +2,31 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, LogIn, UserPlus, Film, Menu, X } from 'lucide-react'; // Clapperboard importu kaldırıldı
+import { Home, LogIn, UserPlus, Film, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 
-// Yeni SVG Logo Komponenti
+// Yeni ve daha yaratıcı SVG Logo Komponenti
 const PdfAnimateLogo = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
     className="h-7 w-7 mr-2 animate-pulse"
   >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <polygon points="10 9 15 12 10 15" fill="currentColor" />
+    {/* Stylized Document Page */}
+    <path d="M6.5 2H14.5L19 6.5V20C19 21.1046 18.1046 22 17 22H7C5.89543 22 5 21.1046 5 20V4C5 2.89543 5.89543 2 7 2H7.5" strokeWidth="1.5"/>
+    <polyline points="14 2 14 7 19 7" strokeWidth="1.5"/>
+
+    {/* Dynamic Play Button - slightly larger and offset, filled */}
+    <path d="M9.5 11.5L16.5 15.5L16.5 7.5L9.5 11.5Z" fill="currentColor" strokeWidth="1"/>
+
+    {/* Subtle motion/transformation arc */}
+    <path d="M5.5 15C6 12.5 7.5 10 10 9.5" strokeDasharray="2 2" strokeWidth="1"/>
   </svg>
 );
 
@@ -37,7 +43,7 @@ export function Navbar() {
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" passHref>
           <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
-            <PdfAnimateLogo /> {/* Clapperboard yerine yeni SVG logo */}
+            <PdfAnimateLogo />
             AnimatePDF
           </Button>
         </Link>
@@ -54,7 +60,7 @@ export function Navbar() {
               <SheetTitle asChild>
                 <Link href="/" passHref>
                   <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
-                    <PdfAnimateLogo /> {/* Clapperboard yerine yeni SVG logo */}
+                    <PdfAnimateLogo />
                     AnimatePDF
                   </Button>
                 </Link>
