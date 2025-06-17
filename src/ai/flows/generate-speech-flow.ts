@@ -45,6 +45,8 @@ function getClient() {
   return client;
 }
 
+const MAX_TEXT_LENGTH_CHARS = 2000; // Approximate limit to prevent API errors
+
 export async function generateSpeech(
   input: GenerateSpeechInput
 ): Promise<GenerateSpeechOutput> {
@@ -58,15 +60,30 @@ const generateSpeechFlow = ai.defineFlow(
     outputSchema: GenerateSpeechOutputSchema,
   },
   async (input: GenerateSpeechInput) => {
+    if (input.text.trim() === "") {
+      throw new Error(
+        "Input text cannot be empty. Please provide text to synthesize."
+      );
+    }
+    if (input.text.length > MAX_TEXT_LENGTH_CHARS) {
+      throw new Error(
+        `Input text exceeds maximum allowed length of ${MAX_TEXT_LENGTH_CHARS} characters. Please provide shorter text.`
+      );
+    }
+    
     const ttsClient = getClient();
     
-    let defaultVoiceName = 'en-US-Wavenet-D';
+    let defaultVoiceName = 'en-US-Wavenet-D'; // Default English voice
     let ssmlGender: protos.google.cloud.texttospeech.v1.SsmlVoiceGender = 'NEUTRAL';
 
     if (input.languageCode === 'tr-TR') {
-      defaultVoiceName = 'tr-TR-Wavenet-A'; // Female A, or D for different female voice
+      defaultVoiceName = 'tr-TR-Wavenet-A'; // Female A for Turkish
       ssmlGender = 'FEMALE';
+    } else if (input.languageCode === 'en-US') {
+      // defaultVoiceName is already set for en-US
+      // ssmlGender can remain NEUTRAL or be set explicitly if desired
     }
+    // Add more language-specific voice/gender defaults here if needed
 
     const request: protos.google.cloud.texttospeech.v1.ISynthesizeSpeechRequest = {
       input: {text: input.text},
@@ -91,7 +108,7 @@ const generateSpeechFlow = ai.defineFlow(
       };
     } catch (error) {
       console.error('Error calling Text-to-Speech API:', error);
-      let detailedErrorMessage = 'Failed to generate speech. This often indicates a Google Cloud authentication or Text-to-Speech API configuration issue. Please check your Application Default Credentials, ensure the Text-to-Speech API is enabled in your GCP project, that billing is active, and the necessary IAM permissions are granted.';
+      let detailedErrorMessage = 'Failed to generate speech. This often indicates a Google Cloud authentication or Text-to-Speech API configuration issue. Please check your Application Default Credentials (ADC), ensure the Text-to-Speech API is enabled in your GCP project, that billing is active, and the necessary IAM permissions are granted. The GOOGLE_API_KEY environment variable used by Genkit for other AI models may not be sufficient for the Text-to-Speech client library, which typically relies on ADC.';
       if (error instanceof Error && error.message) {
         detailedErrorMessage += ` Original error: ${error.message}`;
       } else if (typeof error === 'string') {
