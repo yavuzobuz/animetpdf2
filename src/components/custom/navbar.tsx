@@ -13,7 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLanguage } from '@/contexts/language-context'; // useLanguage hook import edildi
+import { useLanguage } from '@/contexts/language-context';
+import { useParams } from 'next/navigation'; // To get current lang from URL for link construction
 
 const PdfAnimateLogo = () => (
   <svg
@@ -53,28 +54,39 @@ const PdfAnimateLogo = () => (
 
 
 export function Navbar() {
-  const { language, setLanguage } = useLanguage(); // Dil bağlamından language ve setLanguage alındı
+  const { language, setLanguage } = useLanguage();
+  const params = useParams();
+  const currentLang = params.lang as string || 'tr'; // Fallback if params.lang is not available initially
 
-  const navLinks = language === 'en' ? [
-    { href: "/", label: "Home", icon: <Home className="mr-2 h-5 w-5" /> },
-    { href: "/animate", label: "Animate", icon: <Film className="mr-2 h-5 w-5" /> },
-    { href: "/faq", label: "FAQ", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
-    { href: "/about", label: "About Us", icon: <Info className="mr-2 h-5 w-5" /> },
-    { href: "/login", label: "Login", icon: <LogIn className="mr-2 h-5 w-5" /> },
-    { href: "/signup", label: "Sign Up", icon: <UserPlus className="mr-2 h-5 w-5" /> },
-  ] : [
-    { href: "/", label: "Ana Sayfa", icon: <Home className="mr-2 h-5 w-5" /> },
-    { href: "/animate", label: "Anime Et", icon: <Film className="mr-2 h-5 w-5" /> },
-    { href: "/faq", label: "SSS", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
-    { href: "/about", label: "Hakkımızda", icon: <Info className="mr-2 h-5 w-5" /> },
-    { href: "/login", label: "Giriş Yap", icon: <LogIn className="mr-2 h-5 w-5" /> },
-    { href: "/signup", label: "Kayıt Ol", icon: <UserPlus className="mr-2 h-5 w-5" /> },
-  ];
+  const navLinksContent = {
+    en: [
+      { href: "/", label: "Home", icon: <Home className="mr-2 h-5 w-5" /> },
+      { href: "/animate", label: "Animate", icon: <Film className="mr-2 h-5 w-5" /> },
+      { href: "/faq", label: "FAQ", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
+      { href: "/about", label: "About Us", icon: <Info className="mr-2 h-5 w-5" /> },
+      { href: "/login", label: "Login", icon: <LogIn className="mr-2 h-5 w-5" /> },
+      { href: "/signup", label: "Sign Up", icon: <UserPlus className="mr-2 h-5 w-5" /> },
+    ],
+    tr: [
+      { href: "/", label: "Ana Sayfa", icon: <Home className="mr-2 h-5 w-5" /> },
+      { href: "/animate", label: "Anime Et", icon: <Film className="mr-2 h-5 w-5" /> },
+      { href: "/faq", label: "SSS", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
+      { href: "/about", label: "Hakkımızda", icon: <Info className="mr-2 h-5 w-5" /> },
+      { href: "/login", label: "Giriş Yap", icon: <LogIn className="mr-2 h-5 w-5" /> },
+      { href: "/signup", label: "Kayıt Ol", icon: <UserPlus className="mr-2 h-5 w-5" /> },
+    ]
+  };
+
+  const activeNavLinks = navLinksContent[language] || navLinksContent.tr;
+
+  const getLocalizedPath = (path: string) => {
+    return `/${currentLang}${path === '/' ? '' : path}`;
+  }
 
   return (
     <nav className="bg-primary text-foreground border-b border-primary-dark/50 p-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
-        <Link href="/" passHref>
+        <Link href={getLocalizedPath("/")} passHref>
           <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
             <PdfAnimateLogo />
             AnimatePDF
@@ -95,12 +107,14 @@ export function Navbar() {
               <DropdownMenuItem 
                 className="hover:bg-background/10 focus:bg-background/10 cursor-pointer"
                 onClick={() => setLanguage('en')}
+                disabled={language === 'en'}
               >
                 English
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="hover:bg-background/10 focus:bg-background/10 cursor-pointer"
                 onClick={() => setLanguage('tr')}
+                disabled={language === 'tr'}
               >
                 Türkçe
               </DropdownMenuItem>
@@ -123,7 +137,7 @@ export function Navbar() {
             <SheetContent side="top" className="w-full bg-primary text-foreground p-0 border-b-primary-dark/50">
               <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-foreground/20">
                 <SheetTitle asChild>
-                  <Link href="/" passHref>
+                  <Link href={getLocalizedPath("/")} passHref>
                     <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
                       <PdfAnimateLogo />
                       AnimatePDF
@@ -139,11 +153,11 @@ export function Navbar() {
               </SheetHeader>
               <div className="p-4">
                 <ul className="space-y-2">
-                  {navLinks.map((item) => (
+                  {activeNavLinks.map((item) => (
                     <li key={item.label}>
                       <SheetClose asChild>
                         <Link
-                          href={item.href}
+                          href={getLocalizedPath(item.href)}
                           className="flex items-center text-md font-medium text-foreground hover:text-foreground hover:bg-background/10 transition-colors px-3 py-3 rounded-md w-full"
                         >
                           {item.icon}
