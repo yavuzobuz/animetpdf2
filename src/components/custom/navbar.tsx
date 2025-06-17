@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle, Info, Languages } from 'lucide-react'; // Info ve Languages ikonları eklendi
+import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle, Info, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
@@ -12,7 +12,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { useLanguage } from '@/contexts/language-context'; // useLanguage hook import edildi
 
 const PdfAnimateLogo = () => (
   <svg
@@ -25,30 +26,17 @@ const PdfAnimateLogo = () => (
     strokeLinejoin="round"
     className="h-16 w-16 mr-2 animate-pulse"
   >
-    {/* Main body - uses currentColor for fill (app's primary color, e.g., light blue) */}
     <rect x="2" y="2" width="46" height="71" rx="7" fill="currentColor" stroke="none" />
-
-    {/* Top panel - white background */}
     <rect x="5" y="5" width="40" height="24" rx="4" fill="white" stroke="none" />
-
-    {/* Bars in top panel - filled with currentColor */}
-    <rect x="9" y="13" width="5" height="11" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 1 (short) */}
-    <rect x="17" y="9" width="5" height="19" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 2 (tall) */}
-    <rect x="25" y="9" width="5" height="19" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 3 (tall) */}
-    <rect x="33" y="11" width="5" height="15" rx="1.5" fill="currentColor" stroke="none" /> {/* Bar 4 (medium) */}
-
-    {/* Middle section containing play button and lines (on main body's currentColor background) */}
-    {/* Play button: White circle, currentColor triangle */}
+    <rect x="9" y="13" width="5" height="11" rx="1.5" fill="currentColor" stroke="none" />
+    <rect x="17" y="9" width="5" height="19" rx="1.5" fill="currentColor" stroke="none" />
+    <rect x="25" y="9" width="5" height="19" rx="1.5" fill="currentColor" stroke="none" />
+    <rect x="33" y="11" width="5" height="15" rx="1.5" fill="currentColor" stroke="none" />
     <circle cx="17" cy="46" r="7" fill="white" stroke="none" />
     <path d="M14.5 42.5 L14.5 49.5 L21 46 Z" fill="currentColor" stroke="none"/>
-
-    {/* Horizontal lines - white */}
     <rect x="28" y="43" width="13" height="2.5" rx="1" fill="white" stroke="none"/>
     <rect x="28" y="47.5" width="13" height="2.5" rx="1" fill="white" stroke="none"/>
-
-    {/* "ANIM" text tab area - white background for the tab */}
     <rect x="9" y="58" width="32" height="10" rx="2.5" fill="white" stroke="none"/>
-    {/* "ANIM" text - filled with currentColor, centered in the white tab */}
     <text
       x="25"
       y="65.2" 
@@ -65,7 +53,16 @@ const PdfAnimateLogo = () => (
 
 
 export function Navbar() {
-  const navLinks = [
+  const { language, setLanguage } = useLanguage(); // Dil bağlamından language ve setLanguage alındı
+
+  const navLinks = language === 'en' ? [
+    { href: "/", label: "Home", icon: <Home className="mr-2 h-5 w-5" /> },
+    { href: "/animate", label: "Animate", icon: <Film className="mr-2 h-5 w-5" /> },
+    { href: "/faq", label: "FAQ", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
+    { href: "/about", label: "About Us", icon: <Info className="mr-2 h-5 w-5" /> },
+    { href: "/login", label: "Login", icon: <LogIn className="mr-2 h-5 w-5" /> },
+    { href: "/signup", label: "Sign Up", icon: <UserPlus className="mr-2 h-5 w-5" /> },
+  ] : [
     { href: "/", label: "Ana Sayfa", icon: <Home className="mr-2 h-5 w-5" /> },
     { href: "/animate", label: "Anime Et", icon: <Film className="mr-2 h-5 w-5" /> },
     { href: "/faq", label: "SSS", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
@@ -89,23 +86,29 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
                 <Languages className="h-6 w-6" />
-                <span className="sr-only">Dil Seçin</span>
+                <span className="sr-only">{language === 'en' ? 'Select Language' : 'Dil Seçin'}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-primary border-primary-dark/30 text-foreground">
-              <DropdownMenuLabel className="text-foreground/80">Dil Seçin</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-foreground/80">{language === 'en' ? 'Select Language' : 'Dil Seçin'}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-foreground/20" />
-              <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer">
+              <DropdownMenuItem 
+                className="hover:bg-background/10 focus:bg-background/10 cursor-pointer"
+                onClick={() => setLanguage('en')}
+              >
                 English
               </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer">
+              <DropdownMenuItem 
+                className="hover:bg-background/10 focus:bg-background/10 cursor-pointer"
+                onClick={() => setLanguage('tr')}
+              >
                 Türkçe
               </DropdownMenuItem>
               <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer" disabled>
-                Français (Yakında)
+                Français ({language === 'en' ? 'Soon' : 'Yakında'})
               </DropdownMenuItem>
               <DropdownMenuItem className="hover:bg-background/10 focus:bg-background/10 cursor-pointer" disabled>
-                Deutsch (Yakında)
+                Deutsch ({language === 'en' ? 'Soon' : 'Yakında'})
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -114,7 +117,7 @@ export function Navbar() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Menüyü Aç</span>
+                <span className="sr-only">{language === 'en' ? 'Open Menu' : 'Menüyü Aç'}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="top" className="w-full bg-primary text-foreground p-0 border-b-primary-dark/50">
@@ -130,7 +133,7 @@ export function Navbar() {
                 <SheetClose asChild>
                   <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
                     <X className="h-6 w-6" />
-                    <span className="sr-only">Menüyü Kapat</span>
+                    <span className="sr-only">{language === 'en' ? 'Close Menu' : 'Menüyü Kapat'}</span>
                   </Button>
                 </SheetClose>
               </SheetHeader>
