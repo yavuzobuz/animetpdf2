@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generates speech audio from text using Google Cloud Text-to-Speech.
@@ -90,11 +91,14 @@ const generateSpeechFlow = ai.defineFlow(
       };
     } catch (error) {
       console.error('Error calling Text-to-Speech API:', error);
-      let errorMessage = 'Failed to generate speech.';
-      if (error instanceof Error) {
-        errorMessage = `Failed to generate speech: ${error.message}`;
+      let detailedErrorMessage = 'Failed to generate speech. This often indicates a Google Cloud authentication or Text-to-Speech API configuration issue. Please check your Application Default Credentials, ensure the Text-to-Speech API is enabled in your GCP project, that billing is active, and the necessary IAM permissions are granted.';
+      if (error instanceof Error && error.message) {
+        detailedErrorMessage += ` Original error: ${error.message}`;
+      } else if (typeof error === 'string') {
+        detailedErrorMessage += ` Original error: ${error}`;
       }
-      throw new Error(errorMessage);
+      throw new Error(detailedErrorMessage);
     }
   }
 );
+
