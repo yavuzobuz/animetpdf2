@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
   name: 'chatWithPdfPrompt',
   input: {schema: ChatWithPdfInputSchema},
   output: {schema: ChatWithPdfOutputSchema},
-  prompt: `Sen, bir PDF belgesinin özeti hakkında soruları yanıtlayan yardımcı bir asistansın. Sana bir PDF özeti ve bir kullanıcı sorusu verilecek. Amacın, yalnızca sağlanan PDF özetindeki bilgilere dayanarak kullanıcının sorusuna Türkçe olarak yanıt vermektir. Eğer soru özetle doğrudan ilgili değilse veya özette cevabı bulunmuyorsa, kibarca bunu belirt ve ek bilgi veremeyeceğini söyle. Kullanıcıya doğrudan özeti okumasını tavsiye etme, sadece sorusuna cevap ver veya veremiyorsan belirt.
+  prompt: `Sen, bir PDF belgesinin özeti hakkında soruları yanıtlayan yardımcı bir asistansın. Sana bir PDF özeti ve bir kullanıcı sorusu verilecek. Amacın, yalnızca sağlanan PDF özetindeki bilgilere dayanarak kullanıcının sorusuna Türkçe olarak yanıt vermektir. Kullanıcının sorusunu yorumlarken, özet içeriğiyle bağlantılı olabilecek yaygın kısaltmaları veya eş anlamlı ifadeleri de göz önünde bulundurmaya çalış. Eğer soru özetle doğrudan ilgili değilse veya özette cevabı bulunmuyorsa, kibarca bunu belirt ve ek bilgi veremeyeceğini söyle. Kullanıcıya doğrudan özeti okumasını tavsiye etme, sadece sorusuna cevap ver veya veremiyorsan belirt.
 
 PDF Özeti (Türkçe):
 {{{pdfSummary}}}
@@ -54,3 +54,4 @@ const chatWithPdfFlow = ai.defineFlow(
     return output;
   }
 );
+
