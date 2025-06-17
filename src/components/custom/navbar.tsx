@@ -69,7 +69,7 @@ export function Navbar() {
     <nav className="bg-primary text-foreground border-b border-primary-dark/50 p-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" passHref>
-          <Button variant="ghost" className="text-xl font-bold hover:bg-background/10 p-2 h-auto">
+          <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
             <PdfAnimateLogo />
             AnimatePDF
           </Button>
@@ -82,20 +82,18 @@ export function Navbar() {
               <span className="sr-only">Menüyü Aç</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="top" className="w-full bg-background text-foreground p-0">
-            <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-border">
+          <SheetContent side="top" className="w-full bg-primary text-foreground p-0 border-b-primary-dark/50">
+            <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-foreground/20">
               <SheetTitle asChild>
                 <Link href="/" passHref>
-                  {/* This logo button is on bg-background (SheetHeader), so original styling is fine */}
-                  <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
+                  <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
                     <PdfAnimateLogo />
                     AnimatePDF
                   </Button>
                 </Link>
               </SheetTitle>
               <SheetClose asChild>
-                 {/* This close button is on bg-background (SheetHeader), so original styling is fine */}
-                <Button variant="ghost" size="icon" className="text-foreground hover:text-primary hover:bg-accent/10">
+                <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
                   <X className="h-6 w-6" />
                   <span className="sr-only">Menüyü Kapat</span>
                 </Button>
@@ -108,7 +106,7 @@ export function Navbar() {
                     <SheetClose asChild>
                        <Link
                         href={item.href}
-                        className="flex items-center text-md font-medium text-foreground hover:text-primary transition-colors px-3 py-3 rounded-md hover:bg-accent/10 w-full"
+                        className="flex items-center text-md font-medium text-foreground hover:text-foreground hover:bg-background/10 transition-colors px-3 py-3 rounded-md w-full"
                       >
                         {item.icon}
                         {item.label}
