@@ -66,10 +66,10 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="bg-background border-b border-border p-4 sticky top-0 z-50">
+    <nav className="bg-primary text-foreground border-b border-primary-dark/50 p-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" passHref>
-          <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
+          <Button variant="ghost" className="text-xl font-bold hover:bg-background/10 p-2 h-auto">
             <PdfAnimateLogo />
             AnimatePDF
           </Button>
@@ -77,7 +77,7 @@ export function Navbar() {
 
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-foreground hover:text-primary hover:bg-accent/10">
+            <Button variant="ghost" size="icon" className="text-foreground hover:bg-background/10">
               <Menu className="h-6 w-6" />
               <span className="sr-only">Menüyü Aç</span>
             </Button>
@@ -86,6 +86,7 @@ export function Navbar() {
             <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-border">
               <SheetTitle asChild>
                 <Link href="/" passHref>
+                  {/* This logo button is on bg-background (SheetHeader), so original styling is fine */}
                   <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
                     <PdfAnimateLogo />
                     AnimatePDF
@@ -93,6 +94,7 @@ export function Navbar() {
                 </Link>
               </SheetTitle>
               <SheetClose asChild>
+                 {/* This close button is on bg-background (SheetHeader), so original styling is fine */}
                 <Button variant="ghost" size="icon" className="text-foreground hover:text-primary hover:bg-accent/10">
                   <X className="h-6 w-6" />
                   <span className="sr-only">Menüyü Kapat</span>
