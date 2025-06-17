@@ -2,9 +2,27 @@
 "use client";
 
 import Link from 'next/link';
-import { Clapperboard, Home, LogIn, UserPlus, Film, Menu, X } from 'lucide-react';
+import { Home, LogIn, UserPlus, Film, Menu, X } from 'lucide-react'; // Clapperboard importu kaldırıldı
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+
+// Yeni SVG Logo Komponenti
+const PdfAnimateLogo = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-7 w-7 mr-2 animate-pulse"
+  >
+    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+    <polyline points="14 2 14 8 20 8" />
+    <polygon points="10 9 15 12 10 15" fill="currentColor" />
+  </svg>
+);
 
 export function Navbar() {
   const navLinks = [
@@ -19,7 +37,7 @@ export function Navbar() {
       <div className="container mx-auto flex items-center justify-between">
         <Link href="/" passHref>
           <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
-            <Clapperboard className="h-7 w-7 mr-2 animate-pulse" />
+            <PdfAnimateLogo /> {/* Clapperboard yerine yeni SVG logo */}
             AnimatePDF
           </Button>
         </Link>
@@ -36,7 +54,7 @@ export function Navbar() {
               <SheetTitle asChild>
                 <Link href="/" passHref>
                   <Button variant="ghost" className="text-xl font-bold text-primary hover:bg-primary/10 p-2 h-auto">
-                    <Clapperboard className="h-7 w-7 mr-2 animate-pulse" />
+                    <PdfAnimateLogo /> {/* Clapperboard yerine yeni SVG logo */}
                     AnimatePDF
                   </Button>
                 </Link>
