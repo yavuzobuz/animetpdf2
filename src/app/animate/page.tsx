@@ -9,6 +9,8 @@ import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate
 import { generateQa, GenerateQaInput, GenerateQaOutput, QAPair as AIQAPair } from '@/ai/flows/generate-qa-flow';
 import { generateSpeech, GenerateSpeechInput } from '@/ai/flows/generate-speech-flow';
 import { chatWithPdf, type ChatWithPdfInput, type ChatWithPdfOutput } from '@/ai/flows/chat-with-pdf-flow';
+import { generatePdfDiagram, type GeneratePdfDiagramInput, type GeneratePdfDiagramOutput } from '@/ai/flows/generate-pdf-diagram-flow';
+
 
 import AnimatedSection from '@/components/custom/animated-section';
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
@@ -17,12 +19,14 @@ import { AnimationPreview } from '@/components/custom/animation-preview';
 import { PlaybackControls } from '@/components/custom/playback-controls';
 import { QaDisplay } from '@/components/custom/qa-display';
 import { PdfChat } from '@/components/custom/pdf-chat';
+import { PdfDiagramGenerator } from '@/components/custom/pdf-diagram-generator';
+
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette, Volume2, Mic } from "lucide-react";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette, Volume2, Mic, GitFork } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
@@ -244,6 +248,11 @@ export default function AnimatePdfAppPage() {
           } else {
             
             console.error("Unhandled promise rejection in content generation:", settledResult.reason);
+             toast({
+                  title: `Bir İçerik Oluşturma Hatası (Promise Rejection)`,
+                  description: (settledResult.reason as Error)?.message || "Bilinmeyen bir hata oluştu.",
+                  variant: "destructive",
+              });
           }
         });
 
@@ -503,6 +512,16 @@ export default function AnimatePdfAppPage() {
                 </AnimatedSection>
               </>
             )}
+            
+            {pdfSummary && (
+              <>
+                <Separator className="my-8" />
+                <AnimatedSection sectionId="pdf-diagram-section" delay="delay-375">
+                  <PdfDiagramGenerator pdfSummary={pdfSummary} generatePdfDiagramFlow={generatePdfDiagram} />
+                </AnimatedSection>
+              </>
+            )}
+
 
             <AnimatedSection tag="div" className="text-center mt-8" delay="delay-400">
                 <Button onClick={resetState} variant="outline" className="text-primary border-primary hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_15px_hsl(var(--primary)/0.5)] transition-all">
