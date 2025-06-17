@@ -142,47 +142,47 @@ export default function LandingPage() {
         </div>
       </AnimatedSection>
 
-      <footer className="w-full py-12 border-t border-border mt-auto bg-muted/20">
+      <footer className="w-full py-12 border-t border-border mt-auto bg-primary">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
             <div>
               <h5 className="font-bold text-lg mb-3 text-foreground font-headline flex items-center">
-                <Clapperboard className="h-6 w-6 mr-2 text-primary" /> AnimatePDF
+                <Clapperboard className="h-6 w-6 mr-2 text-foreground" /> AnimatePDF
               </h5>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-foreground">
                 PDF belgelerinizi saniyeler içinde ilgi çekici animasyonlu hikayelere ve interaktif öğrenme deneyimlerine dönüştürün.
               </p>
             </div>
             <div>
               <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bağlantılar</h5>
               <ul className="space-y-2">
-                <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Hakkımızda</Link></li>
-                <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Gizlilik Politikası</Link></li>
-                <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Kullanım Koşulları</Link></li>
-                <li><Link href="/animate" className="text-sm text-muted-foreground hover:text-primary transition-colors">Uygulamayı Kullan</Link></li>
+                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Hakkımızda</Link></li>
+                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Gizlilik Politikası</Link></li>
+                <li><Link href="#" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Kullanım Koşulları</Link></li>
+                <li><Link href="/animate" className="text-sm text-foreground hover:text-foreground/80 transition-colors">Uygulamayı Kullan</Link></li>
               </ul>
             </div>
             <div>
               <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bizi Takip Edin</h5>
               <div className="flex space-x-4">
-                <Link href="#" aria-label="Twitter" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#" aria-label="Twitter" className="text-foreground hover:text-foreground/80 transition-colors">
                   <Twitter className="h-6 w-6" />
                 </Link>
-                <Link href="#" aria-label="LinkedIn" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#" aria-label="LinkedIn" className="text-foreground hover:text-foreground/80 transition-colors">
                   <Linkedin className="h-6 w-6" />
                 </Link>
-                <Link href="#" aria-label="GitHub" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="#" aria-label="GitHub" className="text-foreground hover:text-foreground/80 transition-colors">
                   <Github className="h-6 w-6" />
                 </Link>
               </div>
             </div>
           </div>
           <Separator className="mb-8 bg-border/70" />
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-foreground text-center">
             &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
-            <Sparkles className="inline-block h-4 w-4 mx-1 text-primary" />
+            <Sparkles className="inline-block h-4 w-4 mx-1 text-foreground" />
             Üretken Yapay Zeka
-            <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-primary" />
+            <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-foreground" />
             ile güçlendirilmiştir.
           </p>
         </div>
