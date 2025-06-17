@@ -8,6 +8,7 @@ import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnim
 import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate-frame-image-flow';
 import { generateQa, GenerateQaInput, GenerateQaOutput, QAPair as AIQAPair } from '@/ai/flows/generate-qa-flow';
 import { generateSpeech, GenerateSpeechInput } from '@/ai/flows/generate-speech-flow';
+import { chatWithPdf, type ChatWithPdfInput, type ChatWithPdfOutput } from '@/ai/flows/chat-with-pdf-flow';
 
 import AnimatedSection from '@/components/custom/animated-section';
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
@@ -15,6 +16,7 @@ import { ScenarioDisplay } from '@/components/custom/scenario-display';
 import { AnimationPreview } from '@/components/custom/animation-preview';
 import { PlaybackControls } from '@/components/custom/playback-controls';
 import { QaDisplay } from '@/components/custom/qa-display';
+import { PdfChat } from '@/components/custom/pdf-chat';
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -489,6 +491,15 @@ export default function AnimatePdfAppPage() {
                 <Separator className="my-8" />
                 <AnimatedSection sectionId="qa-section-title" delay="delay-300">
                   <QaDisplay qaPairs={qaPairs} />
+                </AnimatedSection>
+              </>
+            )}
+
+            {pdfSummary && (
+              <>
+                <Separator className="my-8" />
+                <AnimatedSection sectionId="pdf-chat-section" delay="delay-350">
+                  <PdfChat pdfSummary={pdfSummary} chatWithPdfFlow={chatWithPdf} />
                 </AnimatedSection>
               </>
             )}
