@@ -5,8 +5,9 @@ import Link from 'next/link';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye } from 'lucide-react';
+import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github } from 'lucide-react';
 import AnimatedSection from '@/components/custom/animated-section';
+import { Separator } from '@/components/ui/separator';
 
 
 export default function LandingPage() {
@@ -64,7 +65,7 @@ export default function LandingPage() {
           <Link href="/animate" passHref>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
             >
               Hemen Ücretsiz Başla <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -133,7 +134,7 @@ export default function LandingPage() {
           <Link href="/animate" passHref>
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
             >
               PDF'ini Şimdi Anime Et <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -141,14 +142,50 @@ export default function LandingPage() {
         </div>
       </AnimatedSection>
 
-      <footer className="w-full text-center py-8 border-t border-border mt-auto">
-        <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} AnimatePDF.
-          <Sparkles className="inline-block h-4 w-4 mx-1 text-primary" />
-          Üretken Yapay Zeka
-          <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-primary" />
-          ile güçlendirilmiştir.
-        </p>
+      <footer className="w-full py-12 border-t border-border mt-auto bg-muted/20">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
+            <div>
+              <h5 className="font-bold text-lg mb-3 text-foreground font-headline flex items-center">
+                <Clapperboard className="h-6 w-6 mr-2 text-primary" /> AnimatePDF
+              </h5>
+              <p className="text-sm text-muted-foreground">
+                PDF belgelerinizi saniyeler içinde ilgi çekici animasyonlu hikayelere ve interaktif öğrenme deneyimlerine dönüştürün.
+              </p>
+            </div>
+            <div>
+              <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bağlantılar</h5>
+              <ul className="space-y-2">
+                <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Hakkımızda</Link></li>
+                <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Gizlilik Politikası</Link></li>
+                <li><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">Kullanım Koşulları</Link></li>
+                <li><Link href="/animate" className="text-sm text-muted-foreground hover:text-primary transition-colors">Uygulamayı Kullan</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-bold text-lg mb-3 text-foreground font-headline">Bizi Takip Edin</h5>
+              <div className="flex space-x-4">
+                <Link href="#" aria-label="Twitter" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Twitter className="h-6 w-6" />
+                </Link>
+                <Link href="#" aria-label="LinkedIn" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Linkedin className="h-6 w-6" />
+                </Link>
+                <Link href="#" aria-label="GitHub" className="text-muted-foreground hover:text-primary transition-colors">
+                  <Github className="h-6 w-6" />
+                </Link>
+              </div>
+            </div>
+          </div>
+          <Separator className="mb-8 bg-border/70" />
+          <p className="text-sm text-muted-foreground text-center">
+            &copy; {new Date().getFullYear()} AnimatePDF. Tüm hakları saklıdır.
+            <Sparkles className="inline-block h-4 w-4 mx-1 text-primary" />
+            Üretken Yapay Zeka
+            <Cpu className="inline-block h-4 w-4 ml-1 mr-1 text-primary" />
+            ile güçlendirilmiştir.
+          </p>
+        </div>
       </footer>
     </div>
   );
