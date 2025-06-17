@@ -7,11 +7,12 @@ import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnim
 import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate-frame-image-flow';
 import { generateQa, GenerateQaInput, GenerateQaOutput, QAPair as AIQAPair } from '@/ai/flows/generate-qa-flow';
 
+import AnimatedSection from '@/components/custom/animated-section';
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
 import { ScenarioDisplay } from '@/components/custom/scenario-display';
 import { AnimationPreview } from '@/components/custom/animation-preview';
 import { PlaybackControls } from '@/components/custom/playback-controls';
-import { QaDisplay } from '@/components/custom/qa-display'; 
+import { QaDisplay } from '@/components/custom/qa-display';
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,22 +25,22 @@ type AppStep = "upload" | "analyzing" | "generatingScenario" | "generatingImages
 interface AnimationFrameData {
   sceneDescription: string;
   keyTopic: string;
-  frameSummary: string; 
+  frameSummary: string;
 }
 
 export default function AnimatePdfAppPage() {
   const [step, setStep] = useState<AppStep>("upload");
-  
+
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfSummary, setPdfSummary] = useState<string | null>(null);
-  const [animationFrames, setAnimationFrames] = useState<AnimationFrameData[] | null>(null); 
-  
+  const [animationFrames, setAnimationFrames] = useState<AnimationFrameData[] | null>(null);
+
   const [storyboardSceneDescriptions, setStoryboardSceneDescriptions] = useState<string[]>([]);
   const [storyboardKeyTopics, setStoryboardKeyTopics] = useState<string[]>([]);
   const [storyboardFrameSummaries, setStoryboardFrameSummaries] = useState<string[]>([]);
   const [storyboardImages, setStoryboardImages] = useState<(string | null)[]>([]);
-  const [qaPairs, setQaPairs] = useState<AIQAPair[] | null>(null); 
-  
+  const [qaPairs, setQaPairs] = useState<AIQAPair[] | null>(null);
+
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [imageGenerationStarted, setImageGenerationStarted] = useState(false);
@@ -69,7 +70,7 @@ export default function AnimatePdfAppPage() {
   const handlePdfUpload = async (file: File, dataUri: string) => {
     setPdfFile(file);
     setStep("analyzing");
-    setPdfSummary(null); 
+    setPdfSummary(null);
     setAnimationFrames(null);
     setStoryboardSceneDescriptions([]);
     setStoryboardKeyTopics([]);
@@ -105,11 +106,11 @@ export default function AnimatePdfAppPage() {
         try {
           const scenarioInput: GenerateAnimationScenarioInput = { pdfSummary };
           const scenarioResult: GenerateAnimationScenarioOutput = await generateAnimationScenario(scenarioInput);
-          
+
           if (!scenarioResult.frames || scenarioResult.frames.length === 0) {
             throw new Error("Oluşturulan senaryo kare içermiyor.");
           }
-          
+
           setAnimationFrames(scenarioResult.frames);
           const newSceneDescriptions = scenarioResult.frames.map(f => f.sceneDescription);
           const newKeyTopics = scenarioResult.frames.map(f => f.keyTopic);
@@ -127,12 +128,13 @@ export default function AnimatePdfAppPage() {
             description: "Şimdi her kare için görseller ve mini test eş zamanlı oluşturuluyor...",
           });
 
-          setStep("generatingImages"); 
+          setStep("generatingImages");
 
+          // Generate Q&A in parallel, don't await here
           generateQa({ pdfSummary })
             .then(qaResult => {
               setQaPairs(qaResult.qaPairs);
-              toast({ 
+              toast({
                 title: "Mini Test Oluşturuldu",
                 description: "Sorular ve cevaplar hazır!",
               });
@@ -144,7 +146,7 @@ export default function AnimatePdfAppPage() {
                   description: (qnaError as Error).message || "Sorular ve cevaplar oluşturulamadı.",
                   variant: "destructive",
                });
-               setQaPairs([]); 
+               setQaPairs([]);
             });
 
         } catch (error) {
@@ -154,7 +156,7 @@ export default function AnimatePdfAppPage() {
             description: (error as Error).message || "Animasyon senaryosu oluşturulamadı.",
             variant: "destructive",
           });
-          setStep("upload"); 
+          setStep("upload");
         }
       };
       processScenario();
@@ -163,7 +165,7 @@ export default function AnimatePdfAppPage() {
 
   useEffect(() => {
     if (step === "generatingImages" && storyboardSceneDescriptions.length > 0 && !imageGenerationStarted) {
-      setImageGenerationStarted(true); 
+      setImageGenerationStarted(true);
       const generateAllImages = async () => {
         toast({
           title: "Kare Görselleri ve Mini Test Hazırlanıyor",
@@ -192,7 +194,7 @@ export default function AnimatePdfAppPage() {
         });
 
         await Promise.allSettled(imageGenerationPromises);
-        
+
         toast({
           title: "Görsel Oluşturma Tamamlandı!",
           description: "Tüm kare görselleri işlendi. Animasyonunuz önizlemeye hazır.",
@@ -223,7 +225,7 @@ export default function AnimatePdfAppPage() {
     setCurrentFrameIndex((prev) => Math.max(prev - 1, 0));
     setIsPlaying(false);
   }, []);
-  
+
   const handleSeek = useCallback((frameIndex: number) => {
     setCurrentFrameIndex(Math.max(0, Math.min(frameIndex, storyboardSceneDescriptions.length - 1)));
     setIsPlaying(false);
@@ -242,11 +244,11 @@ export default function AnimatePdfAppPage() {
           if (prev < storyboardSceneDescriptions.length - 1) {
             return prev + 1;
           }
-          setIsPlaying(false); 
+          setIsPlaying(false);
           if (playerIntervalRef.current) clearInterval(playerIntervalRef.current);
           return prev;
         });
-      }, 3000); 
+      }, 3000);
     } else {
       if (playerIntervalRef.current) {
         clearInterval(playerIntervalRef.current);
@@ -267,52 +269,54 @@ export default function AnimatePdfAppPage() {
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 md:p-8 space-y-8 font-body">
-      <header className="w-full max-w-4xl text-center">
+      <AnimatedSection tag="header" className="w-full max-w-4xl text-center">
         <h1 className="text-5xl font-bold font-headline text-primary">
-          <Clapperboard className="inline-block h-12 w-12 mr-2 -mt-1" /> AnimatePDF
+          <Clapperboard className="inline-block h-12 w-12 mr-2 -mt-1 animate-pulse" /> AnimatePDF
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
           PDF'lerinizi zahmetsizce animasyonlu hikayelere dönüştürün.
         </p>
-      </header>
+      </AnimatedSection>
 
       <main className="w-full max-w-4xl space-y-8">
         {step === "upload" && (
-          <section aria-labelledby="upload-section-title" className="flex justify-center">
+          <AnimatedSection sectionId="upload-section-title" className="flex justify-center" delay="delay-100">
              <PdfUploadForm onPdfUpload={handlePdfUpload} isLoading={isLoading} />
-          </section>
+          </AnimatedSection>
         )}
 
         {isProcessing && (
-          <Alert className="max-w-lg mx-auto shadow-md">
-            {step === "analyzing" && <FileText className="h-5 w-5 animate-pulse text-primary" />}
-            {step === "generatingScenario" && <Sparkles className="h-5 w-5 animate-spin text-primary" />}
-            {step === "generatingImages" && <ImageIcon className="h-5 w-5 animate-spin text-primary" />}
-            {!["analyzing", "generatingScenario", "generatingImages"].includes(step) && <Loader2 className="h-5 w-5 animate-spin text-primary" /> }
+          <AnimatedSection tag="div" className="flex justify-center" delay="delay-100">
+            <Alert className="max-w-lg mx-auto shadow-md border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+              {step === "analyzing" && <FileText className="h-5 w-5 animate-pulse text-primary" />}
+              {step === "generatingScenario" && <Sparkles className="h-5 w-5 animate-spin text-primary" />}
+              {step === "generatingImages" && <ImageIcon className="h-5 w-5 animate-spin text-primary" />}
+              {!["analyzing", "generatingScenario", "generatingImages"].includes(step) && <Loader2 className="h-5 w-5 animate-spin text-primary" /> }
 
-            <AlertTitle className="font-headline">
-              {step === "analyzing" && "PDF Analiz Ediliyor..."}
-              {step === "generatingScenario" && "Senaryo Oluşturuluyor..."}
-              {step === "generatingImages" && `Görseller ve Mini Test Hazırlanıyor... (${storyboardImages.filter(img => img !== null).length}/${storyboardSceneDescriptions.length} görsel tamamlandı)`}
-            </AlertTitle>
-            <AlertDescription>
-              {step === "analyzing" && "Yapay zekamız PDF'inizi okuyor ve anahtar temaları çıkarıyor. Lütfen bekleyin..."}
-              {step === "generatingScenario" && "PDF özetine dayalı ilgi çekici bir animasyon senaryosu hazırlanıyor. Sabırlı olun!"}
-              {step === "generatingImages" && "Yapay zekamız animasyon kareleri için görseller ve öğrenmenizi pekiştirmek için mini test hazırlıyor. Bu süreç biraz zaman alabilir."}
-            </AlertDescription>
-          </Alert>
+              <AlertTitle className="font-headline">
+                {step === "analyzing" && "PDF Analiz Ediliyor..."}
+                {step === "generatingScenario" && "Senaryo Oluşturuluyor..."}
+                {step === "generatingImages" && `Görseller ve Mini Test Hazırlanıyor... (${storyboardImages.filter(img => img !== null).length}/${storyboardSceneDescriptions.length} görsel tamamlandı)`}
+              </AlertTitle>
+              <AlertDescription>
+                {step === "analyzing" && "Yapay zekamız PDF'inizi okuyor ve anahtar temaları çıkarıyor. Lütfen bekleyin..."}
+                {step === "generatingScenario" && "PDF özetine dayalı ilgi çekici bir animasyon senaryosu hazırlanıyor. Sabırlı olun!"}
+                {step === "generatingImages" && "Yapay zekamız animasyon kareleri için görseller ve öğrenmenizi pekiştirmek için mini test hazırlıyor. Bu süreç biraz zaman alabilir."}
+              </AlertDescription>
+            </Alert>
+          </AnimatedSection>
         )}
 
         {step === "ready" && pdfSummary && storyboardSceneDescriptions.length > 0 && (
           <>
-            <section aria-labelledby="summary-section-title">
+            <AnimatedSection sectionId="summary-section-title" delay="delay-100">
               <ScenarioDisplay pdfSummary={pdfSummary} />
-            </section>
-            
+            </AnimatedSection>
+
             <Separator className="my-8" />
 
-            <section aria-labelledby="animation-preview-section-title" className="space-y-6">
-              <AnimationPreview 
+            <AnimatedSection sectionId="animation-preview-section-title" className="space-y-6" delay="delay-200">
+              <AnimationPreview
                 sceneDescriptions={storyboardSceneDescriptions}
                 currentSceneDescription={storyboardSceneDescriptions[currentFrameIndex] || ""}
                 currentKeyTopic={storyboardKeyTopics[currentFrameIndex] || ""}
@@ -333,22 +337,22 @@ export default function AnimatePdfAppPage() {
                 totalFrames={storyboardSceneDescriptions.length}
                 disabled={storyboardSceneDescriptions.length === 0 || step === "generatingImages"}
               />
-            </section>
+            </AnimatedSection>
 
             {qaPairs && qaPairs.length > 0 && (
               <>
                 <Separator className="my-8" />
-                <section aria-labelledby="qa-section-title">
+                <AnimatedSection sectionId="qa-section-title" delay="delay-300">
                   <QaDisplay qaPairs={qaPairs} />
-                </section>
+                </AnimatedSection>
               </>
             )}
-            
-            <div className="text-center mt-8">
-                <Button onClick={resetState} variant="outline" className="text-primary border-primary hover:bg-primary/10">
+
+            <AnimatedSection tag="div" className="text-center mt-8" delay="delay-400">
+                <Button onClick={resetState} variant="outline" className="text-primary border-primary hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_15px_hsl(var(--primary)/0.5)] transition-all">
                     <RotateCcw className="mr-2 h-4 w-4" /> Yeni Bir PDF İle Başla
                 </Button>
-            </div>
+            </AnimatedSection>
           </>
         )}
       </main>
@@ -361,5 +365,3 @@ export default function AnimatePdfAppPage() {
     </div>
   );
 }
-
-    

@@ -11,7 +11,7 @@ interface ScenarioDisplayProps {
 export function ScenarioDisplay({ pdfSummary }: ScenarioDisplayProps) {
   if (!pdfSummary) {
     return (
-      <Card className="w-full shadow-lg">
+      <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
         <CardHeader>
           <CardTitle className="text-2xl font-headline">PDF Özeti</CardTitle>
           <CardDescription>PDF'inizden çıkarılan özet.</CardDescription>
@@ -24,7 +24,7 @@ export function ScenarioDisplay({ pdfSummary }: ScenarioDisplayProps) {
   }
 
   return (
-    <Card className="w-full shadow-lg">
+    <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">PDF Özeti</CardTitle>
         <CardDescription>Yapay zeka tarafından PDF'inizden çıkarılan özet aşağıdadır.</CardDescription>

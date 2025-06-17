@@ -2,61 +2,11 @@
 "use client";
 
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-const AnimatedSection: React.FC<{ children: React.ReactNode, className?: string, sectionId?: string, tag?: keyof JSX.IntrinsicElements }> = ({ children, className, sectionId, tag = 'section' }) => {
-  const ref = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const currentRef = ref.current;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          if (currentRef) {
-            observer.unobserve(currentRef);
-          }
-        }
-      },
-      {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1,
-      }
-    );
-
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
-
-    return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
-      }
-    };
-  }, []);
-
-  const Tag = tag;
-
-  return (
-    <Tag
-      id={sectionId}
-      ref={ref as any}
-      className={cn(
-        "opacity-0 translate-y-8 transform transition-all duration-1000 ease-out",
-        isVisible && "opacity-100 translate-y-0",
-        className
-      )}
-    >
-      {children}
-    </Tag>
-  );
-};
+import AnimatedSection from '@/components/custom/animated-section';
 
 
 export default function LandingPage() {
@@ -112,9 +62,9 @@ export default function LandingPage() {
             Karmaşık PDF belgelerinizi saniyeler içinde etkileyici animasyonlu hikayelere, açıklayıcı videolara ve interaktif mini testlere dönüştürün. Tamamen Türkçe!
           </p>
           <Link href="/animate" passHref>
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl hover:shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
             >
               Hemen Ücretsiz Başla <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -122,7 +72,7 @@ export default function LandingPage() {
         </div>
       </AnimatedSection>
 
-      <AnimatedSection sectionId="features" className="py-16 md:py-24 bg-background">
+      <AnimatedSection sectionId="features" className="py-16 md:py-24 bg-background" delay="delay-100">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">Neden AnimatePDF?</h2>
@@ -132,8 +82,8 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card 
-                key={index} 
+              <Card
+                key={index}
                 className="bg-card shadow-lg hover:shadow-xl hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 rounded-lg overflow-hidden flex flex-col text-center"
               >
                 <CardHeader className="items-center p-6 bg-muted/20">
@@ -149,7 +99,7 @@ export default function LandingPage() {
         </div>
       </AnimatedSection>
 
-      <AnimatedSection sectionId="how-it-works" className="py-16 md:py-24 bg-muted/30">
+      <AnimatedSection sectionId="how-it-works" className="py-16 md:py-24 bg-muted/30" delay="delay-200">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">Nasıl Çalışır?</h2>
@@ -157,8 +107,8 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {howItWorksSteps.map((step, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="p-6 bg-card rounded-lg shadow-md hover:shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300 text-center flex flex-col items-center"
               >
                 <div className="p-4 bg-primary/10 rounded-full mb-6 inline-block">
@@ -171,8 +121,8 @@ export default function LandingPage() {
           </div>
         </div>
       </AnimatedSection>
-      
-      <AnimatedSection sectionId="cta" className="py-20 md:py-32 bg-gradient-to-tr from-primary/10 via-background to-background">
+
+      <AnimatedSection sectionId="cta" className="py-20 md:py-32 bg-gradient-to-tr from-primary/10 via-background to-background" delay="delay-300">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6 font-headline">
             Bilgiyi Dönüştürmeye Hazır mısınız?
@@ -181,9 +131,9 @@ export default function LandingPage() {
             AnimatePDF ile öğrenmeyi ve öğretmeyi bir sonraki seviyeye taşıyın. Statik PDF'lere veda edin, dinamik hikayelere merhaba deyin!
           </p>
           <Link href="/animate" passHref>
-            <Button 
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl hover:shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-7 rounded-lg shadow-xl shadow-[0_0_20px_hsl(var(--primary)/0.7)] transform transition-all hover:scale-105 active:scale-95"
             >
               PDF'ini Şimdi Anime Et <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
@@ -199,4 +149,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

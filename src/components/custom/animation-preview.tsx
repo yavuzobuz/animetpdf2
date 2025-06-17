@@ -10,29 +10,29 @@ import { Button } from '@/components/ui/button';
 import { Loader2, AlertTriangle, Info } from 'lucide-react';
 
 interface AnimationPreviewProps {
-  sceneDescriptions: string[]; 
-  currentSceneDescription: string; 
-  currentKeyTopic: string; 
+  sceneDescriptions: string[];
+  currentSceneDescription: string;
+  currentKeyTopic: string;
   currentFrameSummary: string;
-  storyboardImages: (string | null)[]; 
+  storyboardImages: (string | null)[];
   currentFrameIndex: number;
   isGeneratingInitialImages: boolean;
 }
 
-export function AnimationPreview({ 
-  sceneDescriptions, 
+export function AnimationPreview({
+  sceneDescriptions,
   currentSceneDescription,
   currentKeyTopic,
   currentFrameSummary,
-  storyboardImages, 
+  storyboardImages,
   currentFrameIndex,
-  isGeneratingInitialImages 
+  isGeneratingInitialImages
 }: AnimationPreviewProps) {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   if (sceneDescriptions.length === 0 || currentFrameIndex < 0 || currentFrameIndex >= sceneDescriptions.length) {
     return (
-        <Card className="w-full shadow-lg">
+        <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
             <CardHeader>
                 <CardTitle className="text-2xl font-headline">Animasyon Önizleme</CardTitle>
             </CardHeader>
@@ -47,7 +47,7 @@ export function AnimationPreview({
   const isLoadingThisFrameImage = isGeneratingInitialImages && !currentImageUrl;
 
   return (
-    <Card className="w-full shadow-lg">
+    <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Animasyon Önizleme</CardTitle>
         <CardDescription>Kare {currentFrameIndex + 1} / {sceneDescriptions.length}</CardDescription>
@@ -67,21 +67,21 @@ export function AnimationPreview({
               height={338}
               className="object-contain"
               data-ai-hint="generated animation frame"
-              priority={true} 
-              unoptimized={currentImageUrl.startsWith('data:image')} 
+              priority={true}
+              unoptimized={currentImageUrl.startsWith('data:image')}
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-muted-foreground p-4">
                <AlertTriangle className="h-12 w-12 text-destructive mb-2" />
                <p className="text-center">Bu kare için görsel mevcut değil. Yer tutucu kullanılıyor.</p>
                  <Image
-                    src={`https://placehold.co/600x338.png`} 
+                    src={`https://placehold.co/600x338.png`}
                     alt={`Animasyon karesi ${currentFrameIndex + 1} için yer tutucu`}
                     width={600}
                     height={338}
                     className="object-contain opacity-50 mt-2"
                     data-ai-hint="abstract scene"
-                    priority={true} 
+                    priority={true}
                   />
             </div>
           )}
@@ -89,8 +89,8 @@ export function AnimationPreview({
 
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
           <DialogTrigger asChild>
-            <div 
-              className="w-full rounded-md border p-3 bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors relative"
+            <div
+              className="w-full rounded-md border p-3 bg-muted/20 cursor-pointer hover:bg-muted/40 hover:ring-1 hover:ring-primary/50 transition-all relative"
               onClick={() => setIsDetailDialogOpen(true)}
               role="button"
               tabIndex={0}
@@ -98,7 +98,7 @@ export function AnimationPreview({
               aria-label="Daha fazla detay için tıklayın"
             >
               <h4 className="text-md font-headline font-semibold text-primary mb-1">{currentKeyTopic || "Anahtar konu yükleniyor..."}</h4>
-              <ScrollArea className="h-16"> {/* Adjust height as needed */}
+              <ScrollArea className="h-16">
                 <p className="text-sm font-body whitespace-pre-wrap text-foreground/80">{currentFrameSummary || "Açıklama yükleniyor..."}</p>
               </ScrollArea>
               <div className="absolute bottom-1 right-1 opacity-60">
@@ -116,7 +116,7 @@ export function AnimationPreview({
             <ScrollArea className="max-h-[60vh] mt-4 pr-3">
               <p className="text-sm whitespace-pre-wrap">{currentSceneDescription}</p>
             </ScrollArea>
-            <Button onClick={() => setIsDetailDialogOpen(false)} variant="outline" className="mt-4">Kapat</Button>
+            <Button onClick={() => setIsDetailDialogOpen(false)} variant="outline" className="mt-4 hover:border-primary hover:text-primary">Kapat</Button>
           </DialogContent>
         </Dialog>
 
@@ -124,4 +124,3 @@ export function AnimationPreview({
     </Card>
   );
 }
-

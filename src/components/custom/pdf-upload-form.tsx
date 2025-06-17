@@ -32,7 +32,7 @@ export function PdfUploadForm({ onPdfUpload, isLoading }: PdfUploadFormProps) {
         });
         setSelectedFile(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = ""; 
+          fileInputRef.current.value = "";
         }
       }
     }
@@ -65,7 +65,7 @@ export function PdfUploadForm({ onPdfUpload, isLoading }: PdfUploadFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-lg shadow-lg">
+    <Card className="w-full max-w-lg shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Upload PDF</CardTitle>
         <CardDescription>Select a PDF document to analyze and generate an animation scenario.</CardDescription>
@@ -88,7 +88,11 @@ export function PdfUploadForm({ onPdfUpload, isLoading }: PdfUploadFormProps) {
               {selectedFile ? `Selected: ${selectedFile.name}` : "No file chosen."}
             </p>
           </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading || !selectedFile}>
+          <Button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.6)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.7)] transition-all"
+            disabled={isLoading || !selectedFile}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
