@@ -25,7 +25,7 @@ const PdfAnimateLogo = () => (
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="h-16 w-16 mr-2 animate-pulse"
+    className="h-20 w-auto mr-2 animate-pulse"
   >
     <rect x="2" y="2" width="46" height="71" rx="7" fill="currentColor" stroke="none" />
     <rect x="5" y="5" width="40" height="24" rx="4" fill="white" stroke="none" />
@@ -40,7 +40,7 @@ const PdfAnimateLogo = () => (
     <rect x="9" y="58" width="32" height="10" rx="2.5" fill="white" stroke="none"/>
     <text
       x="25"
-      y="65.2" 
+      y="65.2"
       fontFamily="Inter, sans-serif"
       fontSize="7"
       fill="currentColor"
@@ -80,14 +80,17 @@ export function Navbar() {
   const activeNavLinks = navLinksContent[language] || navLinksContent.tr;
 
   const getLocalizedPath = (path: string) => {
-    return `/${currentLang}${path === '/' ? '' : path}`;
+    // If the path is just '/', we only want the language prefix (e.g. /en, /tr)
+    // Otherwise, we want /<lang>/<path>
+    const basePath = path === '/' ? '' : path;
+    return `/${currentLang}${basePath}`;
   }
 
   return (
     <nav className="bg-primary text-foreground border-b border-primary-dark/50 p-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between">
         <Link href={getLocalizedPath("/")} passHref>
-          <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
+          <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto flex items-center">
             <PdfAnimateLogo />
             AnimatePDF
           </Button>
@@ -104,14 +107,14 @@ export function Navbar() {
             <DropdownMenuContent align="end" className="bg-primary border-primary-dark/30 text-foreground">
               <DropdownMenuLabel className="text-foreground/80">{language === 'en' ? 'Select Language' : 'Dil Seçin'}</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-foreground/20" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="hover:bg-background/10 focus:bg-background/10 cursor-pointer"
                 onClick={() => setLanguage('en')}
                 disabled={language === 'en'}
               >
                 English
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="hover:bg-background/10 focus:bg-background/10 cursor-pointer"
                 onClick={() => setLanguage('tr')}
                 disabled={language === 'tr'}
@@ -138,7 +141,7 @@ export function Navbar() {
               <SheetHeader className="flex flex-row items-center justify-between p-4 border-b border-foreground/20">
                 <SheetTitle asChild>
                   <Link href={getLocalizedPath("/")} passHref>
-                    <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto">
+                    <Button variant="ghost" className="text-xl font-bold text-foreground hover:bg-background/10 p-2 h-auto flex items-center">
                       <PdfAnimateLogo />
                       AnimatePDF
                     </Button>
