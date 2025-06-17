@@ -84,14 +84,14 @@ const generateFrameImageFlow = ai.defineFlow(
       },
     });
 
-    const mediaParts = response.media;
+    const mediaPart = response.media;
 
-    if (!mediaParts || mediaParts.length === 0 || !mediaParts[0].url) {
+    if (!mediaPart || !mediaPart.url) {
       console.error("Image generation failed. Full AI response:", JSON.stringify(response, null, 2));
       throw new Error('Image generation failed or returned no media URL. Check server console for details.');
     }
     
-    return { imageDataUri: mediaParts[0].url };
+    return { imageDataUri: mediaPart.url };
   }
 );
 
