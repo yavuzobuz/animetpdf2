@@ -146,37 +146,39 @@ export default function FaqPage() {
         </div>
       </AnimatedSection>
 
-      <AnimatedSection sectionId="faq-content" className="py-12 md:py-16 bg-background" delay="delay-100">
-        <div className="container mx-auto px-6 max-w-3xl">
-          <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-2xl font-headline text-primary">Detaylı Soru & Cevaplar</CardTitle>
-              <CardDescription>Aşağıda sıkça sorulan soruları ve cevaplarını bulabilirsiniz.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full space-y-3">
-                {faqItems.map((item, index) => (
-                  <AccordionItem key={index} value={`item-${index}`} className="border rounded-md hover:border-primary/50 transition-colors">
-                    <AccordionTrigger className="text-left hover:no-underline font-semibold px-4 py-3 text-lg">
-                      {item.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="space-y-2 px-4 pb-4 text-md text-foreground/80">
-                      <p className="whitespace-pre-wrap">{item.answer}</p>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </CardContent>
-          </Card>
-        </div>
-      </AnimatedSection>
+      <main className="flex-grow">
+        <AnimatedSection sectionId="faq-content" className="py-12 md:py-16 bg-background" delay="delay-100">
+          <div className="container mx-auto px-6 max-w-3xl">
+            <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
+              <CardHeader>
+                <CardTitle className="text-2xl font-headline text-primary">Detaylı Soru & Cevaplar</CardTitle>
+                <CardDescription>Aşağıda sıkça sorulan soruları ve cevaplarını bulabilirsiniz.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full space-y-3">
+                  {faqItems.map((item, index) => (
+                    <AccordionItem key={index} value={`item-${index}`} className="border rounded-md hover:border-primary/50 transition-colors">
+                      <AccordionTrigger className="text-left hover:no-underline font-semibold px-4 py-3 text-lg">
+                        {item.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-2 px-4 pb-4 text-md text-foreground/80">
+                        <p className="whitespace-pre-wrap">{item.answer}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </div>
+        </AnimatedSection>
+      </main>
 
       <Dialog open={isChatbotDialogOpen} onOpenChange={setIsChatbotDialogOpen}>
         <DialogTrigger asChild>
           <Button
             variant="outline"
             size="icon"
-            className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 animate-bounce"
+            className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground focus:ring-2 focus:ring-primary focus:ring-offset-2 animate-bounce z-50"
             aria-label="SSS Asistanını Aç"
           >
             <MessageSquare className="h-7 w-7" />
@@ -262,7 +264,6 @@ export default function FaqPage() {
         </DialogContent>
       </Dialog>
 
-
       <footer className="relative w-full mt-auto bg-primary text-foreground">
         <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
         <div className="relative container mx-auto px-6 pt-28 pb-12">
@@ -312,6 +313,4 @@ export default function FaqPage() {
     </div>
   );
 }
-
-
     
