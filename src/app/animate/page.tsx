@@ -7,6 +7,7 @@ import { analyzePdf, AnalyzePdfInput, AnalyzePdfOutput } from '@/ai/flows/analyz
 import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnimationScenarioOutput } from '@/ai/flows/generate-animation-scenario';
 import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate-frame-image-flow';
 import { generateQa, GenerateQaInput, GenerateQaOutput, QAPair as AIQAPair } from '@/ai/flows/generate-qa-flow';
+import { generateSpeech, GenerateSpeechInput } from '@/ai/flows/generate-speech-flow';
 
 import AnimatedSection from '@/components/custom/animated-section';
 import { PdfUploadForm } from '@/components/custom/pdf-upload-form';
@@ -19,11 +20,11 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette } from "lucide-react";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette, Volume2, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 
-type AppStep = "upload" | "analyzing" | "generatingScenario" | "styleSelection" | "generatingImages" | "ready";
+type AppStep = "upload" | "analyzing" | "generatingScenario" | "styleSelection" | "generatingContent" | "ready";
 
 interface AnimationFrameData {
   sceneDescription: string;
@@ -53,15 +54,18 @@ export default function AnimatePdfAppPage() {
   const [storyboardKeyTopics, setStoryboardKeyTopics] = useState<string[]>([]);
   const [storyboardFrameSummaries, setStoryboardFrameSummaries] = useState<string[]>([]);
   const [storyboardImages, setStoryboardImages] = useState<(string | null)[]>([]);
+  const [storyboardAudioUrls, setStoryboardAudioUrls] = useState<(string | null)[]>([]);
   const [qaPairs, setQaPairs] = useState<AIQAPair[] | null>(null);
 
   const [selectedAnimationStyle, setSelectedAnimationStyle] = useState<string>(animationStyleOptions[0].value);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [imageGenerationStarted, setImageGenerationStarted] = useState(false);
+  const [contentGenerationStarted, setContentGenerationStarted] = useState(false);
 
   const { toast } = useToast();
   const playerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
 
   const resetState = () => {
     setStep("upload");
@@ -72,14 +76,19 @@ export default function AnimatePdfAppPage() {
     setStoryboardKeyTopics([]);
     setStoryboardFrameSummaries([]);
     setStoryboardImages([]);
+    setStoryboardAudioUrls([]);
     setQaPairs(null);
     setSelectedAnimationStyle(animationStyleOptions[0].value);
     setCurrentFrameIndex(0);
     setIsPlaying(false);
-    setImageGenerationStarted(false);
+    setContentGenerationStarted(false);
     if (playerIntervalRef.current) {
       clearInterval(playerIntervalRef.current);
       playerIntervalRef.current = null;
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
     }
   };
 
@@ -92,13 +101,11 @@ export default function AnimatePdfAppPage() {
     setStoryboardKeyTopics([]);
     setStoryboardFrameSummaries([]);
     setStoryboardImages([]);
+    setStoryboardAudioUrls([]);
     setQaPairs(null);
     setCurrentFrameIndex(0);
-    setImageGenerationStarted(false);
-    // selectedAnimationStyle is kept as is, or could be reset here if desired
-    // setSelectedAnimationStyle(animationStyleOptions[0].value);
-
-
+    setContentGenerationStarted(false);
+    
     try {
       const analysisInput: AnalyzePdfInput = { pdfDataUri: dataUri };
       const analysisResult: AnalyzePdfOutput = await analyzePdf(analysisInput);
@@ -135,16 +142,16 @@ export default function AnimatePdfAppPage() {
           const newKeyTopics = scenarioResult.frames.map(f => f.keyTopic);
           const newFrameSummaries = scenarioResult.frames.map(f => f.frameSummary);
 
-
           setStoryboardSceneDescriptions(newSceneDescriptions);
           setStoryboardKeyTopics(newKeyTopics);
           setStoryboardFrameSummaries(newFrameSummaries);
           setStoryboardImages(Array(scenarioResult.frames.length).fill(null));
+          setStoryboardAudioUrls(Array(scenarioResult.frames.length).fill(null));
           setCurrentFrameIndex(0);
 
           toast({
             title: "Animasyon Senaryosu Oluşturuldu",
-            description: "Şimdi animasyon stilini seçin. Ardından her kare için görseller ve mini test eş zamanlı oluşturulacak...",
+            description: "Şimdi animasyon stilini seçin. Ardından her kare için görseller, seslendirmeler ve mini test eş zamanlı oluşturulacak...",
           });
 
           setStep("styleSelection"); 
@@ -164,7 +171,7 @@ export default function AnimatePdfAppPage() {
                   description: (qnaError as Error).message || "Sorular ve cevaplar oluşturulamadı.",
                   variant: "destructive",
                });
-               setQaPairs([]);
+               setQaPairs([]); // Set to empty array to avoid null issues
             });
 
         } catch (error) {
@@ -181,115 +188,196 @@ export default function AnimatePdfAppPage() {
     }
   }, [step, pdfSummary, toast]);
 
-  useEffect(() => {
-    if (step === "generatingImages" && storyboardSceneDescriptions.length > 0 && !imageGenerationStarted) {
-      setImageGenerationStarted(true);
-      const generateAllImages = async () => {
+ useEffect(() => {
+    if (step === "generatingContent" && storyboardSceneDescriptions.length > 0 && !contentGenerationStarted) {
+      setContentGenerationStarted(true);
+      
+      const generateAllContent = async () => {
         toast({
-          title: "Kare Görselleri ve Mini Test Hazırlanıyor",
-          description: `${storyboardSceneDescriptions.length} kare için görseller (${selectedAnimationStyle} stiliyle) ve test soruları oluşturuluyor. Bu biraz zaman alabilir...`,
+          title: "Görseller, Seslendirmeler ve Mini Test Hazırlanıyor",
+          description: `${storyboardSceneDescriptions.length} kare için içerikler (${selectedAnimationStyle} stiliyle) oluşturuluyor. Bu biraz zaman alabilir...`,
         });
 
-        const imageGenerationPromises = storyboardSceneDescriptions.map(async (description, index) => {
-          try {
-            const imageInput: GenerateFrameImageInput = { 
-              frameDescription: description,
-              animationStyle: selectedAnimationStyle 
-            };
-            const imageResult = await generateFrameImage(imageInput);
-            setStoryboardImages(prevImages => {
-              const newImages = [...prevImages];
-              if (index < newImages.length) {
-                newImages[index] = imageResult.imageDataUri;
-              }
-              return newImages;
-            });
-          } catch (error) {
-            console.error(`Error generating image for frame ${index + 1}:`, error);
-            toast({
-                title: `Görsel Oluşturma Hatası (Kare ${index + 1})`,
-                description: (error as Error).message || "Bu kare için görsel oluşturulamadı.",
-                variant: "destructive",
-            });
+        const imagePromises = storyboardSceneDescriptions.map((description, index) => 
+          generateFrameImage({ frameDescription: description, animationStyle: selectedAnimationStyle })
+            .then(result => ({ index, type: 'image', data: result.imageDataUri }))
+            .catch(error => ({ index, type: 'image', error }))
+        );
+
+        const audioPromises = storyboardKeyTopics.map((keyTopic, index) => // Using keyTopic for brevity in audio
+          generateSpeech({ text: keyTopic, languageCode: 'tr-TR' }) // Assuming Turkish voiceover
+            .then(result => ({ index, type: 'audio', data: result.audioDataUri }))
+            .catch(error => ({ index, type: 'audio', error }))
+        );
+        
+        const allPromises = [...imagePromises, ...audioPromises];
+        const results = await Promise.allSettled(allPromises);
+
+        results.forEach(settledResult => {
+          if (settledResult.status === 'fulfilled') {
+            const result = settledResult.value;
+            if (result.type === 'image' && !result.error) {
+              setStoryboardImages(prev => {
+                const newImages = [...prev];
+                if (result.index < newImages.length) newImages[result.index] = result.data;
+                return newImages;
+              });
+            } else if (result.type === 'audio' && !result.error) {
+              setStoryboardAudioUrls(prev => {
+                const newAudios = [...prev];
+                if (result.index < newAudios.length) newAudios[result.index] = result.data;
+                return newAudios;
+              });
+            } else if (result.error) {
+               const errorTitle = result.type === 'image' 
+                ? `Görsel Oluşturma Hatası (Kare ${result.index + 1})` 
+                : `Seslendirme Oluşturma Hatası (Kare ${result.index + 1})`;
+              console.error(`${errorTitle}:`, result.error);
+              toast({
+                  title: errorTitle,
+                  description: (result.error as Error).message || "Bu içerik oluşturulamadı.",
+                  variant: "destructive",
+              });
+            }
+          } else {
+            // This case handles rejections from Promise.allSettled if an individual promise was not structured to catch its own error.
+            // However, the .catch within map should prevent this.
+            console.error("Unhandled promise rejection in content generation:", settledResult.reason);
           }
         });
 
-        await Promise.allSettled(imageGenerationPromises);
-
         toast({
-          title: "Görsel Oluşturma Tamamlandı!",
-          description: "Tüm kare görselleri işlendi. Animasyonunuz önizlemeye hazır.",
+          title: "İçerik Oluşturma Tamamlandı!",
+          description: "Tüm kare görselleri ve seslendirmeler işlendi. Animasyonunuz önizlemeye hazır.",
         });
         setStep("ready");
       };
-      generateAllImages();
+      generateAllContent();
     }
-  }, [step, storyboardSceneDescriptions, imageGenerationStarted, toast, selectedAnimationStyle]);
+  }, [step, storyboardSceneDescriptions, storyboardKeyTopics, contentGenerationStarted, toast, selectedAnimationStyle]);
 
 
   const handlePlay = useCallback(() => {
-    if (storyboardSceneDescriptions.length > 0 && currentFrameIndex < storyboardSceneDescriptions.length -1) {
+    if (storyboardSceneDescriptions.length > 0 && currentFrameIndex < storyboardSceneDescriptions.length) {
       setIsPlaying(true);
+      if (audioRef.current && storyboardAudioUrls[currentFrameIndex]) {
+        audioRef.current.src = storyboardAudioUrls[currentFrameIndex]!;
+        audioRef.current.play().catch(e => console.error("Error playing audio:", e));
+      }
     }
-  }, [storyboardSceneDescriptions, currentFrameIndex]);
+  }, [storyboardSceneDescriptions, currentFrameIndex, storyboardAudioUrls]);
 
   const handlePause = useCallback(() => {
     setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
   }, []);
 
   const handleNext = useCallback(() => {
-    setCurrentFrameIndex((prev) => Math.min(prev + 1, storyboardSceneDescriptions.length - 1));
+    setCurrentFrameIndex((prev) => {
+      const nextIndex = Math.min(prev + 1, storyboardSceneDescriptions.length - 1);
+      if (audioRef.current) audioRef.current.pause();
+      return nextIndex;
+    });
     setIsPlaying(false);
   }, [storyboardSceneDescriptions.length]);
 
   const handlePrev = useCallback(() => {
-    setCurrentFrameIndex((prev) => Math.max(prev - 1, 0));
+    setCurrentFrameIndex((prev) => {
+      const prevIndex = Math.max(prev - 1, 0);
+       if (audioRef.current) audioRef.current.pause();
+      return prevIndex;
+    });
     setIsPlaying(false);
   }, []);
 
   const handleSeek = useCallback((frameIndex: number) => {
-    setCurrentFrameIndex(Math.max(0, Math.min(frameIndex, storyboardSceneDescriptions.length - 1)));
+    const newIndex = Math.max(0, Math.min(frameIndex, storyboardSceneDescriptions.length - 1));
+    setCurrentFrameIndex(newIndex);
     setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      // Audio will be loaded and played if user hits play for the new frame via useEffect for currentFrameIndex
+    }
   }, [storyboardSceneDescriptions.length]);
 
   const handleAnimationReset = useCallback(() => {
     setCurrentFrameIndex(0);
     setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   }, []);
 
 
   useEffect(() => {
     if (isPlaying) {
+      if (audioRef.current && storyboardAudioUrls[currentFrameIndex] && audioRef.current.src !== storyboardAudioUrls[currentFrameIndex]) {
+        audioRef.current.src = storyboardAudioUrls[currentFrameIndex]!;
+      }
+      audioRef.current?.play().catch(e => console.error("Error playing audio in interval:", e));
+
       playerIntervalRef.current = setInterval(() => {
         setCurrentFrameIndex((prev) => {
           if (prev < storyboardSceneDescriptions.length - 1) {
-            return prev + 1;
+            const nextIdx = prev + 1;
+            if (audioRef.current && storyboardAudioUrls[nextIdx]) {
+              audioRef.current.src = storyboardAudioUrls[nextIdx]!;
+              audioRef.current.play().catch(e => console.error("Error playing next audio:", e));
+            } else if (audioRef.current) {
+              audioRef.current.pause(); // Pause if no audio for next frame
+            }
+            return nextIdx;
           }
-          setIsPlaying(false);
+          setIsPlaying(false); // End of animation
           if (playerIntervalRef.current) clearInterval(playerIntervalRef.current);
           return prev;
         });
-      }, 3000);
+      }, 3000); // Adjust interval as needed, consider audio length later
     } else {
       if (playerIntervalRef.current) {
         clearInterval(playerIntervalRef.current);
         playerIntervalRef.current = null;
       }
+      audioRef.current?.pause();
     }
     return () => {
       if (playerIntervalRef.current) {
         clearInterval(playerIntervalRef.current);
       }
     };
-  }, [isPlaying, storyboardSceneDescriptions.length]);
+  }, [isPlaying, storyboardSceneDescriptions.length, currentFrameIndex, storyboardAudioUrls]);
+
+  // Effect to load audio when frame changes, but only play if isPlaying is true
+   useEffect(() => {
+    if (audioRef.current && storyboardAudioUrls[currentFrameIndex]) {
+      if (audioRef.current.src !== storyboardAudioUrls[currentFrameIndex]) {
+        audioRef.current.src = storyboardAudioUrls[currentFrameIndex]!;
+        audioRef.current.load(); // Ensure it's loaded
+      }
+      if (isPlaying) {
+        audioRef.current.play().catch(e => console.error("Error playing audio on frame change:", e));
+      } else {
+        audioRef.current.pause();
+      }
+    } else if (audioRef.current) {
+        audioRef.current.pause(); // Pause if no audio for current frame
+    }
+  }, [currentFrameIndex, storyboardAudioUrls, isPlaying]);
 
 
-  const isLoading = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
-  const isProcessingAlertVisible = step === "analyzing" || step === "generatingScenario" || step === "generatingImages";
+  const isLoading = step === "analyzing" || step === "generatingScenario" || step === "generatingContent";
+  const isProcessingAlertVisible = step === "analyzing" || step === "generatingScenario" || step === "generatingContent";
 
+  const totalImagesLoaded = storyboardImages.filter(img => img !== null).length;
+  const totalAudioLoaded = storyboardAudioUrls.filter(aud => aud !== null).length;
+  const totalFrames = storyboardSceneDescriptions.length;
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 md:p-8 space-y-8 font-body">
+      <audio ref={audioRef} hidden />
       <AnimatedSection tag="header" className="w-full max-w-4xl text-center">
         <h1 className="text-5xl font-bold font-headline text-primary">
           <Clapperboard className="inline-block h-12 w-12 mr-2 -mt-1 animate-pulse" /> AnimatePDF
@@ -311,17 +399,19 @@ export default function AnimatePdfAppPage() {
             <Alert className="max-w-lg mx-auto shadow-md border-primary/50 shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
               {step === "analyzing" && <FileText className="h-5 w-5 animate-pulse text-primary" />}
               {step === "generatingScenario" && <Sparkles className="h-5 w-5 animate-spin text-primary" />}
-              {step === "generatingImages" && <ImageIcon className="h-5 w-5 animate-spin text-primary" />}
+              {step === "generatingContent" && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
               
               <AlertTitle className="font-headline">
                 {step === "analyzing" && "PDF Analiz Ediliyor..."}
                 {step === "generatingScenario" && "Senaryo Oluşturuluyor..."}
-                {step === "generatingImages" && `Görseller ve Mini Test Hazırlanıyor... (${storyboardImages.filter(img => img !== null).length}/${storyboardSceneDescriptions.length} görsel tamamlandı)`}
+                {step === "generatingContent" && `İçerikler Hazırlanıyor...`}
               </AlertTitle>
               <AlertDescription>
                 {step === "analyzing" && "Yapay zekamız PDF'inizi okuyor ve anahtar temaları çıkarıyor. Lütfen bekleyin..."}
                 {step === "generatingScenario" && "PDF özetine dayalı ilgi çekici bir animasyon senaryosu hazırlanıyor. Sabırlı olun!"}
-                {step === "generatingImages" && `Yapay zekamız animasyon kareleri için "${selectedAnimationStyle}" stilinde görseller ve öğrenmenizi pekiştirmek için mini test hazırlıyor. Bu süreç biraz zaman alabilir.`}
+                {step === "generatingContent" && 
+                  `"${selectedAnimationStyle}" stilinde görseller (${totalImagesLoaded}/${totalFrames}), seslendirmeler (${totalAudioLoaded}/${totalFrames}) ve mini test hazırlanıyor. Bu süreç biraz zaman alabilir.`
+                }
               </AlertDescription>
             </Alert>
           </AnimatedSection>
@@ -349,13 +439,13 @@ export default function AnimatePdfAppPage() {
                 </Select>
                 <Button 
                   onClick={() => {
-                    toast({ title: "Stil Seçildi", description: `Görseller "${selectedAnimationStyle}" stilinde oluşturulacak.`});
-                    setStep("generatingImages");
+                    toast({ title: "Stil Seçildi", description: `İçerikler "${selectedAnimationStyle}" stilinde oluşturulacak.`});
+                    setStep("generatingContent");
                   }} 
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   disabled={!selectedAnimationStyle}
                 >
-                  <ImageIcon className="mr-2 h-4 w-4" /> Görselleri Oluşturmaya Başla
+                  <Mic className="mr-2 h-4 w-4" /> İçerikleri Oluşturmaya Başla
                 </Button>
               </CardContent>
             </Card>
@@ -378,8 +468,10 @@ export default function AnimatePdfAppPage() {
                 currentKeyTopic={storyboardKeyTopics[currentFrameIndex] || ""}
                 currentFrameSummary={storyboardFrameSummaries[currentFrameIndex] || ""}
                 storyboardImages={storyboardImages}
+                currentAudioUrl={storyboardAudioUrls[currentFrameIndex] || null}
                 currentFrameIndex={currentFrameIndex}
-                isGeneratingInitialImages={step === "generatingImages" && storyboardImages.some(img => img === null)}
+                isGeneratingInitialContent={step === "generatingContent" && (storyboardImages.some(img => img === null) || storyboardAudioUrls.some(aud => aud === null))}
+                isPlaying={isPlaying}
               />
               <PlaybackControls
                 isPlaying={isPlaying}
@@ -391,7 +483,7 @@ export default function AnimatePdfAppPage() {
                 onReset={handleAnimationReset}
                 currentFrameIndex={currentFrameIndex}
                 totalFrames={storyboardSceneDescriptions.length}
-                disabled={storyboardSceneDescriptions.length === 0 || (step === "generatingImages" && storyboardImages.some(img => img === null))}
+                disabled={storyboardSceneDescriptions.length === 0 || (step === "generatingContent" && (storyboardImages.some(img => img === null) || storyboardAudioUrls.some(aud => aud === null)))}
               />
             </AnimatedSection>
 
@@ -461,4 +553,3 @@ export default function AnimatePdfAppPage() {
     </div>
   );
 }
-

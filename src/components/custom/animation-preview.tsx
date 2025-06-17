@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertTriangle, Info } from 'lucide-react';
+import { Loader2, AlertTriangle, Info, Volume2, VolumeX } from 'lucide-react';
 
 interface AnimationPreviewProps {
   sceneDescriptions: string[];
@@ -15,8 +15,10 @@ interface AnimationPreviewProps {
   currentKeyTopic: string;
   currentFrameSummary: string;
   storyboardImages: (string | null)[];
+  currentAudioUrl: string | null;
   currentFrameIndex: number;
-  isGeneratingInitialImages: boolean;
+  isGeneratingInitialContent: boolean;
+  isPlaying: boolean; // To sync audio with external play/pause state
 }
 
 export function AnimationPreview({
@@ -25,10 +27,41 @@ export function AnimationPreview({
   currentKeyTopic,
   currentFrameSummary,
   storyboardImages,
+  currentAudioUrl,
   currentFrameIndex,
-  isGeneratingInitialImages
+  isGeneratingInitialContent,
+  isPlaying: isGlobalPlaying,
 }: AnimationPreviewProps) {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isMuted, setIsMuted] = useState(false); // Local mute state for the preview
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
+  useEffect(() => {
+    const audioElement = audioRef.current;
+    if (audioElement) {
+      if (currentAudioUrl) {
+        if (audioElement.src !== currentAudioUrl) {
+          audioElement.src = currentAudioUrl;
+          audioElement.load(); 
+        }
+        if (isGlobalPlaying) {
+          audioElement.play().catch(e => console.error("Error playing audio in preview:", e));
+        } else {
+          audioElement.pause();
+        }
+      } else {
+        audioElement.pause();
+        audioElement.src = ""; // Clear src if no audio for this frame
+      }
+    }
+  }, [currentAudioUrl, isGlobalPlaying, currentFrameIndex]);
+
 
   if (sceneDescriptions.length === 0 || currentFrameIndex < 0 || currentFrameIndex >= sceneDescriptions.length) {
     return (
@@ -44,13 +77,21 @@ export function AnimationPreview({
   }
 
   const currentImageUrl = storyboardImages[currentFrameIndex];
-  const isLoadingThisFrameImage = isGeneratingInitialImages && !currentImageUrl;
+  const isLoadingThisFrameImage = isGeneratingInitialContent && !currentImageUrl;
+  const isLoadingThisFrameAudio = isGeneratingInitialContent && !currentAudioUrl;
+
 
   return (
     <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
-      <CardHeader>
-        <CardTitle className="text-2xl font-headline">Animasyon Önizleme</CardTitle>
-        <CardDescription>Kare {currentFrameIndex + 1} / {sceneDescriptions.length}</CardDescription>
+      <CardHeader className="flex flex-row justify-between items-center">
+        <div>
+            <CardTitle className="text-2xl font-headline">Animasyon Önizleme</CardTitle>
+            <CardDescription>Kare {currentFrameIndex + 1} / {sceneDescriptions.length}</CardDescription>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="text-muted-foreground hover:text-primary">
+            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            <span className="sr-only">{isMuted ? "Sesi Aç" : "Sesi Kapat"}</span>
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="aspect-video w-full bg-muted rounded-lg overflow-hidden flex items-center justify-center border relative">
@@ -73,7 +114,7 @@ export function AnimationPreview({
           ) : (
             <div className="flex flex-col items-center justify-center text-muted-foreground p-4">
                <AlertTriangle className="h-12 w-12 text-destructive mb-2" />
-               <p className="text-center">Bu kare için görsel mevcut değil. Yer tutucu kullanılıyor.</p>
+               <p className="text-center">Bu kare için görsel mevcut değil.</p>
                  <Image
                     src={`https://placehold.co/600x338.png`}
                     alt={`Animasyon karesi ${currentFrameIndex + 1} için yer tutucu`}
@@ -85,7 +126,15 @@ export function AnimationPreview({
                   />
             </div>
           )}
+           <audio ref={audioRef} className="hidden" />
         </div>
+
+        {isLoadingThisFrameAudio && (
+          <div className="flex items-center justify-center text-sm text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Seslendirme yükleniyor...
+          </div>
+        )}
 
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
           <DialogTrigger asChild>
