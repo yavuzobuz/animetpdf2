@@ -25,7 +25,7 @@ const PdfAnimateLogo = () => (
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className="h-12 w-auto md:h-20 mr-2 animate-pulse"
+    className="h-16 w-11 md:h-24 md:w-16 mr-2 animate-pulse"
   >
     <rect x="2" y="2" width="46" height="71" rx="7" fill="currentColor" stroke="none" />
     <rect x="5" y="5" width="40" height="24" rx="4" fill="white" stroke="none" />
