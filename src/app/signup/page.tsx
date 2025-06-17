@@ -2,8 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import React, { useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import React, { useEffect, useActionState } from 'react';
 import { useRouter } from 'next/navigation'; // For client-side redirection
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +17,7 @@ import { SubmitButton } from '@/components/custom/submit-button';
 export default function SignUpPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const [state, formAction] = useFormState(signupUser, null);
+  const [state, formAction] = useActionState(signupUser, null);
 
   useEffect(() => {
     if (state?.message) {
