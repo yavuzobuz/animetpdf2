@@ -14,8 +14,8 @@ export default function LandingPage() {
   const features = [
     {
       icon: <FileText className="h-10 w-10 text-primary mb-4" />,
-      title: "Otomatik PDF Analizi ve Özetleme",
-      description: "Yapay zeka, karmaşık PDF'lerinizin anahtar noktalarını saniyeler içinde Türkçe olarak özetler, size zaman kazandırır.",
+      title: "Automatic PDF Analysis and Summarization",
+      description: "AI summarizes the key points of your complex PDFs in seconds, saving you time.",
     },
     {
       icon: <Sparkles className="h-10 w-10 text-primary mb-4" />,
@@ -67,17 +67,17 @@ export default function LandingPage() {
         <div className="container mx-auto px-6 text-center">
           <Clapperboard className="h-20 w-20 text-primary mx-auto mb-6 animate-pulse" />
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 font-headline">
-            AnimatePDF: PDF'lerinizi Hayata Geçirin!
+            AnimatePDF: Bring Your PDFs to Life!
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10">
-            PDF'lerinizi Hayata Geçirin: Saniyeler İçinde Otomatik Özet, Akıcı Animasyon, Etkileşimli Sohbet, Mini Testler ve Açıklayıcı Diyagramlar!
+            Bring Your PDFs to Life: Automatic Summaries, Fluent Animations, Interactive Chat, Mini-Tests, and Explanatory Diagrams in Seconds!
           </p>
           <Link href="/animate" passHref>
             <Button
               size="lg"
               className="text-primary-foreground text-lg px-10 py-7 rounded-lg animate-border-glow transform transition-all hover:scale-105 active:scale-95 bg-gradient-to-br from-primary-dark to-primary"
             >
-              Hemen Ücretsiz Başla <ChevronRight className="ml-2 h-5 w-5" />
+              Get Started for Free <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
         </div>
@@ -86,9 +86,9 @@ export default function LandingPage() {
       <AnimatedSection sectionId="features" className="py-16 md:py-24 bg-background" delay="delay-100">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12 md:mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">Neden AnimatePDF?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground font-headline">Why AnimatePDF?</h2>
             <p className="text-md md:text-lg text-muted-foreground mt-3 max-w-2xl mx-auto">
-              Bilgiyi sıkıcı metin yığınlarından kurtarın, onu herkes için anlaşılır ve akılda kalıcı hale getirin.
+              Rescue information from boring text piles, make it understandable and memorable for everyone.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
