@@ -5,18 +5,17 @@ import Link from 'next/link';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github, Volume2, GitFork, Info } from 'lucide-react';
+import { Clapperboard, FileText, Sparkles, ImageIcon, MousePointerClick, HelpCircle, MessageSquareText, ChevronRight, UploadCloud, Cpu, Film, Eye, Twitter, Linkedin, Github, Volume2, GitFork, DollarSign } from 'lucide-react';
 import AnimatedSection from '@/components/custom/animated-section';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/contexts/language-context'; 
-import { type StaticImageData } from 'next/image'; // Not used directly, but good for context.
+import { type StaticImageData } from 'next/image'; 
 
 interface LangPageProps {
   params: { lang: 'en' | 'tr' };
 }
 
 export default function LandingPage({ params }: LangPageProps) {
-  // language from context will be primarily used, but params.lang ensures SSR consistency
   const { language } = useLanguage(); 
   const currentLang = language || params.lang || 'tr';
 
@@ -88,6 +87,7 @@ export default function LandingPage({ params }: LangPageProps) {
       ],
       footerLinks: [
         { href: "/about", text: "Hakkımızda" },
+        { href: "/pricing", text: "Fiyatlandırma" },
         { href: "/faq", text: "SSS" },
         { href: "#", text: "Gizlilik Politikası" },
         { href: "#", text: "Kullanım Koşulları" },
@@ -160,6 +160,7 @@ export default function LandingPage({ params }: LangPageProps) {
       ],
       footerLinks: [
         { href: "/about", text: "About Us" },
+        { href: "/pricing", text: "Pricing" },
         { href: "/faq", text: "FAQ" },
         { href: "#", text: "Privacy Policy" },
         { href: "#", text: "Terms of Use" },
@@ -285,7 +286,7 @@ export default function LandingPage({ params }: LangPageProps) {
               </h5>
               <ul className="space-y-2">
                 {content.footerLinks.map(link => (
-                     <li key={link.text}><Link href={`/${currentLang}${link.href}`} className="text-sm hover:opacity-80 transition-opacity">{link.text}</Link></li>
+                     <li key={link.text}><Link href={link.href.startsWith("#") ? link.href : `/${currentLang}${link.href}`} className="text-sm hover:opacity-80 transition-opacity">{link.text}</Link></li>
                 ))}
               </ul>
             </div>
@@ -318,3 +319,5 @@ export default function LandingPage({ params }: LangPageProps) {
     </div>
   );
 }
+
+    

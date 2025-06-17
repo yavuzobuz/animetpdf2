@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link'; // Keep Link for potential internal links not handled by Navbar
+import Link from 'next/link'; 
 import { analyzePdf, AnalyzePdfInput, AnalyzePdfOutput } from '@/ai/flows/analyze-pdf';
 import { generateAnimationScenario, GenerateAnimationScenarioInput, GenerateAnimationScenarioOutput } from '@/ai/flows/generate-animation-scenario';
 import { generateFrameImage, GenerateFrameImageInput } from '@/ai/flows/generate-frame-image-flow';
@@ -24,10 +24,10 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette, Volume2, Mic, GitFork } from "lucide-react";
+import { Loader2, Sparkles, FileText, Clapperboard, RotateCcw, Image as ImageIcon, HelpCircle, Cpu, Twitter, Linkedin, Github, Palette, Volume2, Mic, GitFork, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
-import { useLanguage } from '@/contexts/language-context'; // Import useLanguage
+import { useLanguage } from '@/contexts/language-context'; 
 
 type AppStep = "upload" | "analyzing" | "generatingScenario" | "styleSelection" | "generatingContent" | "ready";
 
@@ -84,6 +84,7 @@ const pageUIText = {
     footerNavLinks: [
         { href: "/", text: "Ana Sayfa" },
         { href: "/about", text: "Hakkımızda" },
+        { href: "/pricing", text: "Fiyatlandırma" },
         { href: "/faq", text: "SSS" },
         { href: "#", text: "Gizlilik Politikası" },
         { href: "#", text: "Kullanım Koşulları" },
@@ -130,6 +131,7 @@ const pageUIText = {
     footerNavLinks: [
         { href: "/", text: "Home" },
         { href: "/about", text: "About Us" },
+        { href: "/pricing", text: "Pricing" },
         { href: "/faq", text: "FAQ" },
         { href: "#", text: "Privacy Policy" },
         { href: "#", text: "Terms of Use" },
@@ -697,4 +699,6 @@ export default function AnimatePdfAppPage({ params }: AnimatePdfAppPageProps) {
     </div>
   );
 }
+    
+
     

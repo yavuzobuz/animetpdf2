@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Building2, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github } from 'lucide-react';
+import { Building2, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, DollarSign } from 'lucide-react';
 import AnimatedSection from '@/components/custom/animated-section';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/contexts/language-context';
@@ -36,6 +36,7 @@ export default function AboutPage({ params }: AboutPageProps) {
       footerNavLinks: [
         { href: "/", text: "Ana Sayfa" },
         { href: "/animate", text: "Uygulamayı Kullan" },
+        { href: "/pricing", text: "Fiyatlandırma" },
         { href: "/faq", text: "SSS" },
         { href: "#", text: "Gizlilik Politikası" },
         { href: "#", text: "Kullanım Koşulları" },
@@ -59,6 +60,7 @@ export default function AboutPage({ params }: AboutPageProps) {
       footerNavLinks: [
         { href: "/", text: "Home" },
         { href: "/animate", text: "Use The App" },
+        { href: "/pricing", text: "Pricing" },
         { href: "/faq", text: "FAQ" },
         { href: "#", text: "Privacy Policy" },
         { href: "#", text: "Terms of Use" },
@@ -165,3 +167,5 @@ export default function AboutPage({ params }: AboutPageProps) {
     </div>
   );
 }
+
+    

@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect, FormEvent } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AnimatedSection from '@/components/custom/animated-section';
-import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X, Info } from 'lucide-react';
+import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X, Info, DollarSign } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +62,7 @@ const faqContentData = {
     footerNavLinks: [
       { href: "/", text: "Ana Sayfa" },
       { href: "/animate", text: "Uygulamayı Kullan" },
+      { href: "/pricing", text: "Fiyatlandırma" },
       { href: "/about", text: "Hakkımızda" },
       { href: "#", text: "Gizlilik Politikası" },
       { href: "#", text: "Kullanım Koşulları" },
@@ -103,6 +104,7 @@ const faqContentData = {
      footerNavLinks: [
       { href: "/", text: "Home" },
       { href: "/animate", text: "Use The App" },
+      { href: "/pricing", text: "Pricing" },
       { href: "/about", text: "About Us" },
       { href: "#", text: "Privacy Policy" },
       { href: "#", text: "Terms of Use" },
@@ -131,10 +133,8 @@ export default function FaqPage({ params }: FaqPageProps) {
 
   useEffect(() => {
     setFaqContentString(getFaqContentAsString(currentLang));
-    // Reset chat when language changes
     setChatMessages([]);
     setUserInput('');
-    // Optionally provide a default bot message in the new language
     if (isChatbotDialogOpen) {
       setChatMessages([{ sender: 'bot', text: content.chatbotWaiting }]);
     }
@@ -152,7 +152,6 @@ export default function FaqPage({ params }: FaqPageProps) {
 
   useEffect(() => {
     if(isChatbotDialogOpen){
-        // Add a slight delay to ensure the DOM is updated before scrolling
         const timer = setTimeout(() => {
             scrollToChatBottom();
         }, 50); 
@@ -173,7 +172,7 @@ export default function FaqPage({ params }: FaqPageProps) {
       const input: FaqChatInput = {
         faqContent: faqContentString, 
         userQuery: newUserMessage.text,
-        userLanguage: currentLang, // Pass the current language of the page
+        userLanguage: currentLang, 
       };
       const response = await faqChat(input);
       const botMessage: ChatMessage = { sender: 'bot', text: response.botResponse };
@@ -243,8 +242,6 @@ export default function FaqPage({ params }: FaqPageProps) {
       <Dialog open={isChatbotDialogOpen} onOpenChange={(open) => {
         setIsChatbotDialogOpen(open);
         if (!open) {
-          // Optional: clear chat when closing, or maintain state
-          // setChatMessages([]); 
         } else if (chatMessages.length === 0) {
            setChatMessages([{ sender: 'bot', text: content.chatbotWaiting }]);
         }
@@ -271,7 +268,6 @@ export default function FaqPage({ params }: FaqPageProps) {
             </DialogHeader>
             <CardContent className="p-4">
               <ScrollArea className="h-72 w-full rounded-md border p-3 bg-muted/20" ref={chatScrollAreaRef}>
-                {/* Initial message is now handled by useEffect/onOpenChange */}
                 {chatMessages.map((msg, index) => (
                   <div
                     key={index}
@@ -382,3 +378,4 @@ export default function FaqPage({ params }: FaqPageProps) {
   );
 }
 
+    

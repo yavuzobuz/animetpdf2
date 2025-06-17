@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle, Info, Languages } from 'lucide-react';
+import { Home, LogIn, UserPlus, Film, Menu, X, HelpCircle, Info, Languages, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import {
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from '@/contexts/language-context';
-import { useParams } from 'next/navigation'; // To get current lang from URL for link construction
+import { useParams } from 'next/navigation'; 
 
 const PdfAnimateLogo = () => (
   <svg
@@ -56,12 +56,13 @@ const PdfAnimateLogo = () => (
 export function Navbar() {
   const { language, setLanguage } = useLanguage();
   const params = useParams();
-  const currentLang = params.lang as string || 'tr'; // Fallback if params.lang is not available initially
+  const currentLang = params.lang as string || 'tr'; 
 
   const navLinksContent = {
     en: [
       { href: "/", label: "Home", icon: <Home className="mr-2 h-5 w-5" /> },
       { href: "/animate", label: "Animate", icon: <Film className="mr-2 h-5 w-5" /> },
+      { href: "/pricing", label: "Pricing", icon: <DollarSign className="mr-2 h-5 w-5" /> },
       { href: "/faq", label: "FAQ", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
       { href: "/about", label: "About Us", icon: <Info className="mr-2 h-5 w-5" /> },
       { href: "/login", label: "Login", icon: <LogIn className="mr-2 h-5 w-5" /> },
@@ -70,6 +71,7 @@ export function Navbar() {
     tr: [
       { href: "/", label: "Ana Sayfa", icon: <Home className="mr-2 h-5 w-5" /> },
       { href: "/animate", label: "Anime Et", icon: <Film className="mr-2 h-5 w-5" /> },
+      { href: "/pricing", label: "Fiyatlandırma", icon: <DollarSign className="mr-2 h-5 w-5" /> },
       { href: "/faq", label: "SSS", icon: <HelpCircle className="mr-2 h-5 w-5" /> },
       { href: "/about", label: "Hakkımızda", icon: <Info className="mr-2 h-5 w-5" /> },
       { href: "/login", label: "Giriş Yap", icon: <LogIn className="mr-2 h-5 w-5" /> },
@@ -80,8 +82,6 @@ export function Navbar() {
   const activeNavLinks = navLinksContent[language] || navLinksContent.tr;
 
   const getLocalizedPath = (path: string) => {
-    // If the path is just '/', we only want the language prefix (e.g. /en, /tr)
-    // Otherwise, we want /<lang>/<path>
     const basePath = path === '/' ? '' : path;
     return `/${currentLang}${basePath}`;
   }
@@ -178,3 +178,5 @@ export function Navbar() {
     </nav>
   );
 }
+
+    
