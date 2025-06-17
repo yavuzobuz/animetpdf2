@@ -38,15 +38,15 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
       const result = await generatePdfDiagramFlow({ pdfSummary });
       setDiagramDescription(result.diagramDescription);
       toast({
-        title: "Kavram Haritası Açıklaması Oluşturuldu",
-        description: "Aşağıda PDF özetinizden çıkarılan anahtar kavramları ve ilişkileri görebilirsiniz.",
+        title: "Akış Diyagramı Açıklaması Oluşturuldu",
+        description: "Aşağıda PDF özetinizden çıkarılan süreç adımlarını görebilirsiniz.",
       });
     } catch (err) {
       console.error("Diagram Generation Error:", err);
-      const errorMessage = (err as Error).message || "Kavram haritası oluşturulurken bir hata oluştu.";
+      const errorMessage = (err as Error).message || "Akış diyagramı açıklaması oluşturulurken bir hata oluştu.";
       setError(errorMessage);
       toast({
-        title: "Kavram Haritası Oluşturma Hatası",
+        title: "Akış Diyagramı Oluşturma Hatası",
         description: errorMessage,
         variant: "destructive",
       });
@@ -56,17 +56,17 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
   };
 
   if (!pdfSummary) {
-    return null; // Don't render if there's no summary yet
+    return null; 
   }
 
   return (
     <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-2xl font-headline flex items-center">
-          <GitFork className="mr-2 h-6 w-6 text-primary" /> PDF Kavram Haritası
+          <GitFork className="mr-2 h-6 w-6 text-primary" /> PDF Akış Diyagramı (Metinsel)
         </CardTitle>
         <CardDescription>
-          PDF özetinizdeki anahtar kavramlar ve ilişkiler hakkında metinsel bir genel bakış oluşturun.
+          PDF özetinizdeki bir süreci veya algoritmayı adım adım tanımlayan metinsel bir açıklama oluşturun.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -83,7 +83,7 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
           ) : (
             <>
               <Network className="mr-2 h-4 w-4" />
-              Kavram Haritası Açıklaması Oluştur
+              Akış Diyagramı Açıklaması Oluştur
             </>
           )}
         </Button>
@@ -100,15 +100,17 @@ export function PdfDiagramGenerator({ pdfSummary, generatePdfDiagramFlow }: PdfD
 
         {diagramDescription && (
           <div>
-            <h3 className="font-semibold mb-2 text-lg">Oluşturulan Açıklama:</h3>
-            <ScrollArea className="h-60 w-full rounded-md border p-3 bg-muted/20 whitespace-pre-wrap">
-              {diagramDescription}
+            <h3 className="font-semibold mb-2 text-lg">Oluşturulan Akış Açıklaması:</h3>
+            <ScrollArea className="h-60 w-full rounded-md border p-3 bg-muted/20">
+              <pre className="text-sm font-mono whitespace-pre-wrap font-code">
+                {diagramDescription}
+              </pre>
             </ScrollArea>
           </div>
         )}
          {!isLoading && !diagramDescription && !error && (
           <div className="text-center text-muted-foreground py-4">
-            <p>PDF özetinizdeki anahtar kavramlar ve ilişkileri görmek için yukarıdaki butona tıklayın.</p>
+            <p>PDF özetinizdeki bir sürecin metinsel akış diyagramı açıklamasını görmek için yukarıdaki butona tıklayın.</p>
           </div>
         )}
       </CardContent>
