@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardTitle } from '@/components/ui/card'; // CardTitle ve CardDescription'ı hala kullanabiliriz başlık için.
 import { Info, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, Building2 } from 'lucide-react';
 import AnimatedSection from '@/components/custom/animated-section';
 import { Separator } from '@/components/ui/separator';
@@ -27,29 +27,28 @@ export default function AboutPage() {
       <main className="flex-grow">
         <AnimatedSection sectionId="about-content" className="py-12 md:py-16 bg-background" delay="delay-100">
           <div className="container mx-auto px-6 max-w-3xl">
-            <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
-              <CardHeader>
-                <CardTitle className="text-2xl font-headline text-primary">AnimatePDF & Zubo Bilişim</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 text-foreground/80 text-lg">
-                <p>
-                  AnimatePDF, karmaşık bilgileri anlaşılır ve etkileşimli deneyimlere dönüştürme vizyonuyla geliştirilmiş bir projedir.
-                  Amacımız, yapay zeka teknolojilerini kullanarak öğrenme ve bilgi paylaşım süreçlerini daha verimli ve keyifli hale getirmektir.
-                </p>
-                <p className="font-semibold text-primary">
-                  AnimatePDF bir <span className="text-foreground font-bold">Zubo Bilişim</span> ürünüdür.
-                </p>
-                <p>
-                  Zubo Bilişim olarak, yenilikçi yazılım çözümleri ve yapay zeka uygulamaları geliştirme konusunda tutkuluyuz.
-                  Kullanıcılarımızın hayatını kolaylaştıran, onlara değer katan ve teknolojik sınırları zorlayan projeler üretmek temel motivasyonumuzdur.
-                  AnimatePDF de bu motivasyonun bir yansımasıdır.
-                </p>
-                <p>
-                  Misyonumuz, en son teknolojileri kullanarak erişilebilir, kullanıcı dostu ve etkili araçlar sunmaktır.
-                  Geleceğin bilgiye erişim ve etkileşim biçimlerini şekillendirmede aktif rol oynamayı hedefliyoruz.
-                </p>
-              </CardContent>
-            </Card>
+            {/* Card bileşeni kaldırıldı, içerik doğrudan section'ın arka planını kullanacak */}
+            <div className="mb-6"> {/* Başlık için bir sarmalayıcı */}
+              <h2 className="text-2xl font-headline text-primary">AnimatePDF & Zubo Bilişim</h2>
+            </div>
+            <div className="space-y-6 text-foreground/80 text-lg">
+              <p className="text-justify">
+                AnimatePDF, karmaşık bilgileri anlaşılır ve etkileşimli deneyimlere dönüştürme vizyonuyla geliştirilmiş bir projedir.
+                Amacımız, yapay zeka teknolojilerini kullanarak öğrenme ve bilgi paylaşım süreçlerini daha verimli ve keyifli hale getirmektir.
+              </p>
+              <p className="font-semibold text-primary text-justify">
+                AnimatePDF bir <span className="text-foreground font-bold">Zubo Bilişim</span> ürünüdür.
+              </p>
+              <p className="text-justify">
+                Zubo Bilişim olarak, yenilikçi yazılım çözümleri ve yapay zeka uygulamaları geliştirme konusunda tutkuluyuz.
+                Kullanıcılarımızın hayatını kolaylaştıran, onlara değer katan ve teknolojik sınırları zorlayan projeler üretmek temel motivasyonumuzdur.
+                AnimatePDF de bu motivasyonun bir yansımasıdır.
+              </p>
+              <p className="text-justify">
+                Misyonumuz, en son teknolojileri kullanarak erişilebilir, kullanıcı dostu ve etkili araçlar sunmaktır.
+                Geleceğin bilgiye erişim ve etkileşim biçimlerini şekillendirmede aktif rol oynamayı hedefliyoruz.
+              </p>
+            </div>
 
             <AnimatedSection tag="div" className="text-center mt-12" delay="delay-200">
                 <Link href="/animate" passHref>
