@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generates multiple-choice question and answer pairs in Turkish based on a PDF summary.
@@ -28,7 +27,7 @@ export type QAPair = z.infer<typeof QAPairSchema>;
 
 
 const GenerateQaOutputSchema = z.object({
-  qaPairs: z.array(QAPairSchema).describe('An array of 3-5 multiple-choice question and answer pairs in Turkish. Each pair includes a question, 3-4 options, the index of the correct answer, and an explanation for the correct answer.'),
+  qaPairs: z.array(QAPairSchema).describe('An array of 6-8 multiple-choice question and answer pairs in Turkish. Each pair includes a question, 3-4 options, the index of the correct answer, and an explanation for the correct answer.'),
 });
 export type GenerateQaOutput = z.infer<typeof GenerateQaOutputSchema>;
 
@@ -40,7 +39,7 @@ const prompt = ai.definePrompt({
   name: 'generateQaPrompt',
   input: {schema: GenerateQaInputSchema},
   output: {schema: GenerateQaOutputSchema},
-  prompt: `You are an expert in creating educational content. Based on the following summary (in Turkish), generate 3 to 5 distinct multiple-choice question and answer pairs that would effectively test understanding of the material.
+  prompt: `You are an expert in creating educational content. Based on the following summary (in Turkish), generate **at least 6** (tercihen 6-8) distinct multiple-choice question and answer pairs that would effectively test understanding of the material.
 Each Q&A pair MUST be in TURKISH.
 The output MUST be a JSON object containing a "qaPairs" array. Each object in the "qaPairs" array must have the following properties:
 1.  "question": A string representing the question in Turkish.

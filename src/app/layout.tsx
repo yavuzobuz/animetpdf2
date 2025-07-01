@@ -1,6 +1,6 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
+import './animation-slow.css';
 // LanguageProvider and Navbar are removed from here as they will be in [lang]/layout.tsx
 // Toaster can remain here or be moved, but for simplicity, let's assume it's also in [lang]/layout.tsx
 
@@ -25,8 +25,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased min-h-screen flex flex-col bg-background">
-        {children}
+      <body className="font-body antialiased min-h-screen bg-background">
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );

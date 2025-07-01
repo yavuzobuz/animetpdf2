@@ -1,37 +1,79 @@
+/* eslint-disable */
+/* prettier-ignore */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Animasyon Performans Optimizasyonları */
+* {
+  box-sizing: border-box;
+}
+
+/* Hardware acceleration for animations */
+/* Yalnızca görsel içerikler için GPU katmanı */
+img,
+video,
+canvas,
+.gpu-transform {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Metin içeren elementlerde font bulanıklığını önlemek için ölçekleme animasyonlarının GPU katmanına alınmasını engelliyoruz */
+[class*="hover:scale"],
+[class*="hover:translate"],
+[class*="hover:rotate"] {
+  transform: perspective(1px) translateZ(0); /* GPU promotion olmadan alt piksel netliği koru */
+  will-change: transform;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer base {
   :root {
-    --background: 0 0% 96%; /* Off-white (#F5F5F5) */
-    --foreground: 240 10% 3.9%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 200 53% 80%; /* Light blue (#ADD8E6) */
-    --primary-dark: 200 53% 50%; /* Darker blue for gradient */
-    --primary-foreground: 200 50% 25%; /* Darker blue for contrast */
+    --primary: 270 87% 65%;
+    --primary-dark: 270 87% 55%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 120 73% 75%; /* Soft green (#90EE90) */
-    --accent-foreground: 120 60% 25%; /* Darker green for contrast */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 200 53% 70%; /* Adjusted ring to match primary */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 270 87% 65%;
 
     --radius: 0.5rem;
 
@@ -48,53 +90,53 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 200 53% 80%; /* Light blue for dark mode too as per general theme */
-    --primary-dark: 200 53% 50%; /* Darker blue for gradient in dark mode */
-    --primary-foreground: 200 50% 15%;
+    --primary: 270 87% 65%;
+    --primary-dark: 270 87% 55%;
+    --primary-foreground: 222.2 84% 4.9%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 120 73% 75%; /* Soft green for dark mode too */
-    --accent-foreground: 120 60% 15%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 200 53% 70%;
-    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 270 87% 65%;
+
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 224.3 76.3% 94.1%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
   }
 }
 
@@ -105,4 +147,588 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Font loading optimization */
+  html {
+    font-display: swap;
+    scroll-behavior: smooth;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Animation Keyframes - YAVAŞLATILDI */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modern Gradient Text */
+.gradient-animate {
+  background: linear-gradient(-45deg, #8b5cf6, #ec4899, #3b82f6, #06b6d4);
+  background-size: 400% 400%;
+  animation: gradient-shift 30s ease-in-out infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transform: translateZ(0); /* Enable hardware acceleration */
+  backface-visibility: hidden;
+}
+
+.gradient-purple-pink {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-blue-purple {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Modern Card Styles with Enhanced Animations */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transform: translateZ(0); /* Enable hardware acceleration */
+  backface-visibility: hidden;
+  transition: all 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.36s ease;
+  pointer-events: none;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+.glass-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass-card {
+  background: rgba(15, 23, 42, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dark .glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.gradient-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: translateZ(0); /* Enable hardware acceleration */
+  backface-visibility: hidden;
+  transition: all 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gradient-card:hover {
+  transform: translateY(-10px) rotateX(5deg);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+}
+
+.dark .gradient-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.2) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.dark .gradient-card:hover {
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+}
+
+/* Modern Button Styles with Enhanced Animations */
+.btn-gradient {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #3b82f6 100%);
+  background-size: 200% 200%;
+  border: none;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  transition: all 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.45s;
+}
+
+.btn-gradient:hover::before {
+  left: 100%;
+}
+
+.btn-gradient:hover {
+  background-position: right center;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(139, 92, 246, 0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-gradient:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.15s ease;
+}
+
+/* Pulse effect for important buttons */
+.btn-gradient.pulse {
+  animation: pulse-glow 3s infinite;
+}
+
+/* Hero Section Gradients */
+.hero-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+}
+
+.cta-gradient {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background-attachment: fixed;
+}
+
+/* Typography Styles */
+.headline-modern {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.subheading-modern {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+/* Page Container */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: slide-up 0.8s ease-out forwards;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading States */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .hero-gradient, .cta-gradient {
+    background-attachment: scroll;
+  }
+  
+  .page-container {
+    min-height: 70vh;
+  }
+  
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Performance Optimizations */
+* {
+  /* Optimize compositing for animations */
+  will-change: auto;
+}
+
+/* Enhanced Animations - OPTIMIZED SPEED */
+.glass-card, .gradient-card {
+  transition: transform 0.36s ease, opacity 0.36s ease, box-shadow 0.36s ease;
+}
+
+.btn-gradient {
+  transition: all 0.36s ease, transform 0.24s ease;
+}
+
+/* Hover Effects Enhanced - OPTIMIZED SPEED */
+.hover-lift {
+  transition: transform 0.36s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+}
+
+/* Animate on Scroll - KEEP ORIGINAL SPEED FOR HERO SECTIONS */
+.animate-fade-in {
+  animation: slide-up 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in-delay {
+  animation: slide-up 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+  opacity: 0;
+}
+
+/* Scale Animation - FASTER FOR INTERACTIONS */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.48s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Floating Animation - KEEP ORIGINAL FOR DECORATIVE */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 4.5s ease-in-out infinite;
+}
+
+/* Pulse Animation Enhanced - FASTER FOR INTERACTIONS */
+@keyframes pulse-enhanced {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-enhanced {
+  animation: pulse-enhanced 1.8s ease-in-out infinite;
+}
+
+/* Reduce motion for users who prefer it - BUT KEEP SOME ANIMATIONS */
+@media (prefers-reduced-motion: reduce) {
+  .gradient-animate {
+    animation: gradient-shift 12s linear infinite; /* Slower but still animated */
+  }
+  
+  .animate-float, .animate-bounce-subtle {
+    animation: none;
+  }
+  
+  * {
+    animation-duration: 0.3s !important; /* Faster but not disabled */
+    transition-duration: 0.2s !important; /* Keep transitions */
+  }
+}
+
+/* Global Animation Optimization - HERO EFFECTS REMAIN, INTERACTIONS FASTER */
+.gradient-animate {
+  /* Keep hero text effects as they are */
+  animation-duration: 30s !important;
+}
+
+/* Interactive elements - 40% faster */
+[class*="hover:scale"],
+[class*="transition-all"],
+[class*="transition-transform"] {
+  transition-duration: 0.36s !important;
+}
+
+/* Özel yavaşlatmalar - sadece dekoratif animasyonlar */
+.animate-pulse {
+  animation-duration: 2.4s !important;
+}
+
+.animate-bounce {
+  animation-duration: 1.2s !important;
+}
+
+.animate-spin {
+  animation-duration: 1.2s !important;
+}
+
+/* Duration class'larını optimize et - FASTER FOR INTERACTIONS */
+.duration-200 {
+  transition-duration: 120ms !important;
+}
+
+.duration-300 {
+  transition-duration: 180ms !important;
+}
+
+.duration-450 {
+  transition-duration: 270ms !important;
+}
+
+.duration-500 {
+  transition-duration: 300ms !important;
+}
+
+.duration-700 {
+  transition-duration: 420ms !important;
+}
+
+.duration-1000 {
+  transition-duration: 600ms !important;
+}
+
+.duration-1500 {
+  transition-duration: 900ms !important;
+}
+
+/* PDF Diyagram İyileştirmeleri */
+.diagram-container {
+  --step-transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.diagram-step {
+  transition: var(--step-transition);
+  position: relative;
+  isolation: isolate;
+}
+
+.diagram-step:hover {
+  z-index: 10;
+  transform: translateY(-2px);
+}
+
+.diagram-step::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, transparent, var(--primary), transparent);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: -1;
+}
+
+.diagram-step:hover::before {
+  opacity: 0.1;
+}
+
+.diagram-connection {
+  animation: pulse-connection 2s ease-in-out infinite;
+}
+
+@keyframes pulse-connection {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+.diagram-arrow {
+  animation: bounce-arrow 2s ease-in-out infinite;
+}
+
+@keyframes bounce-arrow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+
+.diagram-step-decision {
+  animation: rotate-decision 6s linear infinite;
+}
+
+.diagram-step-decision::after {
+  content: "?";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+@keyframes rotate-decision {
+  0% { transform: rotate(45deg); }
+  100% { transform: rotate(405deg); }
+}
+
+.diagram-step-parallel {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(6, 182, 212, 0.1),
+    rgba(6, 182, 212, 0.1) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+}
+
+.diagram-step-loop {
+  border-style: dashed;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+}
+
+.diagram-stats-badge {
+  animation: float-badge 3s ease-in-out infinite;
+}
+
+@keyframes float-badge {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Responsive İyileştirmeler */
+@media (max-width: 640px) {
+  .diagram-step {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+  
+  .diagram-step-decision {
+    min-width: 80px;
+    min-height: 80px;
+  }
+}
+
+/* Diyagram Butonu Özel Stili */
+.diagram-button {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #3b82f6 100%);
+  background-size: 200% 200%;
+  border: none;
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+  transition: all 0.36s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.diagram-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.45s;
+}
+
+.diagram-button:hover::before {
+  left: 100%;
+}
+
+.diagram-button:hover {
+  background-position: right center;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
+}
+
+.diagram-button:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.1s ease;
+}
+
+.diagram-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.diagram-button:disabled::before {
+  display: none;
 }

@@ -1,12 +1,11 @@
-
 "use client";
 
 import Link from 'next/link';
 import React, { useState, useRef, useEffect, FormEvent } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// Card components removed - using plain divs instead
 import AnimatedSection from '@/components/custom/animated-section';
-import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X, Info, DollarSign } from 'lucide-react';
+import { HelpCircle, Clapperboard, Sparkles, Cpu, Twitter, Linkedin, Github, MessageSquare, Bot, User, Send, Loader2, X, Info, DollarSign, ArrowRight, Eye, Zap, Shield, Users } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +21,7 @@ interface ChatMessage {
 }
 
 interface FaqPageProps {
-  params: { lang: 'en' | 'tr' };
+  params: Promise<{ lang: 'en' | 'tr' }>;
 }
 
 const faqContentData = {
@@ -57,7 +56,23 @@ const faqContentData = {
       { question: "Desteklenen PDF boyutu veya sayfa sayısı sınırı var mı?", answer: "Şu anda belirli bir dosya boyutu veya sayfa sayısı için kesin bir üst sınır belirtilmemiştir. Ancak çok büyük (örneğin 50MB üzeri) veya çok fazla sayıda sayfa içeren (örneğin 100+ sayfa) PDF'lerin işlenmesi daha uzun sürebilir veya beklenmedik sorunlara yol açabilir. Daha iyi performans için makul boyutlarda ve odaklanmış içerikli PDF'ler kullanmanızı öneririz." },
       { question: "AnimatePDF'in ücretlendirme politikası nedir? Ücretsiz mi?", answer: "AnimatePDF, şu anda temel özellikleriyle ücretsiz olarak sunulmaktadır. Bu ücretsiz sürüm, belirli limitler dahilinde (örneğin, günlük işleme sayısı, animasyon kare sayısı, standart kalitede içerik üretimi) uygulamanın ana işlevlerini deneyimlemenizi sağlar.\n\nGelecekte, daha yoğun kullanım, daha yüksek limitler, premium kalitede içerik üretimi (örn: daha yüksek çözünürlüklü görseller, gelişmiş ses seçenekleri), gelişmiş analiz özellikleri ve öncelikli destek gibi avantajlar sunan 'Pro' ve 'Kurumsal' gibi ücretli abonelik planları sunmayı hedefliyoruz.\n\nAmacımız, bireysel kullanıcılar ve küçük ekipler için erişilebilir bir başlangıç noktası sunarken, daha kapsamlı ihtiyaçları olan profesyoneller ve işletmeler için de değer yaratan seçenekler oluşturmaktır. Detaylı fiyatlandırma ve plan özelliklerini kullanıma sunduğumuzda 'Fiyatlandırma' sayfamızdan duyuracağız." },
       { question: "Veri gizliliğim nasıl korunuyor?", answer: "Yüklediğiniz PDF'ler yalnızca analiz ve içerik üretimi amacıyla geçici olarak işlenir ve sunucularımızda saklanmaz. Üretilen içerikler (özetler, senaryolar vb.) kullanıcı deneyiminiz için geçici olarak tutulabilir, ancak bu veriler de gizlilik politikamız çerçevesinde korunur. Gizliliğiniz bizim için önemlidir. Daha fazla bilgi için (varsa) Gizlilik Politikamıza göz atabilirsiniz." },
-      { question: "Bir sorunla karşılaşırsam veya geri bildirimde bulunmak istersem ne yapmalıyım?", answer: "Herhangi bir sorunla karşılaşırsanız, bir hata fark ederseniz veya uygulama hakkında geri bildirimde bulunmak isterseniz, lütfen [email protected] (varsayımsal e-posta adresi) adresinden bizimle iletişime geçin. Kullanıcı deneyimini iyileştirmek için geri bildirimleriniz bizim için çok değerlidir." }
+      { question: "Bir sorunla karşılaşırsam veya geri bildirimde bulunmak istersem ne yapmalıyım?", answer: "Herhangi bir sorunla karşılaşırsanız, bir hata fark ederseniz veya uygulama hakkında geri bildirimde bulunmak isterseniz, lütfen [email protected] (varsayımsal e-posta adresi) adresinden bizimle iletişime geçin. Kullanıcı deneyimini iyileştirmek için geri bildirimleriniz bizim için çok değerlidir." },
+      { question: "AnimatePDF'e nasıl üye olabilirim?", answer: "AnimatePDF'e üye olmak için ana sayfamızdaki 'Kayıt Ol' butonuna tıklayarak e-posta adresiniz ve şifrenizle hesap oluşturabilirsiniz. Ayrıca Google hesabınızla da hızlıca giriş yapabilirsiniz. Üyelik tamamen ücretsizdir ve sadece birkaç dakika sürer." },
+      { question: "Ücretsiz plan ile neler yapabilirim?", answer: "Ücretsiz planımızla ayda 5 PDF dönüşümü, temel kalitede animasyonlar, standart ses seslendirme ve 2GB depolama alanı kullanabilirsiniz. Mini testler, PDF sohbeti ve basit akış diyagramları da ücretsiz planda mevcuttur. Başlangıç için ideal bir seçenektir." },
+      { question: "Pro plan ne kadardır ve hangi ek özellikler sunar?", answer: "Pro planımız aylık 29₺ veya yıllık 290₺'dir (%17 indirimli). Pro plan ile sınırsız PDF dönüşümü, HD kalitede animasyonlar, profesyonel seslendirme seçenekleri, 50GB depolama, öncelikli destek ve gelişmiş düzenleme araçları kullanabilirsiniz." },
+      { question: "Enterprise plan kimler için uygundur ve fiyatı nedir?", answer: "Enterprise planımız büyük şirketler, eğitim kurumları ve yoğun kullanımı olan organizasyonlar için tasarlanmıştır. Aylık 99₺ veya yıllık 990₺ (%17 indirimli). Sınırsız kullanım, API erişimi, özel marka entegrasyonu, gelişmiş analitik, 500GB depolama ve 7/24 öncelikli destek içerir." },
+      { question: "Aboneliğimi nasıl yükseltebilirim veya iptal edebilirim?", answer: "Aboneliğinizi profil sayfanızdaki 'Abonelik Yönetimi' bölümünden kolayca yükseltebilir veya iptal edebilirsiniz. İptal ettiğinizde mevcut dönem sonuna kadar premium özellikleriniz aktif kalır. Yükseltme işlemi anında etkili olur." },
+      { question: "Ödeme yöntemleri nelerdir ve güvenli mi?", answer: "Kredi kartı, banka kartı ve PayPal ile güvenli ödeme yapabilirsiniz. Tüm ödemeler SSL şifrelemesi ile korunur ve PCI DSS standartlarına uygun olarak işlenir. Ödeme bilgileriniz hiçbir zaman sunucularımızda saklanmaz." },
+      { question: "Ücretsiz deneme süresi var mı?", answer: "Evet! Pro ve Enterprise planları için 7 günlük ücretsiz deneme sunuyoruz. Deneme süresinde tüm premium özellikleri tam kapasitede kullanabilirsiniz. İsterseniz deneme süresinin sonundan önce iptal edebilirsiniz." },
+      { question: "Faturalama nasıl çalışır ve ne zaman ücret alınır?", answer: "Faturalama kayıt olduğunuz tarihe göre aylık veya yıllık dönemlerle yapılır. İlk ödeme kayıt sırasında, sonraki ödemeler otomatik olarak aynı gün tahsil edilir. E-posta ile fatura ve ödeme hatırlatmaları gönderilir." },
+      { question: "AnimatePDF'e nasıl üye olabilirim?", answer: "AnimatePDF'e üye olmak için ana sayfamızdaki 'Kayıt Ol' butonuna tıklayarak e-posta adresiniz ve şifrenizle hesap oluşturabilirsiniz. Ayrıca Google hesabınızla da hızlıca giriş yapabilirsiniz. Üyelik tamamen ücretsizdir ve sadece birkaç dakika sürer." },
+      { question: "Ücretsiz plan ile neler yapabilirim?", answer: "Ücretsiz planımızla ayda 5 PDF dönüşümü, temel kalitede animasyonlar, standart ses seslendirme ve 2GB depolama alanı kullanabilirsiniz. Mini testler, PDF sohbeti ve basit akış diyagramları da ücretsiz planda mevcuttur. Başlangıç için ideal bir seçenektir." },
+      { question: "Pro plan ne kadardır ve hangi ek özellikler sunar?", answer: "Pro planımız aylık 29₺ veya yıllık 290₺'dir (%17 indirimli). Pro plan ile sınırsız PDF dönüşümü, HD kalitede animasyonlar, profesyonel seslendirme seçenekleri, 50GB depolama, öncelikli destek ve gelişmiş düzenleme araçları kullanabilirsiniz." },
+      { question: "Enterprise plan kimler için uygundur ve fiyatı nedir?", answer: "Enterprise planımız büyük şirketler, eğitim kurumları ve yoğun kullanımı olan organizasyonlar için tasarlanmıştır. Aylık 99₺ veya yıllık 990₺ (%17 indirimli). Sınırsız kullanım, API erişimi, özel marka entegrasyonu, gelişmiş analitik, 500GB depolama ve 7/24 öncelikli destek içerir." },
+      { question: "Aboneliğimi nasıl yükseltebilirim veya iptal edebilirim?", answer: "Aboneliğinizi profil sayfanızdaki 'Abonelik Yönetimi' bölümünden kolayca yükseltebilir veya iptal edebilirsiniz. İptal ettiğinizde mevcut dönem sonuna kadar premium özellikleriniz aktif kalır. Yükseltme işlemi anında etkili olur." },
+      { question: "Ödeme yöntemleri nelerdir ve güvenli mi?", answer: "Kredi kartı, banka kartı ve PayPal ile güvenli ödeme yapabilirsiniz. Tüm ödemeler SSL şifrelemesi ile korunur ve PCI DSS standartlarına uygun olarak işlenir. Ödeme bilgileriniz hiçbir zaman sunucularımızda saklanmaz." },
+      { question: "Ücretsiz deneme süresi var mı?", answer: "Evet! Pro ve Enterprise planları için 7 günlük ücretsiz deneme sunuyoruz. Deneme süresinde tüm premium özellikleri tam kapasitede kullanabilirsiniz. İsterseniz deneme süresinin sonundan önce iptal edebilirsiniz." },
+      { question: "Faturalama nasıl çalışır ve ne zaman ücret alınır?", answer: "Faturalama kayıt olduğunuz tarihe göre aylık veya yıllık dönemlerle yapılır. İlk ödeme kayıt sırasında, sonraki ödemeler otomatik olarak aynı gün tahsil edilir. E-posta ile fatura ve ödeme hatırlatmaları gönderilir." }
     ],
     footerNavLinks: [
       { href: "/", text: "Ana Sayfa" },
@@ -99,7 +114,15 @@ const faqContentData = {
         { question: "Is there a limit to the supported PDF size or page count?", answer: "Currently, no specific upper limit for file size or page count has been stated. However, processing very large (e.g., over 50MB) or very numerous (e.g., 100+ pages) PDFs may take longer or lead to unexpected issues. We recommend using reasonably sized PDFs with focused content for better performance." },
         { question: "What is AnimatePDF's pricing policy? Is it free?", answer: "AnimatePDF is currently offered free of charge with its basic features. This free version allows you to experience the main functionalities of the application within certain limits (e.g., daily processing count, number of animation frames, standard quality content production).\n\nIn the future, we aim to offer paid subscription plans such as 'Pro' and 'Enterprise' that will provide advantages like more intensive use, higher limits, premium quality content production (e.g., higher resolution visuals, advanced audio options), advanced analysis features, and priority support.\n\nOur goal is to provide an accessible starting point for individual users and small teams, while also creating value-added options for professionals and businesses with more comprehensive needs. We will announce detailed pricing and plan features on our 'Pricing' page when they are available." },
         { question: "How is my data privacy protected?", answer: "The PDFs you upload are processed temporarily solely for analysis and content generation purposes and are not stored on our servers. Generated content (summaries, scripts, etc.) may be temporarily retained for your user experience, but this data is also protected under our privacy policy. Your privacy is important to us. For more information, you can review our Privacy Policy (if available)." },
-        { question: "What should I do if I encounter a problem or want to provide feedback?", answer: "If you encounter any problems, notice an error, or wish to provide feedback about the application, please contact us at [email protected] (hypothetical email address). Your feedback is very valuable for us to improve the user experience." }
+        { question: "What should I do if I encounter a problem or want to provide feedback?", answer: "If you encounter any problems, notice an error, or wish to provide feedback about the application, please contact us at [email protected] (hypothetical email address). Your feedback is very valuable for us to improve the user experience." },
+        { question: "How can I sign up for AnimatePDF?", answer: "To become a member of AnimatePDF, you can create an account by clicking the 'Sign Up' button on our homepage with your email address and password. You can also sign in quickly with your Google account. Membership is completely free and takes only a few minutes." },
+        { question: "What can I do with the free plan?", answer: "With our free plan, you can convert 5 PDFs per month, create basic quality animations, use standard voice narration, and get 2GB storage space. Mini quizzes, PDF chat, and simple flow diagrams are also available in the free plan. It's an ideal choice for getting started." },
+        { question: "How much is the Pro plan and what additional features does it offer?", answer: "Our Pro plan costs $9.99 monthly or $99.99 annually (17% discount). With the Pro plan, you get unlimited PDF conversions, HD quality animations, professional voice options, 50GB storage, priority support, and advanced editing tools." },
+        { question: "Who is the Enterprise plan suitable for and what is its price?", answer: "Our Enterprise plan is designed for large companies, educational institutions, and organizations with intensive usage. It costs $29.99 monthly or $299.99 annually (17% discount). It includes unlimited usage, API access, custom brand integration, advanced analytics, 500GB storage, and 24/7 priority support." },
+        { question: "How can I upgrade or cancel my subscription?", answer: "You can easily upgrade or cancel your subscription from the 'Subscription Management' section on your profile page. When you cancel, your premium features remain active until the end of the current period. Upgrades take effect immediately." },
+        { question: "What are the payment methods and are they secure?", answer: "You can make secure payments with credit card, debit card, and PayPal. All payments are protected with SSL encryption and processed in accordance with PCI DSS standards. Your payment information is never stored on our servers." },
+        { question: "Is there a free trial period?", answer: "Yes! We offer a 7-day free trial for Pro and Enterprise plans. During the trial period, you can use all premium features at full capacity. You can cancel before the end of the trial period if you wish." },
+        { question: "How does billing work and when are charges made?", answer: "Billing is done in monthly or annual periods based on your registration date. The first payment is made during registration, subsequent payments are automatically charged on the same day. Invoice and payment reminders are sent via email." }
     ],
      footerNavLinks: [
       { href: "/", text: "Home" },
@@ -118,9 +141,52 @@ const getFaqContentAsString = (lang: 'tr' | 'en'): string => {
   return items.map(item => `Soru: ${item.question}\nCevap: ${item.answer}`).join('\n\n');
 };
 
+// Link parser function to make markdown links clickable
+const parseLinksInText = (text: string) => {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    
+    // Add the clickable link
+    parts.push(
+      <Link 
+        key={match.index} 
+        href={match[2]} 
+        className="text-blue-600 hover:text-blue-800 underline" 
+        target={match[2].startsWith('http') ? '_blank' : '_self'}
+      >
+        {match[1]}
+      </Link>
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : text;
+};
+
 export default function FaqPage({ params }: FaqPageProps) {
   const { language } = useLanguage();
-  const currentLang = language || params.lang || 'tr';
+  const [currentLang, setCurrentLang] = React.useState<'en' | 'tr'>('tr');
+  
+  React.useEffect(() => {
+    params.then(({ lang }) => {
+      setCurrentLang(language || lang || 'tr');
+    });
+  }, [params, language]);
+  
   const content = faqContentData[currentLang] || faqContentData.tr;
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -200,27 +266,69 @@ export default function FaqPage({ params }: FaqPageProps) {
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
-      <AnimatedSection tag="header" className="py-16 md:py-24 bg-gradient-to-br from-primary/10 via-background to-background">
-        <div className="container mx-auto px-6 text-center">
-          <HelpCircle className="h-20 w-20 text-primary mx-auto mb-6" />
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 font-headline">
+      {/* Modern Hero Section */}
+      <section className="hero-gradient relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-pink-600/10 to-blue-600/10"></div>
+        <div className="relative container mx-auto px-4 py-20 lg:py-32">
+          <div className="text-center max-w-4xl mx-auto">
+            <AnimatedSection tag="div" className="space-y-8">
+              {/* Floating particles effect */}
+              <div className="absolute top-20 left-10 w-4 h-4 bg-purple-400 rounded-full opacity-30 animate-bounce"></div>
+              <div className="absolute top-32 right-20 w-6 h-6 bg-pink-400 rounded-full opacity-20 float-animation"></div>
+              <div className="absolute bottom-20 left-20 w-3 h-3 bg-blue-400 rounded-full opacity-40 pulse-soft"></div>
+              
+              {/* Hero Badge */}
+              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                <HelpCircle className="h-4 w-4 text-purple-500" />
+                <span>SSS • Hızlı Yanıtlar • AI Asistan</span>
+              </div>
+
+              {/* Hero Title */}
+              <h1 className="text-5xl lg:text-7xl font-bold headline-modern">
+                <span className="gradient-animate">
             {content.pageTitle}
+                </span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+
+              {/* Hero Subtitle */}
+              <p className="text-xl lg:text-2xl subheading-modern max-w-3xl mx-auto text-balance">
             {content.pageSubtitle}
           </p>
+
+              {/* Trust Indicators */}
+              <div className="flex flex-wrap justify-center items-center gap-8 pt-8 opacity-60">
+                <div className="flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5 text-green-500" />
+                  <span className="text-sm">AI Asistan</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Zap className="h-5 w-5 text-yellow-500" />
+                  <span className="text-sm">Anında Yanıt</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="h-5 w-5 text-blue-500" />
+                  <span className="text-sm">Kapsamlı SSS</span>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
         </div>
-      </AnimatedSection>
+        
+        {/* Gradient Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000"></div>
+      </section>
 
       <main className="flex-grow">
         <AnimatedSection sectionId="faq-content" className="py-12 md:py-16 bg-background" delay="delay-100">
           <div className="container mx-auto px-6 max-w-3xl">
-            <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
-              <CardHeader>
-                <CardTitle className="text-2xl font-headline text-primary-dark">{content.accordionTitle}</CardTitle>
-                <CardDescription>{content.accordionDesc}</CardDescription>
-              </CardHeader>
-              <CardContent>
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-headline text-primary-dark mb-2">{content.accordionTitle}</h2>
+                <p className="text-muted-foreground">{content.accordionDesc}</p>
+              </div>
+              <div>
                 <Accordion type="single" collapsible className="w-full space-y-3">
                   {content.items.map((item, index) => (
                     <AccordionItem key={index} value={`item-${index}`} className="border rounded-md hover:border-primary/50 transition-colors">
@@ -233,8 +341,8 @@ export default function FaqPage({ params }: FaqPageProps) {
                     </AccordionItem>
                   ))}
                 </Accordion>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </AnimatedSection>
       </main>
@@ -257,7 +365,7 @@ export default function FaqPage({ params }: FaqPageProps) {
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px] p-0">
-          <Card className="w-full shadow-none border-none rounded-lg">
+          <div className="w-full rounded-lg">
             <DialogHeader className="p-4 border-b">
               <DialogTitle className="text-xl font-headline flex items-center text-primary-dark">
                 <Bot className="mr-2 h-6 w-6" /> {content.chatbotDialogTitle}
@@ -266,7 +374,7 @@ export default function FaqPage({ params }: FaqPageProps) {
                 {content.chatbotDialogDesc}
               </DialogDescription>
             </DialogHeader>
-            <CardContent className="p-4">
+            <div className="p-4">
               <ScrollArea className="h-72 w-full rounded-md border p-3 bg-muted/20" ref={chatScrollAreaRef}>
                 {chatMessages.map((msg, index) => (
                   <div
@@ -285,7 +393,7 @@ export default function FaqPage({ params }: FaqPageProps) {
                           : 'bg-card text-card-foreground rounded-bl-none border'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                      {parseLinksInText(msg.text)}
                     </div>
                     {msg.sender === 'user' && (
                       <div className="flex-shrink-0 p-2 bg-secondary text-secondary-foreground rounded-full shadow">
@@ -320,60 +428,15 @@ export default function FaqPage({ params }: FaqPageProps) {
                   <span className="sr-only">{content.chatbotSend}</span>
                 </Button>
               </form>
-            </CardContent>
+            </div>
              <div className="p-4 border-t flex justify-end">
                 <DialogClose asChild>
                     <Button variant="outline">{content.chatbotClose}</Button>
                 </DialogClose>
             </div>
-          </Card>
+          </div>
         </DialogContent>
       </Dialog>
-
-      <footer className="relative w-full mt-auto bg-primary text-foreground">
-        <div className="absolute top-0 left-0 w-full h-16 bg-background rounded-bl-full rounded-br-full"></div>
-        <div className="relative container mx-auto px-6 pt-28 pb-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-left">
-            <div>
-              <h5 className="font-bold text-lg mb-3 font-headline flex items-center">
-                <Clapperboard className="h-6 w-6 mr-2" /> AnimatePDF
-              </h5>
-              <p className="text-sm">
-                {content.footerAnimatePdfDesc}
-              </p>
-            </div>
-            <div>
-              <h5 className="font-bold text-lg mb-3 font-headline">{content.footerLinksTitle}</h5>
-              <ul className="space-y-2">
-                 {content.footerNavLinks.map(link => (
-                  <li key={link.text}><Link href={link.href.startsWith("#") ? link.href : `/${currentLang}${link.href}`} className="text-sm hover:opacity-80 transition-opacity">{link.text}</Link></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-bold text-lg mb-3 font-headline">{content.footerFollowTitle}</h5>
-              <div className="flex space-x-4">
-                <Link href="#" aria-label="Twitter" className="hover:opacity-80 transition-opacity">
-                  <Twitter className="h-6 w-6" />
-                </Link>
-                <Link href="#" aria-label="LinkedIn" className="hover:opacity-80 transition-opacity">
-                  <Linkedin className="h-6 w-6" />
-                </Link>
-                <Link href="#" aria-label="GitHub" className="hover:opacity-80 transition-opacity">
-                  <Github className="h-6 w-6" />
-                </Link>
-              </div>
-            </div>
-          </div>
-          <Separator className="mb-8 bg-foreground/30" />
-          <p className="text-sm text-center">
-            &copy; {new Date().getFullYear()} AnimatePDF - Zubo Bilişim. {content.footerRights}
-            <Sparkles className="inline-block h-4 w-4 mx-1" />
-            {content.footerPoweredBy}
-            <Cpu className="inline-block h-4 w-4 ml-1 mr-1" />
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

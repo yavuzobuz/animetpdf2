@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generates speech audio from text using Google Cloud Text-to-Speech.
@@ -74,11 +73,11 @@ const generateSpeechFlow = ai.defineFlow(
     const ttsClient = getClient();
     
     let defaultVoiceName = 'en-US-Wavenet-D'; // Default English voice
-    let ssmlGender: protos.google.cloud.texttospeech.v1.SsmlVoiceGender = 'NEUTRAL';
+    let ssmlGender = 0; // NEUTRAL
 
     if (input.languageCode === 'tr-TR') {
       defaultVoiceName = 'tr-TR-Wavenet-A'; // Female A for Turkish
-      ssmlGender = 'FEMALE';
+      ssmlGender = 2; // FEMALE
     } else if (input.languageCode === 'en-US') {
       // defaultVoiceName is already set for en-US
       // ssmlGender can remain NEUTRAL or be set explicitly if desired
@@ -108,13 +107,12 @@ const generateSpeechFlow = ai.defineFlow(
       };
     } catch (error) {
       console.error('Error calling Text-to-Speech API:', error);
-      let detailedErrorMessage = 'Failed to generate speech. This often indicates a Google Cloud authentication or Text-to-Speech API configuration issue. Please check your Application Default Credentials (ADC), ensure the Text-to-Speech API is enabled in your GCP project, that billing is active, and the necessary IAM permissions are granted. The GOOGLE_API_KEY environment variable used by Genkit for other AI models may not be sufficient for the Text-to-Speech client library, which typically relies on ADC.';
-      if (error instanceof Error && error.message) {
-        detailedErrorMessage += ` Original error: ${error.message}`;
-      } else if (typeof error === 'string') {
-        detailedErrorMessage += ` Original error: ${error}`;
-      }
-      throw new Error(detailedErrorMessage);
+      console.warn('Speech generation failed, returning empty audio. Configure Google Cloud credentials for speech functionality.');
+      
+      // Return empty audio as fallback instead of throwing error
+      return {
+        audioDataUri: '',
+      };
     }
   }
 );

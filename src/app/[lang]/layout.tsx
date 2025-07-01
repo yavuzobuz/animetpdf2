@@ -1,9 +1,11 @@
-
 import type { Metadata } from 'next';
 import '../globals.css'; // Ensure globals.css is imported from the correct relative path
+import '../animation-slow.css'; // Animasyonları yavaşlat
 import { Toaster } from "@/components/ui/toaster";
 import { Navbar } from '@/components/custom/navbar';
+import { Footer } from '@/components/custom/footer';
 import { LanguageProvider } from '@/contexts/language-context';
+import { AuthProvider } from '@/contexts/auth-context';
 import { type ReactNode } from 'react';
 
 // No global metadata here, it can be in the root layout or dynamically generated
@@ -13,24 +15,31 @@ export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'tr' }];
 }
 
-export default function LangLayout({
+export default async function LangLayout({
   children,
   params,
 }: Readonly<{
   children: ReactNode;
-  params: { lang: string };
+  params: Promise<{ lang: string }>;
 }>) {
+  const { lang } = await params;
+  
   return (
     // The html and body tags are in the root src/app/layout.tsx
     // This component effectively replaces the content of the root body
     // We set the lang attribute on the <html> tag in the root layout.
     // However, for client components to easily access lang, we pass it to LanguageProvider.
-    <LanguageProvider initialLanguage={params.lang as 'en' | 'tr'}>
-      <Navbar />
-      <main className="flex-grow">
-        {children}
-      </main>
-      <Toaster />
+    <LanguageProvider initialLanguage={lang as 'en' | 'tr'}>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
+        <Toaster />
+      </AuthProvider>
     </LanguageProvider>
   );
 }

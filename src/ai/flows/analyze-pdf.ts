@@ -21,7 +21,7 @@ const AnalyzePdfInputSchema = z.object({
 export type AnalyzePdfInput = z.infer<typeof AnalyzePdfInputSchema>;
 
 const AnalyzePdfOutputSchema = z.object({
-  summary: z.string().describe('A summary of the key themes and points in the PDF document, in Turkish.'),
+  summary: z.string().describe('A detailed, comprehensive and guiding summary of the key themes and points in the PDF document, in Turkish.'),
 });
 export type AnalyzePdfOutput = z.infer<typeof AnalyzePdfOutputSchema>;
 
@@ -33,11 +33,27 @@ const prompt = ai.definePrompt({
   name: 'analyzePdfPrompt',
   input: {schema: AnalyzePdfInputSchema},
   output: {schema: AnalyzePdfOutputSchema},
-  prompt: `You are an expert document summarizer. Please analyze the PDF document provided and generate a concise summary of the key themes and points IN TURKISH. The PDF content is provided as a data URI.
+  prompt: `Sen, PDF dokümanlarını derinlemesine analiz eden, ancak çıktıyı bir ilkokul öğretmeninin sadeliği ve akıcılığında sunan UZMAN BİR EĞİTİMCİSİN. Aşağıdaki PDF içeriğini inceleyerek **öğretici, anlaşılır ve madde madde** bir özet oluştur.
 
-PDF Content: {{media url=pdfDataUri}}
+📝 **İstediğim Çıktı Biçimi**
+• En az **20** ayrı madde (gerekiyorsa daha fazla)
+• Her madde **1-2 cümle** olacak şekilde, konunun farklı yönlerini kapsasın.
+• Maddeler "• " (madde imi) ile başlasın ve ardından boşluk gelsin.
+• Her madde arasında **boş satır (\n\n)** bırak ki kolay bölünebilsin.
+• **Başlık, numara veya bölüm adı kullanma.** Sadece maddeler.
 
-Summary (in Turkish):`,
+�� **İçerik Rehberi** (zorunlu olmasa da madde çeşitliliği için): Tanım, tarihçe, temel kavramlar, süreçler, uygulama alanları, avantaj/dezavantaj, gerçek hayat örnekleri, etik-hukuki çerçeve, yaygın hatalar, en iyi uygulamalar, gelecek trendleri, ek kaynak önerileri vb.
+
+**Örnek Çıktı (kısa):**
+• Konu X, insan‐bilgisayar etkileşimini iyileştirmek için geliştirilen bir yöntemdir.
+
+• Yöntem ilk kez 1970'lerde ortaya çıkmış, 1990'larda yaygınlaşmıştır.
+
+... (devam)
+
+📄 PDF İçeriği referansı: {{media url=pdfDataUri}}
+
+Türkçe Madde Madde Detaylı Özet:`,
 });
 
 const analyzePdfFlow = ai.defineFlow(
@@ -47,7 +63,33 @@ const analyzePdfFlow = ai.defineFlow(
     outputSchema: AnalyzePdfOutputSchema,
   },
   async input => {
+    try {
+      // PDF boyut kontrolü
+      const base64Data = input.pdfDataUri.split(',')[1];
+      if (base64Data) {
+        const sizeInBytes = (base64Data.length * 3) / 4;
+        const sizeInMB = sizeInBytes / (1024 * 1024);
+        
+        console.log(`PDF boyutu: ${sizeInMB.toFixed(2)} MB`);
+        
+        // 20MB'dan büyükse hata ver
+        if (sizeInMB > 20) {
+          throw new Error(`PDF dosyası çok büyük (${sizeInMB.toFixed(2)} MB). Lütfen 20MB'dan küçük bir dosya yükleyin.`);
+        }
+      }
+      
     const {output} = await prompt(input);
     return output!;
+    } catch (error: any) {
+      console.error('PDF analiz hatası:', error);
+      
+      // Google AI API hatalarını yakala
+      if (error.message?.includes('GoogleGenerativeAI Error') || error.message?.includes('fetch failed')) {
+        throw new Error('PDF analizi sırasında sunucu hatası oluştu. Lütfen daha küçük bir PDF dosyası deneyin veya birkaç dakika sonra tekrar deneyin.');
+      }
+      
+      // Diğer hatalar
+      throw error;
+    }
   }
 );

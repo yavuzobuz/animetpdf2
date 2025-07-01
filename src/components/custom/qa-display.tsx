@@ -135,7 +135,7 @@ export function QaDisplay({ qaPairs }: QaDisplayProps) {
 
   if (!qaPairs || qaPairs.length === 0) {
     return (
-       <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
+       <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-450">
         <CardHeader>
           <CardTitle className="text-2xl font-headline flex items-center">
             <HelpCircle className="mr-2 h-6 w-6 text-primary" /> Mini Test
@@ -150,7 +150,7 @@ export function QaDisplay({ qaPairs }: QaDisplayProps) {
   const numAttempted = Object.keys(answeredMap).length;
 
   return (
-    <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-300">
+    <Card className="w-full shadow-lg hover:ring-2 hover:ring-primary/70 hover:ring-offset-2 hover:ring-offset-background transition-all duration-450">
       <CardHeader>
         <CardTitle className="text-2xl font-headline flex items-center">
           <HelpCircle className="mr-2 h-6 w-6 text-primary" /> Mini Test

@@ -1,0 +1,51 @@
+/* OPTİMİZE EDİLMİŞ ANİMASYON SÜRELERİ */
+:root {
+  --animation-duration-fast: 0.2s;
+  --animation-duration-normal: 0.3s;
+  --animation-duration-slow: 0.5s;
+  --transition-duration-fast: 0.15s;
+  --transition-duration-normal: 0.25s;
+  --transition-duration-slow: 0.4s;
+}
+
+/* Tailwind override'ları - optimize edilmiş süreler */
+.duration-200 { transition-duration: var(--transition-duration-fast) !important; }
+.duration-300 { transition-duration: var(--transition-duration-normal) !important; }
+.duration-450 { transition-duration: var(--transition-duration-slow) !important; }
+.duration-500 { transition-duration: var(--transition-duration-slow) !important; }
+.duration-700 { transition-duration: 0.7s !important; }
+.duration-1000 { transition-duration: 1s !important; }
+.duration-1500 { transition-duration: 1.5s !important; }
+
+/* Animasyon optimizasyonları */
+.animate-pulse { 
+  animation-duration: 2s !important;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1) !important;
+}
+.animate-bounce { 
+  animation-duration: 1s !important;
+  animation-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+}
+.animate-spin { 
+  animation-duration: 1s !important;
+  animation-timing-function: linear !important;
+}
+
+/* Hover efektleri - performans odaklı */
+[class*="hover:scale"],
+[class*="hover:translate"] {
+  transition-duration: var(--transition-duration-normal) !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform !important;
+}
+
+[class*="transition"] {
+  transition-duration: var(--transition-duration-normal) !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Gradient animasyonu - optimize edilmiş */
+.gradient-animate {
+  animation-duration: 10s !important;
+  animation-timing-function: ease-in-out !important;
+} 

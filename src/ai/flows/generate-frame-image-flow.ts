@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generates an image for a single animation frame based on its description and an optional style.
@@ -55,7 +54,26 @@ const generateFrameImageFlow = ai.defineFlow(
       styleInstruction = `Visual Style: Clean, vibrant, suitable for an explanatory animation.`;
     }
 
-    const promptText = `Your primary goal is to generate an image for an animation frame. CRUCIAL INSTRUCTION: The image MUST be purely visual. It MUST NOT contain any text, letters, words, numbers, or any form of writing. Generate ONLY visual elements. Depict the scene based on the following description, using metaphors and icons if suggested. ${styleInstruction} Scene description: ${input.frameDescription}. IMPORTANT REMINDER: Absolutely NO TEXT or writing in the image.`;
+    const promptText = `Create an educational diagram-style animation frame with STRONG EMPHASIS on metaphors and concrete visualizations. CRUCIAL INSTRUCTIONS: 
+    1. The image MUST be purely visual - NO text, letters, words, numbers, or writing.
+    2. Use EDUCATIONAL DIAGRAM style with:
+       - Simple geometric shapes (circles, rectangles, triangles)
+       - Clear connecting lines and arrows showing relationships
+       - Bright, contrasting colors on dark background for clarity
+       - Clean, minimalist design like technical diagrams
+    3. MANDATORY: Transform abstract concepts into concrete visual metaphors:
+       - Property/Ownership → house symbols, building icons
+       - Legal processes → connected flowcharts, step-by-step diagrams
+       - Parties/People → colored circles or simple human figures
+       - Relationships → connecting lines, arrows, bridges
+       - Division/Sharing → splitting objects, branching paths
+       - Agreements → handshake symbols, puzzle pieces fitting
+       - Time/Process → sequential steps, numbered stages
+       - Rights/Obligations → balanced scales, equal divisions
+    4. Use symbolic icons and everyday objects that people immediately recognize.
+    5. Create CLEAN TECHNICAL DIAGRAMS similar to educational presentations.
+    ${styleInstruction} Scene description: ${input.frameDescription}. 
+    REMEMBER: Focus on diagram-style educational visuals with concrete metaphors that make legal/technical concepts instantly understandable without words.`;
 
     const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash-exp', 
@@ -86,8 +104,9 @@ const generateFrameImageFlow = ai.defineFlow(
     const mediaPart = response.media;
 
     if (!mediaPart || !mediaPart.url) {
-      console.error("Image generation failed. Full AI response:", JSON.stringify(response, null, 2));
-      throw new Error('Image generation failed or returned no media URL. Check server console for details.');
+      console.error("Image generation failed. Using placeholder. Full AI response:", JSON.stringify(response, null, 2));
+      // Return a placeholder image URL so UI can still render.
+      return { imageDataUri: 'https://placehold.co/600x338/png' };
     }
     
     return { imageDataUri: mediaPart.url };

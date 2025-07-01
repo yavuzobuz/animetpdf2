@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Generates a textual description of a process or algorithm from a PDF summary,
@@ -23,7 +22,7 @@ const GeneratePdfDiagramOutputSchema = z.object({
   diagramDescription: z
     .string()
     .describe(
-      'PDF özetindeki bir süreci veya algoritmayı adım adım tanımlayan, akış diyagramı benzeri metinsel bir açıklama (Türkçe). Başlangıç, Bitiş, Giriş, İşlem, Karar ve Çıkış gibi adımları ve dallanmaları (Evet/Hayır) içerebilir. Örneğin: "1. BAŞLANGIÇ\\n2. GİRİŞ: Kullanıcıdan veri al.\\n3. KARAR: Veri geçerli mi?\\n  EVET ise: ...\\n  HAYIR ise: ...\\n4. BİTİŞ"'
+      'PDF özetindeki bir süreci veya algoritmayı modern akış diyagramı formatında adım adım tanımlayan metinsel açıklama (Türkçe). Başlangıç, Bitiş, Giriş, İşlem, Karar, Paralel İşlemler, Döngüler ve Çıkış gibi adımları içerebilir. Dallanmaları (Evet/Hayır) ve kompleks akış yapılarını destekler. Örnek: "1. BAŞLANGIÇ\\n2. GİRİŞ: Kullanıcıdan veri al\\n3. KARAR: Veri geçerli mi?\\n  EVET ise:\\n    4. PARALEL: Veri işleme başlat\\n    5. DÖNGÜ: Her öğe için işle\\n  HAYIR ise:\\n    6. ÇIKIŞ: Hata mesajı\\n7. BİTİŞ"'
     ),
 });
 export type GeneratePdfDiagramOutput = z.infer<typeof GeneratePdfDiagramOutputSchema>;
@@ -38,29 +37,52 @@ const prompt = ai.definePrompt({
   name: 'generatePdfDiagramPrompt',
   input: {schema: GeneratePdfDiagramInputSchema},
   output: {schema: GeneratePdfDiagramOutputSchema},
-  prompt: `Sen, metinleri analiz ederek akış diyagramları ve süreç haritaları için metinsel temeller oluşturan bir uzmansın.
-Sağlanan PDF özetini (Türkçe) analiz et. Eğer özette bir süreç, algoritma veya adım adım bir işleyiş anlatılıyorsa, bunu bir akış diyagramı mantığıyla metinsel olarak tanımla.
-Çıktın, aşağıdaki gibi yapılandırılmış bir metin olmalıdır (Türkçe). Adımları numaralandır.
+  prompt: `Sen, teknik metinleri analiz ederek modern akış diyagramları ve süreç haritaları oluşturan bir uzmansın.
 
-Örnek Çıktı Formatı:
-1.  **BAŞLANGIÇ**
-2.  **GİRİŞ:** Kullanıcıdan 'a' sayısı alınır.
-3.  **İŞLEM:** mod = a % 2 hesaplanır (a'nın 2'ye bölümünden kalan).
-4.  **KARAR:** mod == 0 mı?
-    *   **EVET ise (E Dalı):**
-        1.  **ÇIKIŞ:** "Çift" yazdırılır.
-        2.  (Adım 6'ya git: BİTİŞ)
-    *   **HAYIR ise (H Dalı):**
-        1.  **ÇIKIŞ:** "Tek" yazdırılır.
-        2.  (Adım 6'ya git: BİTİŞ)
-5.  (Bu adım, karar dallarından sonra ortak bir sonraki işlem olsaydı gerekirdi. Örneğimizde doğrudan bitişe gidiliyor.)
-6.  **BİTİŞ**
+Sağlanan PDF özetini (Türkçe) dikkatli bir şekilde analiz et. Özette tanımlanan süreç, algoritma, iş akışı veya adım adım işleyişi modern bir akış diyagramı mantığıyla metinsel olarak tanımla.
 
-PDF Özeti (Türkçe):
+📋 DESTEKLENEN ADIM TÜRLERİ:
+• **BAŞLANGIÇ** - Sürecin başlangıç noktası
+• **BİTİŞ** - Sürecin bitiş noktası  
+• **GİRİŞ:** - Veri veya bilgi alınması
+• **ÇIKIŞ:** - Sonuç veya çıktı üretilmesi
+• **İŞLEM:** - Bir işlemin gerçekleştirilmesi
+• **KARAR:** - Koşullu dallanma noktası
+• **PARALEL:** - Eş zamanlı gerçekleştirilen işlemler
+• **DÖNGÜ:** - Tekrarlanan işlemler
+• (Yorum) - Açıklayıcı notlar
+
+🎯 ÇIKTI FORMATI (Numaralandırma ile):
+
+1. **BAŞLANGIÇ**
+2. **GİRİŞ:** Kullanıcıdan 'sayı' değeri alınır
+3. **İŞLEM:** mod = sayı % 2 hesaplanır
+4. **KARAR:** mod == 0 mı? (Çift sayı kontrolü)
+   • **EVET ise:**
+     5. **ÇIKIŞ:** "Çift sayı" mesajı gösterilir
+     6. (Adım 8'e git)
+   • **HAYIR ise:**
+     7. **ÇIKIŞ:** "Tek sayı" mesajı gösterilir
+8. **BİTİŞ**
+
+🔄 KOMPLEKS YAPILAR:
+- **PARALEL:** birden fazla işlemin aynı anda yapılması
+- **DÖNGÜ:** tekrarlı işlemler için (for, while benzeri)
+- Girinti ile hiyerarşi göster
+- Net dallanma yapısı oluştur
+
+📊 KALITE KRİTERLERİ:
+✅ Her adım net ve anlaşılır olmalı
+✅ Mantıklı numara sırası takip et
+✅ Türkçe terimler kullan
+✅ Gerçekçi ve uygulanabilir adımlar
+✅ Eksik adım bırakma
+✅ Paralel işlemler ve döngüleri işaretle
+
+PDF Özeti:
 {{{pdfSummary}}}
 
-Akış Diyagramı Açıklaması (Türkçe, yukarıdaki adım adım yapıya ve numaralandırmaya benzer şekilde):
-`,
+Akış Diyagramı (Yukarıdaki format ve standartlara uygun):`,
 });
 
 const generatePdfDiagramFlow = ai.defineFlow(

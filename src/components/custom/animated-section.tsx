@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AnimatedSectionProps {
@@ -13,7 +12,7 @@ interface AnimatedSectionProps {
   threshold?: number;
 }
 
-const AnimatedSection: React.FC<AnimatedSectionProps> = ({
+const AnimatedSection: React.FC<AnimatedSectionProps> = React.memo(({
   children,
   className,
   sectionId,
@@ -22,53 +21,67 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   threshold = 0.1,
 }) => {
   const ref = useRef<HTMLElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  const handleIntersection = useCallback(([entry]: IntersectionObserverEntry[]) => {
+    if (entry.isIntersecting && !isVisible) {
+      setIsVisible(true);
+      // Animasyon başladıktan sonra observer'ı temizle
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    }
+  }, [isVisible]);
 
   useEffect(() => {
     const currentRef = ref.current;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          if (currentRef) {
-            observer.unobserve(currentRef);
-          }
-        }
-      },
+    if (!currentRef || isVisible) return;
+
+    // Observer'ı oluştur
+    observerRef.current = new IntersectionObserver(
+      handleIntersection,
       {
         root: null,
-        rootMargin: '0px',
+        rootMargin: '50px',
         threshold: threshold,
       }
     );
 
-    if (currentRef) {
-      observer.observe(currentRef);
-    }
+    observerRef.current.observe(currentRef);
 
+    // Cleanup function
     return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef);
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
       }
     };
-  }, [threshold]);
+  }, [handleIntersection, threshold, isVisible]);
 
-  const Tag = tag;
+  const Component = tag as React.ElementType;
 
   return (
-    <Tag
+    <Component
+      ref={ref}
       id={sectionId}
-      ref={ref as any}
       className={cn(
-        "opacity-0 translate-y-8 transform transition-all duration-1000 ease-out",
-        delay,
-        isVisible && "opacity-100 translate-y-0",
+        'transition-all duration-700 ease-out transform will-change-transform',
+        isVisible 
+          ? `opacity-100 translate-y-0 scale-100 ${delay}` 
+          : 'opacity-0 translate-y-8 scale-98',
         className
       )}
+      style={{
+        transitionProperty: 'opacity, transform',
+      }}
     >
       {children}
-    </Tag>
+    </Component>
   );
-};
+});
+
+AnimatedSection.displayName = 'AnimatedSection';
 
 export default AnimatedSection;

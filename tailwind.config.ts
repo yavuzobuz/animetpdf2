@@ -106,9 +106,17 @@ export default {
         }
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        'border-glow': 'border-glow 4s ease-in-out infinite',
+        'accordion-down': 'accordion-down 0.4s ease-out',
+        'accordion-up': 'accordion-up 0.4s ease-out',
+        'border-glow': 'border-glow 8s ease-in-out infinite',
+      },
+      transitionDuration: {
+        '900': '900ms',
+        '1200': '1200ms',
+        '1400': '1400ms',
+        '1800': '1800ms',
+        '2400': '2400ms',
+        '3000': '3000ms',
       },
     },
   },
