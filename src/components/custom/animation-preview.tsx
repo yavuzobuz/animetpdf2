@@ -36,6 +36,7 @@ export const AnimationPreview = React.memo<AnimationPreviewProps>(({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  const lastSpokenFrameRef = useRef<number | null>(null);
 
   // Klavye navigasyonu için useEffect
   useEffect(() => {
@@ -113,6 +114,31 @@ export const AnimationPreview = React.memo<AnimationPreviewProps>(({
 
     playAudio();
   }, [currentAudioUrl, isGlobalPlaying, currentFrameIndex, audioError]);
+
+  // Fallback: Web Speech API ile sesli okuma
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Oynatma durduysa konuşmayı iptal et
+    if (!isGlobalPlaying || isMuted) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+
+    // Eğer audio dosyası yoksa ya da hata varsa, tarayıcı TTS kullan
+    if ((!currentAudioUrl || audioError) && currentFrameIndex !== lastSpokenFrameRef.current) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(currentKeyTopic || currentSceneDescription);
+      utterance.lang = currentKeyTopic.match(/[\u0600-\u06FF]/) ? 'tr-TR' : 'en-US';
+      window.speechSynthesis.speak(utterance);
+      lastSpokenFrameRef.current = currentFrameIndex;
+    }
+
+    // Kare değiştirildiğinde önceki konuşmayı durdurmak için cleanup
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, [isGlobalPlaying, currentAudioUrl, audioError, currentFrameIndex, currentKeyTopic, currentSceneDescription, isMuted]);
 
   // Dialog handlers
   const openDetailDialog = useCallback(() => {

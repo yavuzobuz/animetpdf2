@@ -27,29 +27,61 @@ const topicAnimationScriptPrompt = ai.definePrompt({
   output: {schema: TopicAnimationScriptSchema},
   prompt: `Sen, konuları basitleştiren ve açıklayan bir UZMAN EĞİTİMCİ ve REHBERSİN. Görevin, verilen konuyu son derece doğru, anlaşılır ve rehberlik edici bir şekilde sunmaktır.
 
+ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
+- **{{narrativeStyle}}**: Eğer "Varsayılan" ise, standart, net ve bilgilendirici bir dil kullan.
+- **Basit ve Anlaşılır**: Karmaşık terimlerden kaçın, konuyu en temel düzeyde, herkesin anlayabileceği bir dille açıkla.
+- **Akademik**: Resmi, kaynaklara dayalı, detaylı ve yapılandırılmış bir dil kullan.
+- **Teknik Derinlik**: Alan jargonunu ve teknik detayları yoğun bir şekilde kullanarak uzmanlara yönelik bir anlatım sun.
+- **Yaratıcı ve Eğlenceli**: Benzetmeler, hikayeler ve mizahi bir dil kullanarak konuyu ilgi çekici hale getir.
+- **Profesyonel (İş Odaklı)**: İş dünyasına uygun, sonuç odaklı, net ve saygılı bir dil kullan.
+- **Samimi ve Sohbet Havasında**: Daha kişisel ve rahat bir tonla, okuyucuyla sohbet ediyormuş gibi yaz.
+- **Eleştirel Bakış**: Konunun farklı yönlerini sorgulayan, avantajları ve dezavantajları objektif bir şekilde sunan bir yaklaşım sergile.
+
 GÖREV: Verilen konuyu analiz et ve iki bölümden oluşan bir içerik paketi oluştur.
 
-1. **KONU ÖZETİ (Adım Adım Rehber):**
-   - Konuyu **en az 6, en fazla 15 adım/madde** halinde açıkla.
-   - **Her madde bir "adım" olmalı**: Ne yapılmalı? Nasıl yapılmalı? Neden önemli? sorularını yanıtla.
-   - Maddeler; tanım → amaç → temel kavramlar → süreç → ipuçları → yaygın hatalar → pratik örnek akışıyla ilerlesin.
-   - Bir adım, konunun önemli bir yönünü **açıklayıcı, eylem odaklı ve rehberlik edici** cümlelerle sunmalıdır.
-   - Anlatım "yapmanız gereken ilk şey..." gibi **yol gösterici** ifadeler içerebilir.
-   - Hiç bilmeyen biri adımları uygulayarak konuyu anlayabilmeli.
+1. KONU ÖZETİ (Kapsamlı Adım Adım Rehber):
+   - Konuyu en az 8, en fazla 12 detaylı madde halinde açıkla.
+   - Her madde EN AZ 2-3 CÜMLE olmalı ve şunları içermeli:
+     • Ne yapılmalı (Ana eylem/kavram)
+     • Nasıl yapılmalı (Detaylı açıklama ve yöntem)
+     • Neden önemli (Amaç ve faydalar)
+     • Dikkat edilmesi gerekenler (Uyarılar, yaygın hatalar)
+     • Pratik örnek veya ipucu (Somut uygulama)
+   
+   - MADDE YAPISI: Her madde şu şablonu takip etsin:
+     Ana Kavram/Adım: 2-3 cümlelik detaylı açıklama. Pratik örnek veya önemli uyarı. İpucu veya ek bilgi.
+   
+   - AKIŞ SIRASI: Maddeler şu mantıksal sırayı takip etsin:
+     1. Giriş ve Tanım (Konu nedir, neden önemli)
+     2. Temel Kavramlar (Bilmesi gereken ana prensipler)
+     3. Hazırlık Aşaması (Başlamadan önce yapılması gerekenler)
+     4. Ana Süreç Adımları (Uygulama aşamaları, kronolojik sıra)
+     5. İleri Düzey Konular (Detaylar, incelikler)
+     6. Yaygın Hatalar ve Çözümleri (Nelere dikkat edilmeli)
+     7. Kontrol ve Değerlendirme (Doğrulama, test etme)
+     8. Sonuç ve İpuçları (Özet, pratik tavsiyeler)
 
-2. **EĞİTİCİ GÖRSEL SAHNE LİSTESİ:** (en az 6 sahne, tercihen 6-8)
+   - ANLATIM DİLİ:
+     • İlk adım olarak, Bunun için yapmanız gereken, Dikkat etmeniz gereken nokta gibi yönlendirici ifadeler kullan.
+     • Somut örnekler ver: Örneğin, Diyelim ki 
+     • Pratik ipuçları ekle: İpucu, Uyarı, Unutmayın
+     • Hiç bilmeyen biri bu adımları okuyarak konuyu anlayabilmeli ve uygulayabilmeli.
+
+   - DETAY SEVİYESİ: Her madde yeterince ayrıntılı olmalı ki kullanıcı o konuda derinlemesine bilgi sahibi olsun.
+
+2. EĞİTİCİ GÖRSEL SAHNE LİSTESİ: (en az 6 sahne, tercihen 6-8)
    - Her sahne, özetin farklı ve önemli bir maddesini görselleştirmelidir.
    - Sahneler, bir kavramı veya süreci basitleştirerek anlatmalıdır.
    - SAHNE AÇIKLAMALARI: Kısa, net ve eğitici başlıklar olmalı (en fazla 10-15 kelime).
 
-**KESİN YAZIM KURALLARI:**
-- **DOĞRULUK:** Sağlanan 'Topic' metnindeki bilgilere harfiyen sadık kal. Bilgileri ASLA çarpıtma, yanlış yorumlama veya metinde olmayan bilgileri ekleme. Örneğin, metin 'dizel motorlarda buji yoktur' diyorsa, bu bilgiyi kesin olarak koru.
-- **DOĞRUDAN ANLATIM:** "**Bu metinde**", "**Metne göre**" veya benzeri atıflarda bulunan ifadeleri KESİNLİKLE KULLANMA. Konuyu doğrudan, bir uzman olarak anlat.
-- **REHBERLİK EDİCİ ÜSLUP:** Her maddeyi, okuyucuya adım adım yol gösteren, açıklayıcı ve eğitici bir tonda yaz.
-- **YAPI:** Maddeler mantıksal bir akış içinde olmalı ve birbirini tamamlamalıdır.
+KESİN YAZIM KURALLARI:
+- DOĞRULUK: Sağlanan Topic metnindeki bilgilere harfiyen sadık kal. Bilgileri ASLA çarpıtma, yanlış yorumlama veya metinde olmayan bilgileri ekleme.
+- DOĞRUDAN ANLATIM: Bu metinde, Metne göre veya benzeri atıflarda bulunan ifadeleri KESİNLİKLE KULLANMA. Konuyu doğrudan, bir uzman olarak anlat.
+- REHBERLİK EDİCİ ÜSLUP: Her maddeyi, okuyucuya adım adım yol gösteren, açıklayıcı ve eğitici bir tonda yaz.
+- YAPI: Maddeler mantıksal bir akış içinde olmalı ve birbirini tamamlamalıdır.
+- FORMAT: Her madde YENİ BİR SATIRDA başlamalı ve MADDELER ARASINDA bir boş satır (çift satır sonu) bulunmalıdır; böylece çıktıyı \n\n ile ayırabilirim.
 
-Topic: {{topic}}
-`,
+Topic: {{topic}}`,
 });
 
 // YENİ PROMPT: Özet içeriğini analiz edip diyagram kavramları çıkarma - ARTIK 8 KAVRAM
@@ -414,11 +446,11 @@ export async function simplifyTopicSummaryAsDiagram(input: TopicDiagramFromSumma
         const baseColors = {
           'Modern': { primary: '#4F46E5', secondary: '#10B981', accent: '#F59E0B', highlight: '#8B5CF6' },
           'Minimalist': { primary: '#6B7280', secondary: '#374151', accent: '#6B7280', highlight: '#374151' },
-          'Renkli': { primary: '#3B82F6', secondary: '#22C55E', accent: '#FB923C', highlight: '#A855F7' },
+          'Renkli': { primary: '#f97316', secondary: '#fb923c', accent: '#fdba74', highlight: '#ea580c' },
           'Akış': { primary: '#22C55E', secondary: '#3B82F6', accent: '#FB923C', highlight: '#EF4444' },
           'Ağ': { primary: '#4F46E5', secondary: '#22C55E', accent: '#FB923C', highlight: '#A855F7' },
           'Süreç': { primary: '#22C55E', secondary: '#3B82F6', accent: '#FB923C', highlight: '#EF4444' },
-          'Klasik': { primary: 'hsl(var(--primary))', secondary: 'hsl(var(--secondary))', accent: 'hsl(var(--accent))', highlight: 'hsl(var(--constructive))' }
+          'Klasik': { primary: '#f97316', secondary: '#fdba74', accent: '#fb923c', highlight: '#ea580c' }
         };
         
         const colors = baseColors[theme as keyof typeof baseColors] || baseColors.Klasik;
@@ -507,11 +539,11 @@ export async function simplifyTopicSummaryAsThemedDiagram(input: TopicDiagramFro
         const baseColors = {
           'Modern': { primary: '#4F46E5', secondary: '#10B981', accent: '#F59E0B', highlight: '#8B5CF6' },
           'Minimalist': { primary: '#6B7280', secondary: '#374151', accent: '#6B7280', highlight: '#374151' },
-          'Renkli': { primary: '#3B82F6', secondary: '#22C55E', accent: '#FB923C', highlight: '#A855F7' },
+          'Renkli': { primary: '#f97316', secondary: '#fb923c', accent: '#fdba74', highlight: '#ea580c' },
           'Akış': { primary: '#22C55E', secondary: '#3B82F6', accent: '#FB923C', highlight: '#EF4444' },
           'Ağ': { primary: '#4F46E5', secondary: '#22C55E', accent: '#FB923C', highlight: '#A855F7' },
           'Süreç': { primary: '#22C55E', secondary: '#3B82F6', accent: '#FB923C', highlight: '#EF4444' },
-          'Klasik': { primary: 'hsl(var(--primary))', secondary: 'hsl(var(--secondary))', accent: 'hsl(var(--accent))', highlight: 'hsl(var(--constructive))' }
+          'Klasik': { primary: '#f97316', secondary: '#fdba74', accent: '#fb923c', highlight: '#ea580c' }
         };
         
         const colors = baseColors[theme as keyof typeof baseColors] || baseColors.Klasik;

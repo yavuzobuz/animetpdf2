@@ -322,7 +322,7 @@ function ProjectCard({
           <div className="flex gap-2">
             {hasAnimation && (
               <Link href={`/${currentLang}/projects/${project.id}/play`} className="flex-1">
-                <Button size="sm" className="w-full">
+                <Button size="sm" className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                   <Play className="w-4 h-4 mr-2" />
                   {text.playAnimation}
                 </Button>

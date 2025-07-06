@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Clapperboard, Twitter, Linkedin, Github, ArrowRight, Sparkles } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { FileText, Twitter, Linkedin, Github, ArrowRight, Sparkles, Mail, Phone, MapPin, Play } from 'lucide-react';
 import { useLanguage } from '@/contexts/language-context';
 import { useParams } from 'next/navigation';
+import SupportTicketButton from '@/components/custom/support-ticket-button';
 
 export function Footer() {
   const { language } = useLanguage();
@@ -17,11 +18,12 @@ export function Footer() {
       footerAnimatePdfDesc: "PDF belgelerinizi saniyeler içinde ilgi çekici animasyonlu hikayelere ve interaktif öğrenme deneyimlerine dönüştürün.",
       footerLinksTitle: "Bağlantılar",
       footerRights: "Tüm hakları saklıdır.",
-      footerPoweredBy: "Üretken Yapay Zeka ile güçlendirilmiştir.",
+      footerPoweredBy: "Üretken Yapay Zeka ile güçlendirilmiştir",
       contact: "İletişim",
       updates: "Güncellemeler",
       updatesDesc: "Yeni özellikler ve güncellemelerden haberdar olun.",
       emailPlaceholder: "E-posta adresiniz",
+      subscribe: "Abone Ol",
       footerLinks: [
         { href: "/about", text: "Hakkımızda" },
         { href: "/pricing", text: "Fiyatlandırma" },
@@ -35,11 +37,12 @@ export function Footer() {
       footerAnimatePdfDesc: "Transform your PDF documents into engaging animated stories and interactive learning experiences in seconds.",
       footerLinksTitle: "Links",
       footerRights: "All rights reserved.",
-      footerPoweredBy: "Powered by Generative AI.",
+      footerPoweredBy: "Powered by Generative AI",
       contact: "Contact",
       updates: "Updates",
       updatesDesc: "Stay informed about new features and updates.",
       emailPlaceholder: "Your email address",
+      subscribe: "Subscribe",
       footerLinks: [
         { href: "/about", text: "About Us" },
         { href: "/pricing", text: "Pricing" },
@@ -59,40 +62,41 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-gray-900 dark:bg-black text-white py-16">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Brand Section */}
-          <div className="space-y-6">
-            <div className="flex items-center space-x-3">
-              <Clapperboard className="h-8 w-8 text-purple-400" />
-              <span className="text-2xl font-bold gradient-animate">AnimatePDF</span>
+    <footer className="bg-gray-900 text-white py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div className="col-span-1 md:col-span-2">
+            <div className="flex items-center space-x-3 mb-6 group cursor-pointer">
+              <div className="relative">
+                <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center transform rotate-3 transition-all duration-500 group-hover:rotate-12 group-hover:scale-110">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                  <Play className="w-2 h-2 text-white fill-white" />
+                </div>
+              </div>
+              <div>
+                <span className="text-2xl font-black group-hover:text-orange-400 transition-colors duration-300">
+                  AnimatePDF
+                </span>
+                <div className="text-xs text-orange-400 animate-pulse">{content.footerPoweredBy}</div>
+              </div>
             </div>
-            <p className="text-gray-400 leading-relaxed">
+            <p className="text-gray-400 text-lg leading-relaxed max-w-md">
               {content.footerAnimatePdfDesc}
             </p>
-            <div className="flex space-x-4">
-              <Button variant="outline" size="sm" className="w-10 h-10 p-0 border-white bg-white text-black hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-colors duration-300">
-                <Twitter className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" className="w-10 h-10 p-0 border-white bg-white text-black hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300">
-                <Linkedin className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" className="w-10 h-10 p-0 border-white bg-white text-black hover:border-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors duration-300">
-                <Github className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
 
-          {/* Links Section */}
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-purple-400">{content.footerLinksTitle}</h3>
-            <ul className="space-y-3">
+          {/* Links */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">{content.footerLinksTitle}</h3>
+            <ul className="space-y-3 text-gray-400">
               {content.footerLinks.map((link, index) => (
                 <li key={index}>
                   <Link 
                     href={getLocalizedPath(link.href)} 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
+                    className="hover:text-white transition-all duration-300 hover:translate-x-2 inline-block"
                   >
                     {link.text}
                   </Link>
@@ -101,48 +105,52 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact Section */}
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-purple-400">{content.contact}</h3>
-            <div className="space-y-3 text-gray-400">
-              <p>support@animatepdf.com</p>
-              <p>+90 (212) 123 45 67</p>
-              <p>İstanbul, Türkiye</p>
-            </div>
+          {/* Contact */}
+          <div>
+            <h3 className="font-bold text-lg mb-4">{content.contact}</h3>
+            <ul className="space-y-3 text-gray-400">
+              <li className="flex items-center hover:text-white transition-all duration-300 hover:translate-x-1 group">
+                <Mail className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform duration-300" />
+                support@animatepdf.com
+              </li>
+              <li className="flex items-center hover:text-white transition-all duration-300 hover:translate-x-1 group">
+                <Phone className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform duration-300" />
+                90 212 123 45 67
+              </li>
+              <li className="flex items-center hover:text-white transition-all duration-300 hover:translate-x-1 group">
+                <MapPin className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform duration-300" />
+                İstanbul, Türkiye
+              </li>
+            </ul>
+          </div>
           </div>
 
           {/* Newsletter Section */}
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-purple-400">{content.updates}</h3>
-            <p className="text-gray-400 text-sm">
+        <div className="mt-16 max-w-2xl mx-auto text-center">
+          <h3 className="text-2xl font-bold text-white mb-4">{content.updates}</h3>
+          <p className="text-gray-400 mb-8">
               {content.updatesDesc}
             </p>
-            <div className="flex space-x-2">
-              <input 
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Input
                 type="email" 
                 placeholder={content.emailPlaceholder}
-                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 transition-colors duration-300"
-              />
-              <Button 
-                size="sm" 
-                className="bg-purple-600 hover:bg-purple-700 transition-colors duration-300"
-              >
-                <ArrowRight className="h-4 w-4" />
+              className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 focus:border-orange-500 focus:ring-orange-500"
+            />
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white h-14 text-lg font-semibold px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group">
+              <Mail className="w-4 h-4 mr-2" />
+              {content.subscribe}
+              <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
-            </div>
           </div>
         </div>
 
-        <Separator className="my-12 bg-gray-700" />
-        
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-gray-400 text-sm">
-            © 2024 AnimatePDF. {content.footerRights}
-          </p>
-          <p className="text-gray-400 text-sm flex items-center">
-            <Sparkles className="mr-2 h-4 w-4 text-purple-400" />
-            {content.footerPoweredBy}
-          </p>
+        <div className="flex justify-center mb-8 mt-12">
+          <SupportTicketButton inline />
+        </div>
+        <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <p>© 2024 AnimatePDF. {content.footerRights}</p>
         </div>
       </div>
     </footer>

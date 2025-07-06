@@ -229,11 +229,17 @@ export default function ProfilePage({ params }: LangPageProps) {
   }
 
   return (
-    <div className="page-container">
+    <div className="min-h-screen bg-white overflow-hidden">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-20 h-20 bg-orange-200 rounded-full opacity-20 animate-bounce"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 bg-pink-200 rounded-full opacity-20 animate-bounce delay-1000"></div>
+        <div className="absolute bottom-20 right-40 w-24 h-24 bg-purple-200 rounded-full opacity-20 animate-pulse delay-500"></div>
+      </div>
       {/* Hero Section */}
-      <section className="hero-gradient relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-pink-600/10 to-blue-600/10"></div>
-        <div className="relative container mx-auto px-4 py-16 lg:py-24">
+      <section className="py-16 sm:py-24 bg-gradient-to-b from-orange-50 to-white relative overflow-hidden">
+        <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <AnimatedSection tag="div" className="space-y-6">
              
@@ -278,14 +284,18 @@ export default function ProfilePage({ params }: LangPageProps) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col space-y-2">
-                  <Button className="btn-gradient" size="sm">
-                    <Edit className="h-4 w-4 mr-2" />
-                    {content.editProfile}
+                <div className="flex flex-col space-y-2 w-full max-w-[190px]">
+                  <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white w-full" size="sm">
+                    <Link href={`/${currentLang}/profil/edit`} scroll={false}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      {content.editProfile}
+                    </Link>
                   </Button>
-                  <Button variant="outline" size="sm" className="bg-white/10 backdrop-blur-sm border-white/30">
-                    <Settings className="h-4 w-4 mr-2" />
-                    {content.settings}
+                  <Button asChild variant="outline" size="sm" className="bg-white/10 backdrop-blur-sm border-white/30 w-full">
+                    <Link href={`/${currentLang}/profil/settings`} scroll={false}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      {content.settings}
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -302,7 +312,7 @@ export default function ProfilePage({ params }: LangPageProps) {
               
               {/* Account Information */}
               <AnimatedSection tag="div">
-                <Card className="glass-card border border-white/20">
+                <Card className="border-0 bg-gray-50 shadow hover:shadow-lg transition-all duration-300">
                   <CardHeader>
                     <CardTitle className="flex items-center text-xl font-bold">
                       <User className="h-5 w-5 mr-2 text-purple-600" />
@@ -374,7 +384,7 @@ export default function ProfilePage({ params }: LangPageProps) {
                       )}
                     </div>
 
-                    <Button className="w-full btn-gradient" size="sm">
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white" size="sm">
                       <TrendingUp className="h-4 w-4 mr-2" />
                       {content.upgradeToEnterprise}
                     </Button>
@@ -384,7 +394,7 @@ export default function ProfilePage({ params }: LangPageProps) {
 
               {/* Achievements */}
               <AnimatedSection tag="div" delay="200">
-                <Card className="glass-card border border-white/20">
+                <Card className="border-0 bg-gray-50 shadow hover:shadow-lg transition-all duration-300">
                   <CardHeader>
                     <CardTitle className="flex items-center text-xl font-bold">
                       <Award className="h-5 w-5 mr-2 text-yellow-600" />
@@ -423,7 +433,7 @@ export default function ProfilePage({ params }: LangPageProps) {
               <AnimatedSection tag="div">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   
-                  <Card className="gradient-card border-0 shadow-xl text-center transform hover:scale-105 transition-all duration-300">
+                  <Card className="gradient-card border-0 shadow-xl text-center">
                     <CardContent className="p-6">
                       <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Sparkles className="h-6 w-6 text-purple-600" />
@@ -433,7 +443,7 @@ export default function ProfilePage({ params }: LangPageProps) {
                     </CardContent>
                   </Card>
 
-                  <Card className="gradient-card border-0 shadow-xl text-center transform hover:scale-105 transition-all duration-300">
+                  <Card className="gradient-card border-0 shadow-xl text-center">
                     <CardContent className="p-6">
                       <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Download className="h-6 w-6 text-green-600" />
@@ -443,13 +453,19 @@ export default function ProfilePage({ params }: LangPageProps) {
                     </CardContent>
                   </Card>
 
-                  <Card className="gradient-card border-0 shadow-xl text-center transform hover:scale-105 transition-all duration-300">
+                  <Card className="gradient-card border-0 shadow-xl text-center">
                     <CardContent className="p-6">
                       <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
                         <BarChart3 className="h-6 w-6 text-blue-600" />
                       </div>
                       <div className="text-2xl font-bold headline-modern mb-1">{stats.storage_used}GB</div>
                       <div className="text-xs text-gray-500 mb-2">/ 10GB</div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+                        <div
+                          className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all"
+                          style={{ width: `${Math.min((stats.storage_used / 10) * 100, 100)}%` }}
+                        ></div>
+                      </div>
                       <p className="text-sm text-gray-600 dark:text-gray-300">{content.storageUsed}</p>
                     </CardContent>
                   </Card>
@@ -460,7 +476,7 @@ export default function ProfilePage({ params }: LangPageProps) {
               {/* Recent Projects */}
               <AnimatedSection tag="div" delay="100">
                 {loadingProjects ? (
-                  <Card className="glass-card border border-white/20">
+                  <Card className="border-0 bg-gray-50 shadow hover:shadow-lg transition-all duration-300">
                     <CardContent>
                       <div className="text-center py-12">
                         <p>{currentLang === 'tr' ? 'Projeler yükleniyor...' : 'Loading projects...'}</p>
@@ -479,7 +495,7 @@ export default function ProfilePage({ params }: LangPageProps) {
 
               {/* Quick Actions */}
               <AnimatedSection tag="div" delay="200">
-                <Card className="glass-card border border-white/20">
+                <Card className="border-0 bg-gray-50 shadow hover:shadow-lg transition-all duration-300">
                   <CardHeader>
                     <CardTitle className="flex items-center text-xl font-bold">
                       <Zap className="h-5 w-5 mr-2 text-yellow-600" />
@@ -489,16 +505,18 @@ export default function ProfilePage({ params }: LangPageProps) {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Link href={`/${currentLang}/animate`}>
-                        <Button className="w-full btn-gradient group">
+                        <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white group">
                           <Plus className="h-4 w-4 mr-2" />
                           {content.createNew}
                           <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                         </Button>
                       </Link>
                       
-                      <Button variant="outline" className="w-full bg-white/10 backdrop-blur-sm border-white/30">
-                        <Settings className="h-4 w-4 mr-2" />
-                        {content.settings}
+                      <Button asChild variant="outline" className="w-full bg-white/10 backdrop-blur-sm border-white/30">
+                        <Link href={`/${currentLang}/profil/settings`} scroll={false}>
+                          <Settings className="h-4 w-4 mr-2" />
+                          {content.settings}
+                        </Link>
                       </Button>
                       
                       <Button 

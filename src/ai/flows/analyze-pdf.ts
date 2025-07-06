@@ -10,15 +10,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { AnalyzePdfContentInputSchema } from '@/ai/schemas';
 
-const AnalyzePdfInputSchema = z.object({
-  pdfDataUri: z
-    .string()
-    .describe(
-      'The PDF document content as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
-    ),
-});
-export type AnalyzePdfInput = z.infer<typeof AnalyzePdfInputSchema>;
+export type AnalyzePdfInput = z.infer<typeof AnalyzePdfContentInputSchema>;
 
 const AnalyzePdfOutputSchema = z.object({
   summary: z.string().describe('A detailed, comprehensive and guiding summary of the key themes and points in the PDF document, in Turkish.'),
@@ -31,9 +25,19 @@ export async function analyzePdf(input: AnalyzePdfInput): Promise<AnalyzePdfOutp
 
 const prompt = ai.definePrompt({
   name: 'analyzePdfPrompt',
-  input: {schema: AnalyzePdfInputSchema},
+  input: {schema: AnalyzePdfContentInputSchema},
   output: {schema: AnalyzePdfOutputSchema},
   prompt: `Sen, PDF dokümanlarını derinlemesine analiz eden, ancak çıktıyı bir ilkokul öğretmeninin sadeliği ve akıcılığında sunan UZMAN BİR EĞİTİMCİSİN. Aşağıdaki PDF içeriğini inceleyerek **öğretici, anlaşılır ve madde madde** bir özet oluştur.
+
+ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
+- **{{narrativeStyle, "Varsayılan"}}**: Eğer "Varsayılan" ise, standart, net ve bilgilendirici bir dil kullan.
+- **Basit ve Anlaşılır**: Karmaşık terimlerden kaçın, konuyu en temel düzeyde, herkesin anlayabileceği bir dille açıkla.
+- **Akademik**: Resmi, kaynaklara dayalı, detaylı ve yapılandırılmış bir dil kullan.
+- **Teknik Derinlik**: Alan jargonunu ve teknik detayları yoğun bir şekilde kullanarak uzmanlara yönelik bir anlatım sun.
+- **Yaratıcı ve Eğlenceli**: Benzetmeler, hikayeler ve mizahi bir dil kullanarak konuyu ilgi çekici hale getir.
+- **Profesyonel (İş Odaklı)**: İş dünyasına uygun, sonuç odaklı, net ve saygılı bir dil kullan.
+- **Samimi ve Sohbet Havasında**: Daha kişisel ve rahat bir tonla, okuyucuyla sohbet ediyormuş gibi yaz.
+- **Eleştirel Bakış**: Konunun farklı yönlerini sorgulayan, avantajları ve dezavantajları objektif bir şekilde sunan bir yaklaşım sergile.
 
 📝 **İstediğim Çıktı Biçimi**
 • En az **20** ayrı madde (gerekiyorsa daha fazla)
@@ -59,7 +63,7 @@ Türkçe Madde Madde Detaylı Özet:`,
 const analyzePdfFlow = ai.defineFlow(
   {
     name: 'analyzePdfFlow',
-    inputSchema: AnalyzePdfInputSchema,
+    inputSchema: AnalyzePdfContentInputSchema,
     outputSchema: AnalyzePdfOutputSchema,
   },
   async input => {

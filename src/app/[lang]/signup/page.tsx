@@ -1,64 +1,25 @@
 "use client";
 
-import Link from 'next/link';
-import React, { useEffect, useActionState, useState } from 'react';
-import { useRouter } from 'next/navigation'; 
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import AnimatedSection from '@/components/custom/animated-section';
-import { UserPlus, Clapperboard, Twitter, Linkedin, Github, ArrowRight, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { signupUser } from '@/app/auth/actions';
-import { SubmitButton } from '@/components/custom/submit-button';
-import { useLanguage } from '@/contexts/language-context';
-import { useAuth } from '@/contexts/auth-context';
+import { useState, useEffect, useActionState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { UserPlus, ArrowRight, Sparkles, Lock, Mail, Eye, EyeOff, Shield } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import { signupUser } from '@/app/auth/actions'
+import { SubmitButton } from '@/components/custom/submit-button'
+import { useLanguage } from '@/contexts/language-context'
+import { useAuth } from '@/contexts/auth-context'
+import { useParams } from 'next/navigation'
 
 interface SignUpPageProps {
   params: Promise<{ lang: 'en' | 'tr' }>;
 }
-
-const pageUIText = {
-  tr: {
-    title: "Hesap Oluştur",
-    subtitle: "Aramıza katılın ve PDF'lerinizi canlandırmaya başlayın",
-    description: "Aramıza katılın ve PDF'lerinizi canlandırmaya başlayın!",
-    emailLabel: "E-posta Adresiniz",
-    emailPlaceholder: "ornek@eposta.com",
-    passwordLabel: "Şifreniz",
-    passwordPlaceholder: "••••••••",
-    confirmPasswordLabel: "Şifrenizi Tekrar Girin",
-    submitButton: "Kayıt Ol",
-    submitPending: "Kayıt Olunuyor...",
-    loginPrompt: "Zaten bir hesabınız var mı?",
-    loginLink: "Giriş Yapın",
-    toastSuccessTitle: "Başarılı",
-    toastErrorTitle: "Hata",
-    googleSignup: "Google ile Kayıt Ol",
-    orDivider: "veya"
-  },
-  en: {
-    title: "Create Account",
-    subtitle: "Join us and start bringing your PDFs to life",
-    description: "Join us and start bringing your PDFs to life!",
-    emailLabel: "Your Email Address",
-    emailPlaceholder: "example@email.com",
-    passwordLabel: "Your Password",
-    passwordPlaceholder: "••••••••",
-    confirmPasswordLabel: "Confirm Your Password",
-    submitButton: "Sign Up",
-    submitPending: "Signing Up...",
-    loginPrompt: "Already have an account?",
-    loginLink: "Login",
-    toastSuccessTitle: "Success",
-    toastErrorTitle: "Error",
-    googleSignup: "Sign up with Google",
-    orDivider: "or"
-  }
-};
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -70,314 +31,249 @@ const GoogleIcon = () => (
       <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
     </g>
   </svg>
-);
+)
 
-export default function SignUpPage({ params }: SignUpPageProps) {
-  const { language } = useLanguage();
-  const [currentLang, setCurrentLang] = React.useState<'en' | 'tr'>('tr');
+export default function SignUpPage({ params: paramsPromise }: SignUpPageProps) {
+  const { language } = useLanguage()
+  const urlParams = useParams()
+  const currentLang = urlParams.lang as string || 'tr'
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
+
+  const getLocalizedPath = (path: string) => {
+    const basePath = path === '/' ? '' : path;
+    return `/${currentLang}${basePath}`;
+  }
+
+  const uiText = {
+    title: "Aramıza Katılın",
+    subtitle: "Hesap oluşturun ve PDF'lerinizi canlandırmaya başlayın",
+    emailLabel: "E-posta Adresiniz",
+    emailPlaceholder: "ornek@eposta.com",
+    passwordLabel: "Şifreniz",
+    passwordPlaceholder: "••••••••",
+    confirmPasswordLabel: "Şifrenizi Tekrar Girin",
+    submitButton: "Kayıt Ol",
+    submitPending: "Kayıt Olunuyor...",
+    loginPrompt: "Zaten bir hesabınız var mı?",
+    loginLink: "Giriş Yapın",
+    googleSignup: "Google ile Kayıt Ol",
+    orDivider: "veya",
+    joinToday: "Bugün Katılın"
+  }
   
-  React.useEffect(() => {
-    params.then(({ lang }) => {
-      setCurrentLang(language || lang || 'tr');
-    });
-  }, [params, language]);
-  
-  const uiText = pageUIText[currentLang] || pageUIText.tr;
-  
-  const { toast } = useToast();
-  const router = useRouter();
-  const { signInWithGoogle } = useAuth();
-  const [state, formAction] = useActionState(signupUser, null);
+  const { toast } = useToast()
+  const router = useRouter()
+  const { signInWithGoogle } = useAuth()
+  const [state, formAction] = useActionState(signupUser, null)
 
   const handleGoogleSignup = async () => {
     try {
-      await signInWithGoogle();
+      await signInWithGoogle()
     } catch (error) {
       toast({
-        title: uiText.toastErrorTitle,
+        title: 'Hata',
         description: 'Google ile kayıt olurken hata oluştu.',
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   useEffect(() => {
     if (state?.message) {
       toast({
-        title: state.type === 'success' ? uiText.toastSuccessTitle : uiText.toastErrorTitle,
+        title: state.type === 'success' ? 'Başarılı' : 'Hata',
         description: state.message,
         variant: state.type === 'error' ? "destructive" : "default",
-      });
+      })
       
       if (state.type === 'success' && state.redirectPath) {
         setTimeout(() => {
-          router.push(`/${currentLang}${state.redirectPath}`);
-        }, 2000);
+          router.push(`/${currentLang}${state.redirectPath}`)
+        }, 2000)
       }
     }
-  }, [state, toast, router, uiText, currentLang]);
+  }, [state, toast, router, currentLang])
 
   return (
-    <div className="page-container">
+    <div className="min-h-screen bg-white">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-20 h-20 bg-orange-200 rounded-full opacity-20 animate-bounce"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-40 left-20 w-12 h-12 bg-pink-200 rounded-full opacity-20 animate-bounce delay-1000"></div>
+        <div className="absolute bottom-20 right-40 w-24 h-24 bg-purple-200 rounded-full opacity-20 animate-pulse delay-500"></div>
+      </div>
+
+      <div className="container mx-auto px-4 py-16 sm:py-24">
+        <div className="max-w-md mx-auto">
+          
       {/* Hero Section */}
-      <section className="hero-gradient relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-pink-600/10 to-blue-600/10"></div>
-        <div className="relative container mx-auto px-4 py-20 lg:py-32">
-          <div className="text-center max-w-4xl mx-auto">
-            <AnimatedSection tag="div" className="space-y-8">
-              {/* Floating particles effect */}
-              <div className="absolute top-20 left-10 w-4 h-4 bg-purple-400 rounded-full opacity-30 animate-bounce"></div>
-              <div className="absolute top-32 right-20 w-6 h-6 bg-pink-400 rounded-full opacity-20 float-animation"></div>
-              <div className="absolute bottom-20 left-20 w-3 h-3 bg-blue-400 rounded-full opacity-40 pulse-soft"></div>
-              
-              {/* Hero Badge */}
-              <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                <UserPlus className="h-4 w-4 text-purple-500" />
-                <span>{uiText.title} • Join Today</span>
+          <div className="text-center mb-12">
+            <div className="flex justify-center mb-8">
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 animate-pulse">
+                <Shield className="w-4 h-4 mr-2" />
+                {uiText.joinToday}
+              </Badge>
               </div>
 
-              {/* Hero Title */}
-              <h1 className="text-5xl lg:text-7xl font-bold headline-modern">
-                <span className="gradient-animate">
+            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-6 leading-tight">
+              <span className="relative">
+                <span className="text-orange-500 transition-all duration-500 hover:scale-110 inline-block">
                   {uiText.title}
+                </span>
+                <div className="absolute -bottom-2 left-0 right-0 h-3 bg-orange-200 -rotate-1 -z-10 animate-pulse"></div>
                 </span>
               </h1>
 
-              {/* Hero Subtitle */}
-              <p className="text-xl lg:text-2xl subheading-modern max-w-3xl mx-auto text-balance">
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                 {uiText.subtitle}
               </p>
-            </AnimatedSection>
-          </div>
         </div>
         
-        {/* Gradient Orbs */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/4 w-32 h-32 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-32 h-32 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000"></div>
-      </section>
-
-      {/* Signup Form Section */}
-      <section className="py-20 lg:py-32">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center">
-      <AnimatedSection tag="div" className="w-full max-w-md">
-              <Card className="glass-card border border-white/20 shadow-2xl">
-                <CardHeader className="text-center pb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <UserPlus className="h-8 w-8 text-white" />
+          {/* Signup Form Card */}
+          <Card className="border-0 bg-white shadow-2xl hover:shadow-3xl transition-all duration-500 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-500 to-red-500"></div>
+            
+            <CardHeader className="text-center pb-6 pt-8">
+              <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg hover:scale-110 transition-all duration-300">
+                <UserPlus className="w-8 h-8 text-white" />
                   </div>
-                  <CardTitle className="text-3xl font-bold headline-modern">{uiText.title}</CardTitle>
-                  <CardDescription className="text-lg subheading-modern">{uiText.description}</CardDescription>
+              <CardTitle className="text-2xl font-bold text-gray-900">Hesap Oluşturun</CardTitle>
+              <CardDescription className="text-gray-600">
+                Birkaç adımda hesabınızı oluşturun ve hemen başlayın
+              </CardDescription>
           </CardHeader>
-                <CardContent className="space-y-6">
+
+            <CardContent className="px-8 pb-8">
             {/* Google Signup Button */}
               <Button
                 onClick={handleGoogleSignup}
                 variant="outline"
-                className="w-full text-gray-700 border-gray-300 bg-white hover:bg-gray-50 text-lg py-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-3"
+                className="w-full h-12 text-gray-700 border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-orange-300 text-lg rounded-xl transition-all duration-300 flex items-center justify-center gap-3 mb-6 group"
               >
                 <GoogleIcon />
-                {uiText.googleSignup}
+                <span>{uiText.googleSignup}</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
 
             {/* Divider */}
-                  <div className="relative">
+              <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
+                  <Separator className="w-full bg-gray-200" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
+                <div className="relative flex justify-center text-sm uppercase">
+                  <span className="bg-white px-4 text-gray-500 font-medium">
                   {uiText.orDivider}
                 </span>
               </div>
             </div>
 
+              {/* Signup Form */}
             <form action={formAction} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">{uiText.emailLabel}</Label>
+                  <Label htmlFor="email" className="text-gray-700 font-semibold">
+                    {uiText.emailLabel}
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   placeholder={uiText.emailPlaceholder}
                   required
-                        className="bg-background/70 h-12"
+                      className="pl-10 h-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition-colors duration-300"
                 />
               </div>
+                </div>
+
               <div className="space-y-2">
-                <Label htmlFor="password">{uiText.passwordLabel}</Label>
+                  <Label htmlFor="password" className="text-gray-700 font-semibold">
+                    {uiText.passwordLabel}
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
                   id="password"
                   name="password"
-                  type="password"
+                      type={showPassword ? "text" : "password"}
                   placeholder={uiText.passwordPlaceholder}
                   required
-                  minLength={6}
-                        className="bg-background/70 h-12"
-                />
+                      className="pl-10 pr-10 h-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition-colors duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">{uiText.confirmPasswordLabel}</Label>
+                  <Label htmlFor="confirmPassword" className="text-gray-700 font-semibold">
+                    {uiText.confirmPasswordLabel}
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
-                  id="confirm-password"
-                  name="confirm-password"
-                  type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
                   placeholder={uiText.passwordPlaceholder}
                   required
-                  minLength={6}
-                        className="bg-background/70 h-12"
-                />
+                      className="pl-10 pr-10 h-12 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition-colors duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
               </div>
+
               <SubmitButton
                 pendingText={uiText.submitPending}
-                      className="w-full btn-gradient text-lg py-6 rounded-lg"
+                  className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
               >
+                  <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
                 {uiText.submitButton}
+                  <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
               </SubmitButton>
             </form>
-                  <p className="text-center text-sm text-muted-foreground">
+
+              {/* Login Link */}
+              <div className="text-center mt-8 pt-6 border-t border-gray-100">
+                <p className="text-gray-600">
               {uiText.loginPrompt}{' '}
-              <Link href={`/${currentLang}/login`} className="font-medium text-primary hover:underline">
-                {uiText.loginLink}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      </AnimatedSection>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 dark:bg-black text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-            {/* Brand Section */}
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <Clapperboard className="h-8 w-8 text-purple-400" />
-                <span className="text-2xl font-bold gradient-animate">AnimatePDF</span>
+                  <Link 
+                    href={getLocalizedPath('/login')} 
+                    className="text-orange-500 hover:text-orange-600 font-semibold transition-colors duration-200 hover:underline"
+                  >
+                    {uiText.loginLink}
+                  </Link>
+                </p>
               </div>
-              <p className="text-gray-400 leading-relaxed">
-                {currentLang === 'tr' 
-                  ? 'PDF belgelerinizi saniyeler içinde ilgi çekici animasyonlu hikayelere ve interaktif öğrenme deneyimlerine dönüştürün.'
-                  : 'Transform your PDF documents into engaging animated stories and interactive learning experiences in seconds.'
-                }
-              </p>
-              <div className="flex space-x-4">
-                <Button variant="outline" size="sm" className="w-10 h-10 p-0 border-white bg-white text-black hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-colors duration-300">
-                  <Twitter className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" className="w-10 h-10 p-0 border-white bg-white text-black hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-300">
-                  <Linkedin className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" className="w-10 h-10 p-0 border-white bg-white text-black hover:border-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors duration-300">
-                  <Github className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Links Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-purple-400">{currentLang === 'tr' ? 'Bağlantılar' : 'Links'}</h3>
-              <ul className="space-y-3">
-                <li>
-                  <Link 
-                    href={`/${currentLang}/about`} 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
-                  >
-                    {currentLang === 'tr' ? 'Hakkımızda' : 'About Us'}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    href={`/${currentLang}/pricing`} 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
-                  >
-                    {currentLang === 'tr' ? 'Fiyatlandırma' : 'Pricing'}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    href={`/${currentLang}/faq`} 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
-                  >
-                    {currentLang === 'tr' ? 'SSS' : 'FAQ'}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    href="#" 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
-                  >
-                    {currentLang === 'tr' ? 'Gizlilik Politikası' : 'Privacy Policy'}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    href="#" 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
-                  >
-                    {currentLang === 'tr' ? 'Kullanım Koşulları' : 'Terms of Service'}
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    href={`/${currentLang}/animate`} 
-                    className="text-gray-400 hover:text-white transition-colors duration-300 hover:underline"
-                  >
-                    {currentLang === 'tr' ? 'Uygulamayı Kullan' : 'Use App'}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Contact Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-purple-400">İletişim</h3>
-              <div className="space-y-3 text-gray-400">
-                <p>support@animatepdf.com</p>
-                <p>+90 (212) 123 45 67</p>
-                <p>İstanbul, Türkiye</p>
-              </div>
-            </div>
-
-            {/* Newsletter Section */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-purple-400">Güncellemeler</h3>
-              <p className="text-gray-400 text-sm">
-                Yeni özellikler ve güncellemelerden haberdar olun.
-              </p>
-              <div className="flex space-x-2">
-                <input 
-                  type="email" 
-                  placeholder="E-posta adresiniz"
-                  className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 transition-colors duration-300"
-                />
-                <Button 
-                  size="sm" 
-                  className="bg-purple-600 hover:bg-purple-700 transition-colors duration-300"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="my-12 bg-gray-700" />
-          
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400 text-sm">
-              © 2024 AnimatePDF. {currentLang === 'tr' ? 'Tüm hakları saklıdır.' : 'All rights reserved.'}
-            </p>
-            <p className="text-gray-400 text-sm flex items-center">
-              <Sparkles className="mr-2 h-4 w-4 text-purple-400" />
-              {currentLang === 'tr' ? 'Üretken Yapay Zeka ile güçlendirilmiştir.' : 'Powered by Generative AI.'}
+          {/* Bottom CTA */}
+          <div className="text-center mt-12">
+            <p className="text-gray-500 text-sm">
+              Ücretsiz başlayın, istediğiniz zaman yükseltin 🚀
             </p>
           </div>
         </div>
-      </footer>
+      </div>
     </div>
-  );
+  )
 }

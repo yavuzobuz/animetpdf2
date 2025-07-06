@@ -197,8 +197,6 @@ export async function getUserProjects(userId: string): Promise<{ success: boolea
   const { data, error } = await supabase
     .from('pdf_projects')
     .select('*')
-    .eq('user_id', userId)
-    .eq('is_deleted', false)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -479,7 +477,7 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
     // Kullanıcı profil bilgisini al
     const { data: profile } = await supabase
       .from('profiles')
-      .select('created_at, subscription_plan, next_billing_date')
+      .select('created_at, current_plan_id, subscription_status')
       .eq('id', userId)
       .single();
 
@@ -490,16 +488,33 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
       .eq('user_id', userId)
       .eq('is_deleted', false);
 
-    // Bu ayki PDF sayısını hesapla
+    // Bu ayki PDF kullanımını öncelikle user_usage tablosundan al
+    const monthYear = new Date().toISOString().slice(0, 7); // YYYY-MM
+    let monthlyPdfCount = 0;
+
+    const { data: usageRow, error: usageErr } = await supabase
+      .from('user_usage')
+      .select('pdfs_processed')
+      .eq('user_id', userId)
+      .eq('month_year', monthYear)
+      .maybeSingle();
+
+    if (!usageErr && usageRow && typeof usageRow.pdfs_processed === 'number') {
+      monthlyPdfCount = usageRow.pdfs_processed;
+    } else {
+      // Fallback: pdf_projects tablosundan say
     const currentMonth = new Date();
     const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     
-    const { count: monthlyPdfCount } = await supabase
+      const { count: fallbackCount } = await supabase
       .from('pdf_projects')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('is_deleted', false)
       .gte('created_at', firstDayOfMonth.toISOString());
+
+      monthlyPdfCount = fallbackCount || 0;
+    }
 
     // Animasyon sayfalarını say
     const { count: animationCount } = await supabase
@@ -507,20 +522,26 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
 
-    // Kullanıcı başarılarını al
-    const { data: achievements } = await supabase
+    // Kullanıcı başarımlarını al (iki aşamalı, REST join hatalarını önlemek için)
+    const { data: userAchRows } = await supabase
       .from('user_achievements')
-      .select(`
-        id,
-        unlocked_at,
-        achievements!inner (
-          id,
-          title,
-          description,
-          icon
-        )
-      `)
+      .select('id, unlocked_at, achievement_id')
       .eq('user_id', userId);
+
+    let achievements: any[] | null = null;
+    if (userAchRows && userAchRows.length) {
+      const achIds = userAchRows.map((a: any) => a.achievement_id);
+      const { data: achDetails } = await supabase
+        .from('achievements')
+        .select('id, title, description, icon')
+        .in('id', achIds);
+
+      achievements = userAchRows.map((ua: any) => ({
+        id: ua.id,
+        unlocked_at: ua.unlocked_at,
+        ...(achDetails?.find((ad: any) => ad.id === ua.achievement_id) || {})
+      }));
+    }
 
     // Storage kullanımını hesapla (PDF dosya boyutları toplamı)
     const { data: storageData } = await supabase
@@ -537,7 +558,7 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
     const totalDownloads = 0;
 
     // Plan limitlerini belirle – dinamik olarak subscription_plans tablosundan al
-    const plan = profile?.subscription_plan || 'free';
+    const plan = profile?.subscription_status || 'free';
 
     let monthlyLimit = 5; // Varsayılan Free limiti
     try {
@@ -561,8 +582,8 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
       storage_used: Math.round(storageUsed / (1024 * 1024 * 1024) * 100) / 100, // GB cinsinden
       plan: plan,
       joinDate: profile?.created_at || new Date().toISOString(),
-      nextBilling: profile?.next_billing_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      monthly_pdf_count: monthlyPdfCount || 0,
+      nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      monthly_pdf_count: monthlyPdfCount,
       monthly_limit: monthlyLimit,
       achievements: achievements?.map(a => {
         // Supabase'in yanlış tip çıkarımı yapmasına karşın 'any' kullanarak hatayı gideriyoruz.
@@ -706,17 +727,18 @@ export async function checkUserPDFLimit(userId: string): Promise<{ success: bool
     // Get current usage
     const usage = await getUserCurrentUsage(userId);
     if (!usage.success) {
-      return { success: false, canProcess: false, currentUsage: 0, limit: plan.monthly_pdf_limit, error: usage.error };
+      return { success: false, canProcess: false, currentUsage: 0, limit: 0, error: usage.error };
     }
 
+    const limitValue = (typeof plan.monthly_pdf_limit === 'number' && plan.monthly_pdf_limit > 0) ? plan.monthly_pdf_limit : 5;
     const currentUsage = usage.data?.pdfs_processed || 0;
-    const canProcess = currentUsage < plan.monthly_pdf_limit;
+    const canProcess = currentUsage < limitValue;
 
     return {
       success: true,
       canProcess,
       currentUsage,
-      limit: plan.monthly_pdf_limit
+      limit: limitValue
     };
   } catch (error) {
     console.error('PDF limit check exception:', error);
@@ -727,38 +749,50 @@ export async function checkUserPDFLimit(userId: string): Promise<{ success: bool
 export async function incrementUserUsage(userId: string, type: 'pdf' | 'animation'): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = createAdminClient();
-    const currentMonth = new Date().toISOString().slice(0, 7); // '2025-01' format
-    
-    // Upsert usage record
-    const { error } = await supabase
-      .from('user_usage')
-      .upsert({
-        user_id: userId,
-        month_year: currentMonth,
-        pdfs_processed: type === 'pdf' ? 1 : 0,
-        animations_created: type === 'animation' ? 1 : 0,
-        last_reset_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,month_year',
-        ignoreDuplicates: false
-      });
+    const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
 
-    if (error) {
-      console.error('Usage increment error:', error);
-      return { success: false, error: error.message };
+    // 1) Mevcut kayıt var mı kontrol et
+    const { data: existing, error: fetchError } = await supabase
+      .from('user_usage')
+      .select('id, pdfs_processed, animations_created')
+      .eq('user_id', userId)
+      .eq('month_year', currentMonth)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Usage fetch error:', fetchError);
+      return { success: false, error: fetchError.message };
     }
 
-    // If it's a new record, we need to increment properly
-    const { error: updateError } = await supabase.rpc('increment_user_usage', {
-      p_user_id: userId,
-      p_month_year: currentMonth,
-      p_pdf_increment: type === 'pdf' ? 1 : 0,
-      p_animation_increment: type === 'animation' ? 1 : 0
-    });
+    // 2) Pdf/animasyon sayaçlarını hesapla
+    const newPdfCount = (existing?.pdfs_processed || 0) + (type === 'pdf' ? 1 : 0);
+    const newAnimationCount = (existing?.animations_created || 0) + (type === 'animation' ? 1 : 0);
 
-    if (updateError) {
-      console.error('Usage increment RPC error:', updateError);
-      return { success: false, error: updateError.message };
+    // 3) Güncelle veya ekle
+    let upsertError;
+    if (existing && existing.id) {
+      const { error } = await supabase
+        .from('user_usage')
+        .update({ pdfs_processed: newPdfCount, animations_created: newAnimationCount })
+        .eq('id', existing.id);
+      upsertError = error;
+    } else {
+      const { error } = await supabase
+        .from('user_usage')
+        .insert({
+          user_id: userId,
+          month_year: currentMonth,
+          pdfs_processed: newPdfCount,
+          animations_created: newAnimationCount,
+          storage_used_mb: 0, // varsayılan
+          last_reset_at: new Date().toISOString()
+        });
+      upsertError = error;
+    }
+
+    if (upsertError) {
+      console.error('Usage upsert error:', upsertError);
+      return { success: false, error: upsertError.message };
     }
 
     return { success: true };
@@ -816,5 +850,441 @@ export async function createUserSubscription(
   } catch (error) {
     console.error('Subscription creation exception:', error);
     return { success: false, error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// ===============================
+// ADMIN FUNCTIONS
+// ===============================
+
+export interface AdminUserInfo {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  subscription_status: string;
+  current_plan_id: string | null;
+  plan_name?: string;
+  monthly_usage_count: number;
+  is_blocked?: boolean;
+  created_at: string;
+  pdf_count: number;
+  animation_count: number;
+}
+
+export interface AdminProjectInfo {
+  id: string;
+  user_id: string;
+  user_email: string;
+  title: string;
+  description: string | null;
+  pdf_file_name: string;
+  pdf_file_size: number | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  is_deleted: boolean;
+  project_type: 'pdf' | 'animation';
+}
+
+// Admin: Tüm kullanıcıları listele
+export async function getAllUsersForAdmin(): Promise<{ success: boolean; data: AdminUserInfo[]; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        email,
+        full_name,
+        avatar_url,
+        subscription_status,
+        current_plan_id,
+        monthly_usage_count,
+        is_blocked,
+        created_at,
+        subscription_plans(name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Admin users fetch error:', error);
+      return { success: false, data: [], error: error.message };
+    }
+
+    // Her kullanıcı için PDF ve animasyon sayılarını al
+    const usersWithCounts = await Promise.all(
+      data.map(async (user) => {
+        // PDF proje sayısı
+        const { count: pdfCount } = await supabase
+          .from('pdf_projects')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_deleted', false);
+
+        // Animasyon sayısı
+        const { count: animationCount } = await supabase
+          .from('animation_pages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        return {
+          ...user,
+          // @ts-ignore
+          plan_name: (user as any).subscription_plans?.name || 'free',
+          pdf_count: pdfCount || 0,
+          animation_count: animationCount || 0
+        } as AdminUserInfo;
+      })
+    );
+
+    return { success: true, data: usersWithCounts };
+  } catch (error) {
+    console.error('Admin users fetch exception:', error);
+    return { success: false, data: [], error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Tüm projeleri listele
+export async function getAllProjectsForAdmin(): Promise<{ success: boolean; data: AdminProjectInfo[]; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+
+    // fetch profiles once
+    const { data: profileData } = await supabase.from('profiles').select('id,email');
+    const emailMap: Record<string, string> = {};
+    (profileData || []).forEach((p: any) => {
+      emailMap[p.id] = p.email;
+    });
+
+    // PDF projects
+    const { data: pdfs, error: pdfErr } = await supabase
+      .from('pdf_projects')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (pdfErr) {
+      console.error('Admin pdf projects fetch error:', pdfErr);
+      return { success: false, data: [], error: pdfErr.message };
+    }
+
+    const pdfMapped: AdminProjectInfo[] = (pdfs || []).map((p: any) => ({
+      id: p.id,
+      user_id: p.user_id,
+      user_email: emailMap[p.user_id] || 'Unknown',
+      title: p.title,
+      description: null,
+      pdf_file_name: p.pdf_file_name,
+      pdf_file_size: null,
+      status: p.status,
+      created_at: p.created_at,
+      updated_at: p.updated_at,
+      is_deleted: p.is_deleted,
+      project_type: 'pdf'
+    }));
+
+    // Animation pages
+    const { data: anims, error: animErr } = await supabase
+      .from('animation_pages')
+      .select('id,user_id,topic,created_at')
+      .order('created_at', { ascending: false });
+
+    if (animErr) {
+      console.error('Admin animation pages fetch error:', animErr);
+      return { success: false, data: [], error: animErr.message };
+    }
+
+    const animMapped: AdminProjectInfo[] = (anims || []).map((a: any) => ({
+      id: a.id,
+      user_id: a.user_id,
+      user_email: emailMap[a.user_id] || 'Unknown',
+      title: a.topic,
+      description: null,
+      pdf_file_name: '',
+      pdf_file_size: null,
+      status: 'completed',
+      created_at: a.created_at,
+      updated_at: a.created_at,
+      is_deleted: false,
+      project_type: 'animation'
+    }));
+
+    const combined = [...pdfMapped, ...animMapped];
+    combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return { success: true, data: combined };
+  } catch (error) {
+    console.error('Admin projects fetch exception:', error);
+    return { success: false, data: [], error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Kullanıcı sil
+export async function deleteUserAsAdmin(userId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    
+    // Önce kullanıcının tüm projelerini soft delete yap
+    await supabase
+      .from('pdf_projects')
+      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+      .eq('user_id', userId);
+
+    // Kullanıcı usage'ını temizle
+    await supabase
+      .from('user_usage')
+      .delete()
+      .eq('user_id', userId);
+
+    // Kullanıcı subscription'ını temizle
+    await supabase
+      .from('user_subscriptions')
+      .delete()
+      .eq('user_id', userId);
+
+    // Profili sil
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Admin user delete error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Admin user delete exception:', error);
+    return { success: false, error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Proje sil
+export async function deleteProjectAsAdmin(projectId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    
+    const { error } = await supabase
+      .from('pdf_projects')
+      .update({ 
+        is_deleted: true, 
+        deleted_at: new Date().toISOString() 
+      })
+      .eq('id', projectId);
+
+    if (error) {
+      console.error('Admin project delete error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Admin project delete exception:', error);
+    return { success: false, error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Kullanıcıya kredi ekle
+export async function addCreditsToUser(userId: string, credits: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    
+    // Kullanıcının mevcut kullanımını al
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const { data: usage } = await supabase
+      .from('user_usage')
+      .select('pdfs_processed, animations_created')
+      .eq('user_id', userId)
+      .eq('month_year', currentMonth)
+      .single();
+
+    const currentPdfUsage = usage?.pdfs_processed || 0;
+    const currentAnimationUsage = usage?.animations_created || 0;
+
+    // Mevcut kullanımdan kredi kadar düşür (ama negatif olmasın)
+    const newPdfUsage = Math.max(0, currentPdfUsage - credits);
+    const newAnimationUsage = Math.max(0, currentAnimationUsage - credits);
+
+    // Usage'ı güncelle
+    const { error } = await supabase
+      .from('user_usage')
+      .upsert({
+        user_id: userId,
+        month_year: currentMonth,
+        pdfs_processed: newPdfUsage,
+        animations_created: newAnimationUsage,
+        last_reset_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,month_year'
+      });
+
+    if (error) {
+      console.error('Admin credit add error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Admin credit add exception:', error);
+    return { success: false, error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Kullanıcı planını değiştir
+export async function changeUserPlan(userId: string, planName: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    
+    // Plan ID'yi al
+    const { data: plan, error: planError } = await supabase
+      .from('subscription_plans')
+      .select('id')
+      .eq('name', planName)
+      .single();
+
+    if (planError || !plan) {
+      return { success: false, error: 'Plan bulunamadı' };
+    }
+
+    // Kullanıcı profilini güncelle
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        current_plan_id: plan.id,
+        subscription_status: planName === 'free' ? 'free' : 'active'
+      })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Admin plan change error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Admin plan change exception:', error);
+    return { success: false, error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Sistem istatistikleri
+export async function getAdminStats(): Promise<{ success: boolean; data: any; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    
+    // Toplam kullanıcı sayısı
+    const { count: totalUsers } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    // Toplam proje sayısı
+    const { count: totalProjects } = await supabase
+      .from('pdf_projects')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_deleted', false);
+
+    // Toplam animasyon sayısı
+    const { count: totalAnimations } = await supabase
+      .from('animation_pages')
+      .select('*', { count: 'exact', head: true });
+
+    // Bu ay kayıt olan kullanıcılar
+    const thisMonth = new Date().toISOString().slice(0, 7);
+    const { count: newUsersThisMonth } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', `${thisMonth}-01`);
+
+    // Plan dağılımı
+    const { data: planDistribution } = await supabase
+      .from('profiles')
+      .select(`
+        subscription_plans(name),
+        count()
+      `)
+      .not('current_plan_id', 'is', null);
+
+    return {
+      success: true,
+      data: {
+        totalUsers: totalUsers || 0,
+        totalProjects: totalProjects || 0,
+        totalAnimations: totalAnimations || 0,
+        newUsersThisMonth: newUsersThisMonth || 0,
+        planDistribution: planDistribution || []
+      }
+    };
+  } catch (error) {
+    console.error('Admin stats exception:', error);
+    return { success: false, data: {}, error: 'Bilinmeyen hata oluştu' };
+  }
+}
+
+// Admin: Kullanıcı blokla / aç
+export async function setUserBlocked(userId: string, blocked: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_blocked: blocked })
+      .eq('id', userId);
+    if (error) return { success:false, error: error.message };
+    return { success:true };
+  } catch(err:any) { return { success:false, error:'Bilinmeyen hata'}; }
+}
+
+export interface SupportTicket {
+  id: string;
+  user_id: string | null;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'closed';
+  created_at: string;
+}
+
+// Admin: Get tickets
+export async function getAllSupportTickets(status?: 'open' | 'closed'): Promise<{ success: boolean; data: SupportTicket[]; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase.from('support_tickets').select('*').order('created_at', { ascending: false });
+    if (status) query = query.eq('status', status);
+    const { data, error } = await query;
+    if (error) return { success:false, data:[], error:error.message };
+    return { success:true, data: data as SupportTicket[] };
+  } catch (err:any) {
+    return { success:false, data:[], error:'Bilinmeyen hata' };
+  }
+}
+
+// Admin: update ticket status
+export async function updateSupportTicketStatus(ticketId: string, status: 'open' | 'closed'): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from('support_tickets').update({ status }).eq('id', ticketId);
+    if (error) return { success:false, error:error.message };
+    return { success:true };
+  } catch (err:any) {
+    return { success:false, error:'Bilinmeyen hata' };
+  }
+}
+
+// Kullanıcı talebi oluştur
+export async function createSupportTicket(data: { user_id?: string | null; email: string; subject: string; message: string }): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from('support_tickets').insert({
+      user_id: data.user_id || null,
+      email: data.email,
+      subject: data.subject,
+      message: data.message,
+      status: 'open'
+    });
+    if (error) return { success:false, error:error.message };
+    return { success:true };
+  } catch(err:any) {
+    return { success:false, error:'Bilinmeyen hata' };
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, DragEvent } from 'react';
+import React, { useState, useRef, DragEvent, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@/lib/supabase';
 
 interface PdfUploadFormProps {
   onPdfUpload: (file: File, dataUri: string) => void;
@@ -62,15 +64,83 @@ const uploadFormText = {
 export function PdfUploadForm({ onPdfUpload, isLoading, lang }: PdfUploadFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [limitExceeded, setLimitExceeded] = useState(false);
+  const [userPdfLimit, setUserPdfLimit] = useState<{monthly_pdf_count: number; monthly_limit: number} | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { language } = useLanguage();
+  const router = useRouter();
   
   const currentLang = lang || language || 'tr';
   const text = uploadFormText[currentLang] || uploadFormText.tr;
   const tooltipText = currentLang === 'tr' ? 'PDF Yükle' : 'Upload PDF';
 
+  const checkUserPdfLimit = async () => {
+    try {
+      const supabaseClient = createBrowserClient();
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      
+      if (user) {
+        const response = await fetch('/api/check-pdf-limit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id, type: 'pdf' }),
+        });
+
+        const limitCheck = await response.json();
+        
+        if (limitCheck && typeof limitCheck.canProcess !== 'undefined') {
+          setUserPdfLimit({
+            monthly_pdf_count: limitCheck.currentUsage,
+            monthly_limit: limitCheck.limit
+          });
+          setLimitExceeded(!limitCheck.canProcess);
+          
+          if (!limitCheck.canProcess) {
+            showLimitExceededModal(limitCheck.currentUsage, limitCheck.limit);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Limit kontrol hatası:', error);
+    }
+  };
+
+  const showLimitExceededModal = (currentUsage: number, limit: number) => {
+    const isEnglish = currentLang === 'en';
+    
+    toast({
+      variant: 'destructive',
+      title: isEnglish ? 'PDF Limit Exceeded' : 'PDF Limiti Aşıldı',
+      description: isEnglish 
+        ? `You've reached your monthly limit of ${limit} PDFs (${currentUsage}/${limit}). Please upgrade your plan to continue.`
+        : `Bu ay ${limit} PDF limitinize ulaştınız (${currentUsage}/${limit}). Devam etmek için planınızı yükseltin.`,
+      action: (
+        <button
+          onClick={() => router.push(`/${currentLang}/pricing`)}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+        >
+          {isEnglish ? 'Upgrade Plan' : 'Planı Yükselt'}
+        </button>
+      ),
+    });
+  };
+
+  useEffect(() => {
+    checkUserPdfLimit();
+  }, []);
+
   const handleFileChange = (file: File) => {
+    if (limitExceeded) {
+      showLimitExceededModal(userPdfLimit?.monthly_pdf_count || 0, userPdfLimit?.monthly_limit || 0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
+
     if (file.type !== "application/pdf") {
       toast({
         title: text.invalidFileType,
@@ -134,6 +204,13 @@ export function PdfUploadForm({ onPdfUpload, isLoading, lang }: PdfUploadFormPro
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    // Limit kontrolü
+    if (limitExceeded) {
+      showLimitExceededModal(userPdfLimit?.monthly_pdf_count || 0, userPdfLimit?.monthly_limit || 0);
+      return;
+    }
+    
     if (!selectedFile) {
       toast({
         title: text.fileNotSelected,
@@ -226,9 +303,9 @@ export function PdfUploadForm({ onPdfUpload, isLoading, lang }: PdfUploadFormPro
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-300/20 to-pink-300/20 group-hover:from-purple-500/30 group-hover:to-purple-500/30 transition-all duration-540 group-hover:scale-110">
-                        <Upload className="w-12 h-12 text-primary group-hover:animate-bounce" />
-                      </div>
+                                  <div className="flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-300/20 to-pink-300/20 group-hover:from-purple-500/30 group-hover:to-purple-500/30 transition-all duration-540 group-hover:scale-110">
+                  <Upload className="w-12 h-12 text-primary group-hover:animate-bounce" />
+                </div>
                     </TooltipTrigger>
                     <TooltipContent side="top">
                       {tooltipText}
@@ -260,13 +337,19 @@ export function PdfUploadForm({ onPdfUpload, isLoading, lang }: PdfUploadFormPro
           type="submit"
           className={cn(
             "block mx-auto px-6 h-10 text-sm font-medium rounded-md shadow-md flex items-center justify-center gap-2 transition-all duration-200",
-            selectedFile
+            selectedFile && !limitExceeded
               ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+              : limitExceeded
+              ? "bg-gradient-to-r from-red-500 to-red-600 text-white cursor-not-allowed"
               : "bg-muted text-muted-foreground cursor-not-allowed"
           )}
-          disabled={isLoading || !selectedFile}
+          disabled={isLoading || !selectedFile || limitExceeded}
         >
-          {isLoading ? (
+          {limitExceeded ? (
+            <>
+              📊 {currentLang === 'tr' ? 'Limit Aşıldı - Planı Yükselt' : 'Limit Exceeded - Upgrade Plan'}
+            </>
+          ) : isLoading ? (
             <>
               <Loader2 className="mr-1 h-3 w-3 animate-spin" />
               {text.processing}
@@ -287,6 +370,23 @@ export function PdfUploadForm({ onPdfUpload, isLoading, lang }: PdfUploadFormPro
               <FileText className="w-4 h-4" />
               <span>{text.ready}</span>
             </div>
+          </div>
+        )}
+
+        {/* Limit Information Display */}
+        {userPdfLimit && (
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              {currentLang === 'tr' ? 'Aylık PDF Kullanımı:' : 'Monthly PDF Usage:'}{' '}
+              <span className={`font-semibold ${limitExceeded ? 'text-red-600' : 'text-purple-600'}`}>
+                {userPdfLimit.monthly_pdf_count}/{userPdfLimit.monthly_limit}
+              </span>
+            </p>
+            {!limitExceeded && (
+              <p className="text-xs text-green-600 mt-1">
+                ✅ {currentLang === 'tr' ? 'Kullanım limitiniz dahilinde' : 'Within your usage limit'}
+              </p>
+            )}
           </div>
         )}
       </form>

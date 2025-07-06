@@ -6,6 +6,7 @@ import {z} from 'genkit';
 // Topic Simplifier Schemas
 export const SimplifyTopicInputSchema = z.object({
   topic: z.string().describe('The complex topic to simplify.'),
+  narrativeStyle: z.string().optional().describe('The desired narrative style for the explanation.'),
 });
 export type SimplifyTopicInput = z.infer<typeof SimplifyTopicInputSchema>;
 
@@ -44,6 +45,7 @@ export const AnalyzePdfContentInputSchema = z.object({
     .describe(
       "The PDF document content as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  narrativeStyle: z.string().optional().describe('The desired narrative style for the explanation.'),
 });
 export type AnalyzePdfContentInput = z.infer<typeof AnalyzePdfContentInputSchema>;
 
@@ -84,4 +86,4 @@ export type GenerateSceneImagesInput = z.infer<typeof GenerateSceneImagesInputSc
 export const GenerateSceneImagesOutputSchema = z.object({
   images: z.array(z.string()).describe('Array of generated image URLs.'),
 });
-export type GenerateSceneImagesOutput = z.infer<typeof GenerateSceneImagesOutputSchema>; 
+export type GenerateSceneImagesOutput = z.infer<typeof GenerateSceneImagesOutputSchema>;

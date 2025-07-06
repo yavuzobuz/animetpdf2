@@ -146,3 +146,18 @@ CREATE TABLE IF NOT EXISTS statistics (
 INSERT INTO statistics (converted_pdfs, created_animations, total_downloads, storage_used)
 VALUES (0, 0, 0, 0)
 ON CONFLICT (id) DO NOTHING;
+
+-- Support tickets table
+CREATE TABLE IF NOT EXISTS public.support_tickets (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+    email text NOT NULL,
+    subject text NOT NULL,
+    message text NOT NULL,
+    status text NOT NULL DEFAULT 'open', -- open | closed
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Index for faster filtering by status and date
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON public.support_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_created_at ON public.support_tickets(created_at);

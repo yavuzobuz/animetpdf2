@@ -8,6 +8,9 @@ import { z } from 'zod';
 import { createBrowserClient } from '@/lib/supabase';
 import { getUserStats } from '@/lib/database';
 import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/contexts/language-context';
+import { useT } from '@/i18n/translations';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -135,12 +138,54 @@ const sanitizeKeyTopic = (text?: string): string => {
     .trim();
 };
 
+// PDF Icon Component - matching the image design
+const PDFIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    className={className}
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Document background */}
+    <path 
+      d="M6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z" 
+      fill="#dc2626" 
+      stroke="#dc2626" 
+      strokeWidth="1"
+    />
+    {/* Folded corner */}
+    <path 
+      d="M14 2v6h6" 
+      fill="none" 
+      stroke="#b91c1c" 
+      strokeWidth="1.5" 
+      strokeLinejoin="round"
+    />
+    {/* PDF text */}
+    <text 
+      x="12" 
+      y="16" 
+      fill="white" 
+      fontSize="4" 
+      fontWeight="bold" 
+      textAnchor="middle" 
+      fontFamily="system-ui, -apple-system, sans-serif"
+    >
+      PDF
+    </text>
+  </svg>
+);
+
 export function TopicSimplifierForm() {
   const [loading, setLoading] = useState(false);
   const [script, setScript] = useState<AnimationScript | null>(null);
   const [visuals, setVisuals] = useState<Visual[]>([]);
   const [visualsLoading, setVisualsLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { language } = useLanguage();
+  const t = useT();
 
   // PDF limit kontrolü için state'ler
   const [userPdfLimit, setUserPdfLimit] = useState<{ monthly_pdf_count: number; monthly_limit: number } | null>(null);
@@ -155,6 +200,22 @@ export function TopicSimplifierForm() {
   const [imageStyle, setImageStyle] = useState('Fotogerçekçi');
   const [animationPageId, setAnimationPageId] = useState<string | null>(null);
   const imageStyles = ['Fotogerçekçi', 'Dijital Sanat', 'Sulu Boya', 'Çizgi Roman', 'Düşük Poli', '3D Render'];
+
+  // Anlatım tarzı state ve seçenekleri
+  const [narrativeStyle, setNarrativeStyle] = useState('Varsayılan');
+  const narrativeStyles = [
+    { id: 'Varsayılan', name: 'Varsayılan', description: 'Standart, net ve bilgilendirici.' },
+    { id: 'Basit ve Anlaşılır', name: 'Basit ve Anlaşılır', description: 'Karmaşık terimlerden kaçınan, en temel düzeyde açıklama.' },
+    { id: 'Akademik', name: 'Akademik', description: 'Resmi, kaynaklara dayalı ve yapılandırılmış.' },
+    { id: 'Teknik Derinlik', name: 'Teknik Derinlik', description: 'Uzmanlara yönelik, teknik jargon içeren anlatım.' },
+    { id: 'Yaratıcı ve Eğlenceli', name: 'Yaratıcı ve Eğlenceli', description: 'Benzetmeler ve hikayelerle ilgi çekici anlatım.' },
+    { id: 'Profesyonel (İş Odaklı)', name: 'Profesyonel (İş Odaklı)', description: 'Sonuç odaklı, net ve saygılı bir dil.' },
+    { id: 'Samimi ve Sohbet Havasında', name: 'Samimi ve Sohbet Havasında', description: 'Kişisel ve rahat bir ton.' },
+    { id: 'Eleştirel Bakış', name: 'Eleştirel Bakış', description: 'Konuyu farklı yönleriyle sorgulayan, objektif bir yaklaşım.' },
+  ];
+
+  // Seçilen anlatım tarzı objesi - trigger içinde kullanılır
+  const currentNarrative = narrativeStyles.find((s) => s.id === narrativeStyle);
 
   // Diagram theme options
   const [diagramTheme, setDiagramTheme] = useState('Klasik');
@@ -207,6 +268,13 @@ export function TopicSimplifierForm() {
     displayedParagraphs = rawSummary
       .split('\n')
       .filter(p => p.trim());
+  }
+  if (displayedParagraphs.length < 2) {
+    // Deneme 4: numaralı madde '1. ' desenine göre böl
+    displayedParagraphs = rawSummary
+      .split(/\n?\s*\d+\.\s+/)
+      .map(p => p.trim())
+      .filter(p => p);
   }
   displayedParagraphs = displayedParagraphs.slice(0, 15);
 
@@ -300,8 +368,8 @@ export function TopicSimplifierForm() {
     setDiagramTransform({ scale: 1, x: 0, y: 0 });
   };
 
-  // Kullanıcı PDF limitini kontrol et
-  const checkUserLimit = async () => {
+  // Kullanıcı limitini kontrol et (PDF ve animasyon için)
+  const checkUserLimit = async (type: 'pdf' | 'animation' = 'pdf') => {
     try {
       const supabaseClient = createBrowserClient();
       const { data: { user } } = await supabaseClient.auth.getUser();
@@ -312,27 +380,55 @@ export function TopicSimplifierForm() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ userId: user.id }),
+          body: JSON.stringify({ userId: user.id, type }),
         });
 
         const limitCheck = await response.json();
         
         if (limitCheck && typeof limitCheck.canProcess !== 'undefined') {
+          if (type === 'pdf') {
           setUserPdfLimit({
             monthly_pdf_count: limitCheck.currentUsage,
             monthly_limit: limitCheck.limit
           });
           setLimitExceeded(!limitCheck.canProcess);
         }
+          
+          return limitCheck;
       }
+      }
+      return null;
     } catch (error) {
       console.error('Limit kontrol hatası:', error);
+      return null;
     }
+  };
+
+  // Limit aşıldığında fiyatlandırma sayfasına yönlendir
+  const showLimitExceededModal = (limitType: string, currentUsage: number, limit: number) => {
+    const currentLang = language || 'tr';
+    const isEnglish = currentLang === 'en';
+    
+    toast({
+      variant: 'destructive',
+      title: isEnglish ? `${limitType} Limit Exceeded` : `${limitType} Limiti Aşıldı`,
+      description: isEnglish 
+        ? `You've reached your monthly limit of ${limit} ${limitType.toLowerCase()}s (${currentUsage}/${limit}). Please upgrade your plan to continue.`
+        : `Bu ay ${limit} ${limitType.toLowerCase()} limitinize ulaştınız (${currentUsage}/${limit}). Devam etmek için planınızı yükseltin.`,
+      action: (
+        <button
+          onClick={() => router.push(`/${currentLang}/pricing`)}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+        >
+          {isEnglish ? 'Upgrade Plan' : 'Planı Yükselt'}
+        </button>
+      ),
+    });
   };
 
   // Bileşen yüklendiğinde limit kontrolü yap
   useEffect(() => {
-    checkUserLimit();
+    checkUserLimit('pdf');
   }, []);
 
   const generateVisuals = async (scriptForVisuals: AnimationScript, pageId: string) => {
@@ -432,11 +528,7 @@ export function TopicSimplifierForm() {
 
     // Limit kontrolü
     if (limitExceeded) {
-      toast({
-        variant: 'destructive',
-        title: 'PDF Yükleme Limiti Aşıldı',
-        description: `Bu ay ${userPdfLimit?.monthly_limit} PDF limitinize ulaştınız. Plan yükseltin veya sonraki ay deneyin.`,
-      });
+      showLimitExceededModal('Kredi', userPdfLimit?.monthly_pdf_count || 0, userPdfLimit?.monthly_limit || 0);
       return;
     }
 
@@ -471,7 +563,8 @@ export function TopicSimplifierForm() {
       console.log('AI analizi başlatılıyor...');
       const { analyzePdf } = await import('@/ai/flows/analyze-pdf');
       const analysisResult = await analyzePdf({
-        pdfDataUri: base64String
+        pdfDataUri: base64String,
+        narrativeStyle: narrativeStyle,
       });
 
       console.log('AI analizi tamamlandı:', analysisResult);
@@ -525,7 +618,7 @@ export function TopicSimplifierForm() {
         });
 
         // PDF başarıyla yüklendikten sonra limit bilgisini güncelle
-        await checkUserLimit();
+        await checkUserLimit('pdf');
 
         const supabaseClient = createBrowserClient();
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -599,6 +692,26 @@ export function TopicSimplifierForm() {
   }, [pdfAnalysisResult, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Animasyon limiti kontrolü
+    const animationLimitCheck = await checkUserLimit('animation');
+    if (animationLimitCheck && !animationLimitCheck.canProcess) {
+      showLimitExceededModal(
+        animationLimitCheck.limitType, 
+        animationLimitCheck.currentUsage, 
+        animationLimitCheck.limit
+      );
+      return;
+    }
+
+    if (!user?.id) {
+      toast({
+        variant: 'destructive',
+        title: 'Giriş Gerekli',
+        description: 'Animasyon oluşturmak için giriş yapmalısınız.',
+      });
+      return;
+    }
+
     if (pdfAnalysisResult) {
     setLoading(true);
     setProjectLocked(true);
@@ -610,7 +723,7 @@ export function TopicSimplifierForm() {
     
     try {
       const { simplifyTopicGetScript } = await import('@/ai/flows/topic-simplifier');
-      const topicScript = await simplifyTopicGetScript({ topic: values.topic });
+      const topicScript = await simplifyTopicGetScript({ topic: values.topic, narrativeStyle: narrativeStyle });
       
       const { generateQa } = await import('@/ai/flows/generate-qa-flow');
       const quizResult = await generateQa({ pdfSummary: values.topic });
@@ -636,7 +749,7 @@ export function TopicSimplifierForm() {
         });
 
         // PDF başarıyla yüklendikten sonra limit bilgisini güncelle
-        await checkUserLimit();
+        await checkUserLimit('pdf');
 
         const supabaseClient = createBrowserClient();
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -664,16 +777,16 @@ export function TopicSimplifierForm() {
             body: JSON.stringify({ userId: user.id, type: 'animation' })
           }).catch(e => console.error('Usage increment request failed', e));
         }
-      } catch (error) {
-        console.error(error);
-        toast({
-          variant: 'destructive',
-          title: 'Bir hata oluştu.',
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Bir hata oluştu.',
           description: 'Animasyon oluşturma işlemi başarısız. Lütfen tekrar deneyin.',
-        });
-      } finally {
-        setLoading(false);
-      }
+      });
+    } finally {
+      setLoading(false);
+    }
       return;
     }
 
@@ -697,7 +810,7 @@ export function TopicSimplifierForm() {
     
     try {
       const { simplifyTopicGetScript } = await import('@/ai/flows/topic-simplifier');
-      const topicScript = await simplifyTopicGetScript({ topic: values.topic });
+      const topicScript = await simplifyTopicGetScript({ topic: values.topic, narrativeStyle: narrativeStyle });
 
       const { generateQa } = await import('@/ai/flows/generate-qa-flow');
       const quizResult = await generateQa({ pdfSummary: topicScript.summary });
@@ -731,7 +844,7 @@ export function TopicSimplifierForm() {
       });
 
       // PDF başarıyla yüklendikten sonra limit bilgisini güncelle
-      await checkUserLimit();
+      await checkUserLimit('pdf');
 
       const supabaseClient = createBrowserClient();
       const { data: { user } } = await supabaseClient.auth.getUser();
@@ -896,14 +1009,14 @@ export function TopicSimplifierForm() {
   };
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-md rounded-2xl">
       <CardHeader>
         <CardTitle className="font-headline flex items-center gap-2 text-gray-900">
           <Wand2 className="text-yellow-400" />
-          Öğrenme Sihirbazı
+          {t.topicSimplifier.title}
         </CardTitle>
         <CardDescription className="text-gray-700">
-          Herhangi bir konuyu yazın ya da PDF yükleyin, sihirli animasyonlara ve büyüleyici diyagramlara dönüştürelim! ✨
+          {t.topicSimplifier.description}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -922,8 +1035,8 @@ export function TopicSimplifierForm() {
                       onDrop={handleDropEvent}
                     >
                       <Textarea
-                        placeholder="örn: Fotosentez'i 5. sınıf öğrencisine açıkla veya sağ üstteki PDF ikonuna tıklayın 📄"
-                        className="resize-none h-28 pr-12"
+                        placeholder={t.topicSimplifier.placeholder}
+                        className="resize-none h-32 pr-12 rounded-xl border-2 border-purple-200/60 focus:border-orange-400 focus:ring-2 focus:ring-orange-300 bg-white/70 backdrop-blur-md placeholder:text-gray-400/80"
                         {...field}
                         disabled={pdfAnalyzing || projectLocked}
                       />
@@ -932,15 +1045,15 @@ export function TopicSimplifierForm() {
                         type="button"
                         onClick={handlePdfIconClick}
                         disabled={pdfAnalyzing || limitExceeded || projectLocked}
-                        className={`absolute top-3 right-3 p-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`absolute top-3 right-3 p-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 ${
                           limitExceeded ? 'text-red-400' : 'text-gray-600'
                         }`}
-                        title={limitExceeded ? 'PDF yükleme limiti aşıldı' : 'PDF yükle'}
+                        title={limitExceeded ? t.topicSimplifier.uploadLimitExceeded : t.topicSimplifier.uploadPdf}
                       >
                         {pdfAnalyzing ? (
-                          <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
+                          <Loader2 className="h-8 w-8 animate-spin" />
                         ) : (
-                          <File className="h-4 w-4 text-gray-600" />
+                          <PDFIcon className="h-8 w-8" />
                         )}
                       </button>
                       {/* Konu gönderme (Play) ikonu */}
@@ -948,8 +1061,8 @@ export function TopicSimplifierForm() {
                         <button
                           type="submit"
                           disabled={loading || (!form.watch('topic') && !pdfAnalysisResult) || projectLocked}
-                          className="absolute bottom-3 right-3 p-2 rounded-md bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-md disabled:opacity-40"
-                          title="Animasyon Oluştur"
+                          className="absolute bottom-3 right-3 p-2 rounded-md bg-orange-500 hover:bg-orange-600 text-white shadow-md disabled:opacity-40"
+                          title={t.topicSimplifier.generateAnimation}
                         >
                           {loading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -968,9 +1081,40 @@ export function TopicSimplifierForm() {
                     </div>
                   </FormControl>
                   <FormMessage />
+
+                  {/* Anlatım Tarzı Seçimi */}
+                  <div className="pt-2">
+                    <Label htmlFor="narrative-style" className="text-sm font-medium text-gray-800">Anlatım Tarzı</Label>
+                    <Select value={narrativeStyle} onValueChange={setNarrativeStyle}>
+                      <SelectTrigger
+                      id="narrative-style"
+                      className="w-full mt-1 border-2 border-gray-200 rounded-lg px-4 py-3 hover:border-purple-400 focus:ring-2 focus:ring-purple-500 shadow-sm transition-colors"
+                    >
+                        {currentNarrative ? (
+                          <div className="flex flex-col text-left">
+                            <span className="font-semibold">{currentNarrative.name}</span>
+                            <span className="text-xs text-muted-foreground">{currentNarrative.description}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Bir tarz seçin...</span>
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        {narrativeStyles.map(style => (
+                          <SelectItem key={style.id} value={style.id} className="p-3 hover:bg-purple-50">
+                            <div className="flex flex-col">
+                              <span className="font-semibold">{style.name}</span>
+                              <span className="text-xs text-muted-foreground">{style.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   {pdfFile && (
                     <div className="text-xs text-gray-700 font-medium mt-2">
-                      📄 Yüklenen dosya: {pdfFile.name}
+                      📄 {t.topicSimplifier.uploadedFile}: {pdfFile.name}
                     </div>
                   )}
                   
@@ -984,17 +1128,17 @@ export function TopicSimplifierForm() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1 font-medium">
                           <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
-                          <span>Aylık PDF Kullanımı</span>
+                          <span>{t.topicSimplifier.monthlyPdfUsage}</span>
                         </div>
                         <span className={`font-semibold ${limitExceeded ? 'text-red-600' : 'text-purple-600'}`}>{userPdfLimit.monthly_pdf_count}/{userPdfLimit.monthly_limit}</span>
                       </div>
                       {!limitExceeded && (
-                        <div className="w-full bg-gray-200/70 dark:bg-gray-700 rounded-full h-1 mt-2">
-                          <div
-                            className="h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                            style={{ width: `${Math.min((userPdfLimit.monthly_pdf_count / userPdfLimit.monthly_limit) * 100, 100)}%` }}
-                          ></div>
-                        </div>
+                          <div className="w-full bg-gray-200/70 dark:bg-gray-700 rounded-full h-1 mt-2">
+                            <div
+                              className="h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+                              style={{ width: `${Math.min((userPdfLimit.monthly_pdf_count / userPdfLimit.monthly_limit) * 100, 100)}%` }}
+                            ></div>
+                          </div>
                       )}
                     </div>
                   )}
