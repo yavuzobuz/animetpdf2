@@ -8,7 +8,8 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next') ?? '/tr/profil';
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
     try {
     const { error } = await supabase.auth.exchangeCodeForSession(code);

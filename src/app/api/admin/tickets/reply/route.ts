@@ -1,66 +1,84 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { addSupportTicketReply, getSupportTicketDetails } from '@/lib/database-support';
-import { sendSupportReply } from '@/lib/email';
+import { NextRequest, NextResponse } from 'next/server';
+import { createRouteClient } from '@/lib/supabase';
+import { sendEmail } from '@/lib/email';
 
-async function checkAdminAuth() {
-  const cookieStore = await cookies();
-  const adminSession = (cookieStore as any).get('admin-session');
-  return adminSession?.value === 'authenticated';
-}
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    if (!await checkAdminAuth()) {
-      return NextResponse.json({ error: 'Admin yetkisi gereklidir' }, { status: 401 });
+    const { ticketId, reply, userEmail, subject } = await request.json();
+
+    if (!ticketId || !reply || !userEmail || !subject) {
+      return NextResponse.json(
+        { error: 'Eksik parametreler' },
+        { status: 400 }
+      );
     }
 
-    const { ticketId, subject, message, adminId } = await request.json();
-    
-    if (!ticketId || !message) {
-      return NextResponse.json({ error: 'Eksik parametreler' }, { status: 400 });
+    const supabase = createRouteClient();
+
+    // Admin yetkisi kontrolü
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email || !user.email.endsWith('@admin.com')) {
+      return NextResponse.json(
+        { error: 'Yetkisiz erişim' },
+        { status: 401 }
+      );
     }
 
-    // Destek talebi detaylarını al
-    const ticketResult = await getSupportTicketDetails(ticketId);
-    if (!ticketResult.success || !ticketResult.data) {
-      return NextResponse.json({ error: ticketResult.error || 'Talep bulunamadı' }, { status: 404 });
+    // Ticket'i veritabanında güncelle (replied olarak işaretle)
+    const { error: updateError } = await supabase
+      .from('support_tickets')
+      .update({ 
+        status: 'replied',
+        admin_reply: reply,
+        replied_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+
+    if (updateError) {
+      console.error('Ticket güncelleme hatası:', updateError);
+      return NextResponse.json(
+        { error: 'Ticket güncellenemedi' },
+        { status: 500 }
+      );
     }
 
-    const ticket = ticketResult.data.ticket;
-
-    // Yanıtı veritabanına ekle
-    const replyResult = await addSupportTicketReply({
-      ticketId,
-      reply: message,
-      adminId: adminId || 'system'
-    });
-
-    if (!replyResult.success) {
-      return NextResponse.json({ error: replyResult.error }, { status: 500 });
-    }
-
-    // E-posta gönder
-    const emailResult = await sendSupportReply({
-      to: ticket.email,
-      subject: subject || 'Destek Talebinize Yanıt',
-      message,
-      ticketSubject: ticket.subject
-    });
-
-    if (!emailResult.success) {
-      return NextResponse.json({ 
-        warning: 'Yanıt kaydedildi ancak e-posta gönderilemedi',
-        error: emailResult.error 
-      }, { status: 207 });
+    // Email gönder
+    try {
+      await sendEmail({
+        to: userEmail,
+        subject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #7c3aed;">Destek Talebinize Yanıt</h2>
+            <p>Merhaba,</p>
+            <p>Destek talebinize yanıtımız:</p>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              ${reply.replace(/\n/g, '<br>')}
+            </div>
+            <p>İyi günler dileriz,<br>
+            <strong>AnimePDF Destek Ekibi</strong></p>
+            <hr style="margin: 30px 0;">
+            <p style="font-size: 12px; color: #666;">
+              Bu bir otomatik mesajdır. Lütfen bu mesaja yanıt vermeyin.
+            </p>
+          </div>
+        `
+      });
+    } catch (emailError) {
+      console.error('Email gönderme hatası:', emailError);
+      // Email hatası olsa bile işlemi başarılı sayıyoruz
     }
 
     return NextResponse.json({ 
-      success: true, 
-      message: 'Yanıt gönderildi' 
+      message: 'Yanıt başarıyla gönderildi',
+      success: true 
     });
+
   } catch (error) {
-    console.error('Admin tickets reply error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Ticket reply hatası:', error);
+    return NextResponse.json(
+      { error: 'Sunucu hatası' },
+      { status: 500 }
+    );
   }
-}
+} 

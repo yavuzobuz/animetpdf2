@@ -187,8 +187,12 @@ export function TopicSimplifierForm() {
   const { language } = useLanguage();
   const t = useT();
 
-  // PDF limit kontrolü için state'ler
-  const [userPdfLimit, setUserPdfLimit] = useState<{ monthly_pdf_count: number; monthly_limit: number } | null>(null);
+  // Kredi/limit kontrolü için state'ler
+  const [userCreditInfo, setUserCreditInfo] = useState<{
+    currentUsage: number;
+    limit: number;
+    limitType: string;
+  } | null>(null);
   const [limitExceeded, setLimitExceeded] = useState(false);
 
   const [diagramLoading, setDiagramLoading] = useState(false);
@@ -232,6 +236,8 @@ export function TopicSimplifierForm() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfAnalyzing, setPdfAnalyzing] = useState(false);
   const [pdfAnalysisResult, setPdfAnalysisResult] = useState<string | null>(null);
+  // Yeni eklenen state'ler
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Quiz states
@@ -369,7 +375,7 @@ export function TopicSimplifierForm() {
   };
 
   // Kullanıcı limitini kontrol et (PDF ve animasyon için)
-  const checkUserLimit = async (type: 'pdf' | 'animation' = 'pdf') => {
+  const checkUserLimit = async (type: 'pdf' | 'animation' = 'pdf'): Promise<any> => {
     try {
       const supabaseClient = createBrowserClient();
       const { data: { user } } = await supabaseClient.auth.getUser();
@@ -386,16 +392,14 @@ export function TopicSimplifierForm() {
         const limitCheck = await response.json();
         
         if (limitCheck && typeof limitCheck.canProcess !== 'undefined') {
-          if (type === 'pdf') {
-          setUserPdfLimit({
-            monthly_pdf_count: limitCheck.currentUsage,
-            monthly_limit: limitCheck.limit
+          setUserCreditInfo({
+            currentUsage: limitCheck.currentUsage,
+            limit: limitCheck.limit,
+            limitType: limitCheck.limitType || 'Kredi'
           });
           setLimitExceeded(!limitCheck.canProcess);
-        }
-          
           return limitCheck;
-      }
+        }
       }
       return null;
     } catch (error) {
@@ -405,7 +409,7 @@ export function TopicSimplifierForm() {
   };
 
   // Limit aşıldığında fiyatlandırma sayfasına yönlendir
-  const showLimitExceededModal = (limitType: string, currentUsage: number, limit: number) => {
+  const showLimitExceededModal = (limitType: string = 'Kredi', currentUsage: number, limit: number) => {
     const currentLang = language || 'tr';
     const isEnglish = currentLang === 'en';
     
@@ -453,7 +457,11 @@ export function TopicSimplifierForm() {
       
       try {
         const { generateSvg } = await import('@/ai/actions/generate-svg');
-        const svgCode = await generateSvg(frame.sceneDescription);
+
+        // Daha detaylı SVG için sahne açıklamasına ek bilgiler ekle
+        const svgPrompt = `${frame.sceneDescription}${frame.keyTopic ? `\nKavram: ${sanitizeKeyTopic(frame.keyTopic)}` : ''}${frame.frameSummary ? `\nAçıklama: ${frame.frameSummary}` : ''}`.trim();
+
+        const svgCode = await generateSvg(svgPrompt);
         
         const newVisual: Visual = { 
           description: frame.sceneDescription,
@@ -528,7 +536,7 @@ export function TopicSimplifierForm() {
 
     // Limit kontrolü
     if (limitExceeded) {
-      showLimitExceededModal('Kredi', userPdfLimit?.monthly_pdf_count || 0, userPdfLimit?.monthly_limit || 0);
+      showLimitExceededModal(userCreditInfo?.limitType, userCreditInfo?.currentUsage || 0, userCreditInfo?.limit || 0);
       return;
     }
 
@@ -554,13 +562,23 @@ export function TopicSimplifierForm() {
         reader.onload = () => {
           const result = reader.result as string;
           console.log('Base64 çevirme başarılı, uzunluk:', result.length);
+          setPdfBase64(result);
+          setPdfAnalyzing(false);
+          setProjectLocked(false);
+          toast({
+            title: 'PDF yüklendi',
+            description: 'Analiz için "PDF’yi Analiz Et" butonuna basın.',
+          });
           resolve(result);
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
 
-      console.log('AI analizi başlatılıyor...');
+      // AI analizi bu aşamada tetiklenmiyor. Kullanıcı butona bastığında startPdfAnalysis çağrılacak.
+      setPdfAnalyzing(false);
+      // base64 zaten kaydedildi
+      return;
       const { analyzePdf } = await import('@/ai/flows/analyze-pdf');
       const analysisResult = await analyzePdf({
         pdfDataUri: base64String,
@@ -633,17 +651,19 @@ export function TopicSimplifierForm() {
           .insert(insertPayload)
           .select('id')
           .single();
-        if (!insErr && insertData) {
-          setAnimationPageId(insertData.id);
-          await generateVisuals(scriptData, insertData.id);
+        const pageId = insertData?.id;
+        if (!insErr && pageId) {
+          setAnimationPageId(pageId);
+          await generateVisuals(scriptData, pageId);
         }
 
         // Kullanım sayacını artır
-        if (user?.id) {
+        const uid = user?.id;
+        if (uid) {
           fetch('/api/increment-usage', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, type: 'pdf' })
+            body: JSON.stringify({ userId: uid, type: 'pdf' })
           }).catch(e => console.error('Usage increment request failed', e));
         }
       } catch (scriptError) {
@@ -674,7 +694,33 @@ export function TopicSimplifierForm() {
     }
   };
 
-  const handlePdfIconClick = () => {
+    // PDF analizi fonksiyonu (form gönderiminden çağrılır)
+  const startPdfAnalysis = async (): Promise<string | null> => {
+    if (!pdfBase64) return null;
+    setPdfAnalyzing(true);
+    try {
+      const { analyzePdf } = await import('@/ai/flows/analyze-pdf');
+      const analysisResult = await analyzePdf({
+        pdfDataUri: pdfBase64,
+        narrativeStyle,
+      });
+      setPdfAnalysisResult(analysisResult.summary);
+      return analysisResult.summary;
+
+    } catch (error) {
+      console.error('PDF analiz hatası:', error);
+      toast({
+        variant: 'destructive',
+        title: 'PDF analiz hatası',
+        description: 'AI analizi başarısız oldu, lütfen tekrar deneyin.',
+      });
+      return null;
+    } finally {
+      setPdfAnalyzing(false);
+    }
+  };
+
+const handlePdfIconClick = () => {
     fileInputRef.current?.click();
   };
 
@@ -692,12 +738,21 @@ export function TopicSimplifierForm() {
   }, [pdfAnalysisResult, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // Animasyon limiti kontrolü
+    // --- Genel Kontroller ---
+    if (!pdfFile && values.topic.length < 10) {
+      toast({
+        variant: 'destructive',
+        title: 'Konu çok kısa',
+        description: 'Lütfen daha ayrıntılı bir konu girin (en az 10 karakter) veya PDF yükleyin.',
+      });
+      return;
+    }
+
     const animationLimitCheck = await checkUserLimit('animation');
     if (animationLimitCheck && !animationLimitCheck.canProcess) {
       showLimitExceededModal(
-        animationLimitCheck.limitType, 
-        animationLimitCheck.currentUsage, 
+        animationLimitCheck.limitType,
+        animationLimitCheck.currentUsage,
         animationLimitCheck.limit
       );
       return;
@@ -712,93 +767,6 @@ export function TopicSimplifierForm() {
       return;
     }
 
-    if (pdfAnalysisResult) {
-    setLoading(true);
-    setProjectLocked(true);
-    setScript(null);
-    setVisuals([]);
-    setDiagramResult(null);
-    setImageResults(null);
-      setSubmittedTopic(pdfAnalysisResult);
-    
-    try {
-      const { simplifyTopicGetScript } = await import('@/ai/flows/topic-simplifier');
-      const topicScript = await simplifyTopicGetScript({ topic: values.topic, narrativeStyle: narrativeStyle });
-      
-      const { generateQa } = await import('@/ai/flows/generate-qa-flow');
-      const quizResult = await generateQa({ pdfSummary: values.topic });
-      // Quiz verisi hemen gösterilmeyecek; sadece senaryo üretimi için kullanılıyor
-
-      const { generateAnimationScenario } = await import('@/ai/flows/generate-animation-scenario');
-      const scenarioResult = await generateAnimationScenario({
-        pdfSummary: values.topic,
-        qaPairs: quizResult.qaPairs,
-      });
-
-      const scriptData: AnimationScript = {
-        title: values.topic,
-        summary: topicScript.summary,
-        frames: scenarioResult.frames,
-      };
-      
-      setScript(scriptData);
-      
-      toast({
-        title: 'Başarılı!',
-          description: 'PDF analizi kullanılarak animasyon oluşturuldu.',
-        });
-
-        // PDF başarıyla yüklendikten sonra limit bilgisini güncelle
-        await checkUserLimit('pdf');
-
-        const supabaseClient = createBrowserClient();
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        const insertPayload = {
-          topic: values.topic,
-          script_summary: scriptData.summary,
-          scenes: scriptData.frames.map(f => f.sceneDescription),
-          user_id: user?.id ?? null,
-        };
-        const { data: insertData, error: insErr } = await supabaseClient
-          .from('animation_pages')
-          .insert(insertPayload)
-          .select('id')
-          .single();
-        if (!insErr && insertData) {
-          setAnimationPageId(insertData.id);
-          await generateVisuals(scriptData, insertData.id);
-        }
-
-        // PDF olmadan da animasyon oluşturulmuşsa kullanım sayacını artır (animation)
-        if (user?.id) {
-          fetch('/api/increment-usage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, type: 'animation' })
-          }).catch(e => console.error('Usage increment request failed', e));
-        }
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Bir hata oluştu.',
-          description: 'Animasyon oluşturma işlemi başarısız. Lütfen tekrar deneyin.',
-      });
-    } finally {
-      setLoading(false);
-    }
-      return;
-    }
-
-    if (values.topic.length < 10) {
-      toast({
-        variant: 'destructive',
-        title: 'Konu çok kısa',
-        description: 'Lütfen daha ayrıntılı bir konu girin (en az 10 karakter) veya PDF yükleyin.',
-      });
-      return;
-    }
-    
     setLoading(true);
     setProjectLocked(true);
     setScript(null);
@@ -806,15 +774,32 @@ export function TopicSimplifierForm() {
     setDiagramResult(null);
     setImageResults(null);
     setQuizData([]);
-    setSubmittedTopic(values.topic);
-    
+
+    let topicToProcess: string;
+
+    // --- PDF Akışı ---
+    if (pdfFile) {
+      const analysisResult = await startPdfAnalysis();
+      if (!analysisResult) {
+        setLoading(false);
+        setProjectLocked(false);
+        return; // Hata mesajı startPdfAnalysis içinde gösterildi
+      }
+      topicToProcess = analysisResult;
+    } else {
+      // --- Metin Akışı ---
+      topicToProcess = values.topic;
+    }
+
+    setSubmittedTopic(topicToProcess);
+
     try {
+      // --- Ortak AI Akışı ---
       const { simplifyTopicGetScript } = await import('@/ai/flows/topic-simplifier');
-      const topicScript = await simplifyTopicGetScript({ topic: values.topic, narrativeStyle: narrativeStyle });
+      const topicScript = await simplifyTopicGetScript({ topic: topicToProcess, narrativeStyle: narrativeStyle });
 
       const { generateQa } = await import('@/ai/flows/generate-qa-flow');
       const quizResult = await generateQa({ pdfSummary: topicScript.summary });
-      // Quiz verisi hemen gösterilmeyecek; sadece senaryo üretimi için kullanılıyor
 
       const { generateAnimationScenario } = await import('@/ai/flows/generate-animation-scenario');
       const scenarioResult = await generateAnimationScenario({
@@ -823,33 +808,23 @@ export function TopicSimplifierForm() {
       });
 
       const scriptData: AnimationScript = {
-        title: values.topic,
-        summary: topicScript.summary, // Use the generated summary
+        title: pdfFile ? pdfFile.name.replace('.pdf', '') : values.topic,
+        summary: topicScript.summary,
         frames: scenarioResult.frames,
       };
 
-      // Pass the full frame data to the visuals state
-      setVisuals(scenarioResult.frames.map(frame => ({
-        description: frame.sceneDescription,
-        keyTopic: sanitizeKeyTopic(frame.keyTopic),
-        frameSummary: frame.frameSummary,
-        svg: 'loading'
-      })));
-      
       setScript(scriptData);
-      
       toast({
         title: 'Başarılı!',
         description: 'Eğitici animasyon scripti oluşturuldu.',
       });
 
-      // PDF başarıyla yüklendikten sonra limit bilgisini güncelle
+      // --- Veritabanı ve Görselleştirme ---
       await checkUserLimit('pdf');
-
       const supabaseClient = createBrowserClient();
       const { data: { user } } = await supabaseClient.auth.getUser();
       const insertPayload = {
-        topic: values.topic,
+        topic: scriptData.title,
         script_summary: scriptData.summary,
         scenes: scriptData.frames.map(f => f.sceneDescription),
         user_id: user?.id ?? null,
@@ -859,16 +834,26 @@ export function TopicSimplifierForm() {
         .insert(insertPayload)
         .select('id')
         .single();
+
       if (!insErr && insertData) {
         setAnimationPageId(insertData.id);
         await generateVisuals(scriptData, insertData.id);
       }
+
+      if (user) {
+        fetch('/api/increment-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id, type: 'animation' })
+        }).catch(e => console.error('Usage increment request failed', e));
+      }
+
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
         title: 'Bir hata oluştu.',
-        description: 'Konu basitleştirme işlemi başarısız. Lütfen tekrar deneyin.',
+        description: 'Animasyon oluşturma işlemi başarısız. Lütfen tekrar deneyin.',
       });
     } finally {
       setLoading(false);
@@ -1057,30 +1042,29 @@ export function TopicSimplifierForm() {
                         )}
                       </button>
                       {/* Konu gönderme (Play) ikonu */}
-                      {!pdfFile && (
-                        <button
-                          type="submit"
-                          disabled={loading || (!form.watch('topic') && !pdfAnalysisResult) || projectLocked}
-                          className="absolute bottom-3 right-3 p-2 rounded-md bg-orange-500 hover:bg-orange-600 text-white shadow-md disabled:opacity-40"
-                          title={t.topicSimplifier.generateAnimation}
-                        >
-                          {loading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Play className="h-4 w-4" />
-                          )}
-                        </button>
-                      )}
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="absolute bottom-3 right-3 p-2 rounded-md bg-orange-500 hover:bg-orange-600 text-white shadow-md disabled:opacity-40"
+                        title={t.topicSimplifier.generateAnimation}
+                      >
+                        {loading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </button>
                       <Input
                         ref={fileInputRef}
                         type="file"
                         accept=".pdf"
                         onChange={handlePdfUpload}
+
                         className="hidden"
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  {!pdfFile && <FormMessage />}
 
                   {/* Anlatım Tarzı Seçimi */}
                   <div className="pt-2">
@@ -1118,25 +1102,27 @@ export function TopicSimplifierForm() {
                     </div>
                   )}
                   
-                  {/* PDF Limit Uyarısı */}
-                  {userPdfLimit && (
+                  {/* Kredi/Limit Uyarısı */}
+                  {userCreditInfo && (
                     <div className={`relative mt-3 rounded-xl border shadow-sm p-3 text-xs overflow-hidden ${
                         limitExceeded
                           ? 'border-red-300 bg-red-50/60 dark:bg-red-900/40'
                           : 'border-purple-300 bg-white/50 dark:bg-white/10'
-                      }`}>                      
+                      }`}>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1 font-medium">
-                          <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
-                          <span>{t.topicSimplifier.monthlyPdfUsage}</span>
+                          <GaugeCircle className="h-4 w-4 text-purple-500" />
+                          <span>{userCreditInfo.limitType} Kullanımı</span>
                         </div>
-                        <span className={`font-semibold ${limitExceeded ? 'text-red-600' : 'text-purple-600'}`}>{userPdfLimit.monthly_pdf_count}/{userPdfLimit.monthly_limit}</span>
+                        <span className={`font-semibold ${limitExceeded ? 'text-red-600' : 'text-purple-600'}`}>
+                          {userCreditInfo.currentUsage}/{userCreditInfo.limit}
+                        </span>
                       </div>
                       {!limitExceeded && (
                           <div className="w-full bg-gray-200/70 dark:bg-gray-700 rounded-full h-1 mt-2">
                             <div
                               className="h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                              style={{ width: `${Math.min((userPdfLimit.monthly_pdf_count / userPdfLimit.monthly_limit) * 100, 100)}%` }}
+                              style={{ width: `${Math.min((userCreditInfo.currentUsage / userCreditInfo.limit) * 100, 100)}%` }}
                             ></div>
                           </div>
                       )}
@@ -1153,13 +1139,13 @@ export function TopicSimplifierForm() {
           <>
             {/* Oluşturma Butonları */}
             <div className="mt-4 flex flex-wrap justify-center gap-4">
-              <Button onClick={handleGenerateDiagram} disabled={diagramLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+              <Button onClick={handleGenerateDiagram} disabled={diagramLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
                 <Network className="mr-2 h-4 w-4" /> Diyagram Oluştur
               </Button>
-              <Button onClick={handleGenerateImage} disabled={imageLoading || (!script?.frames && !script?.summary)} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+              <Button onClick={handleGenerateImage} disabled={imageLoading || (!script?.frames && !script?.summary)} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
                 <ImageIcon className="mr-2 h-4 w-4" /> Görsel Oluştur
               </Button>
-              <Button onClick={handleGenerateQuiz} disabled={quizLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+              <Button onClick={handleGenerateQuiz} disabled={quizLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
                 <HelpCircle className="mr-2 h-4 w-4" /> Mini Quiz
               </Button>
             </div>
@@ -1243,7 +1229,7 @@ export function TopicSimplifierForm() {
               <Dialog open={pdfChatOpen} onOpenChange={setPdfChatOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    className="block mx-auto px-6 h-10 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                    className="block mx-auto px-6 h-10 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     PDF ile Sohbet Et

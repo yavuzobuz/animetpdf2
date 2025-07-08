@@ -12,14 +12,14 @@ import { LogIn, Clapperboard, Twitter, Linkedin, Github, ArrowRight, Sparkles, L
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { loginUser } from '@/app/auth/actions';
 import { SubmitButton } from '@/components/custom/submit-button';
 import { useLanguage } from '@/contexts/language-context';
 import { useAuth } from '@/contexts/auth-context';
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge';
+import { createBrowserClient } from '@/lib/supabase';
 
 interface LoginPageProps {
-  params: Promise<{ lang: 'en' | 'tr' }>;
+  params: { lang: 'en' | 'tr' };
 }
 
 const pageUIText = {
@@ -73,7 +73,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-export default function LoginPage({ params: paramsPromise }: LoginPageProps) {
+export default function LoginPage({ params }: LoginPageProps) {
   const { language } = useLanguage();
   const urlParams = useParams();
   const currentLang = urlParams.lang as string || 'tr';
@@ -93,14 +93,47 @@ export default function LoginPage({ params: paramsPromise }: LoginPageProps) {
 
   const { toast } = useToast();
   const router = useRouter();
-  const { signInWithGoogle } = useAuth();
-  const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
-    const result = await loginUser(prevState, formData, currentLang);
-      if (result.type === 'success' && result.redirectPath) {
-      // Handle redirect
-      }
-      return result;
-  }, null);
+  const { user, signInWithGoogle } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const supabase = createBrowserClient();
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: uiText.toastErrorTitle,
+        description: error.message.includes('Invalid login credentials') 
+          ? 'E-posta veya şifre hatalı. Lütfen tekrar kontrol edin.'
+          : error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: uiText.toastSuccessTitle,
+        description: 'Giriş başarılı! Profilinize yönlendiriliyorsunuz...',
+      });
+      router.push(getLocalizedPath('/profil'));
+      router.refresh(); // Sayfayı yenileyerek auth state'in güncellenmesini sağla
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      router.replace(getLocalizedPath('/profil'));
+    }
+  }, [user, router, getLocalizedPath]);
 
   const handleGoogleLogin = async () => {
     try {
@@ -114,18 +147,9 @@ export default function LoginPage({ params: paramsPromise }: LoginPageProps) {
     }
   };
 
-  useEffect(() => {
-    if (state?.message) {
-      toast({
-        title: state.type === 'success' ? uiText.toastSuccessTitle : uiText.toastErrorTitle,
-        description: state.message,
-        variant: state.type === 'error' ? "destructive" : "default",
-      });
-      if (state.type === 'success' && state.redirectPath) {
-        router.push(state.redirectPath);
-      }
-    }
-  }, [state, toast, router, uiText, currentLang]);
+  if (user) {
+    return null; // Kullanıcı zaten giriş yapmışsa, bu sayfayı render etme
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -202,7 +226,7 @@ export default function LoginPage({ params: paramsPromise }: LoginPageProps) {
             </div>
 
               {/* Login Form */}
-            <form action={formAction} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-700 font-semibold">
                     {uiText.emailLabel}
@@ -244,14 +268,21 @@ export default function LoginPage({ params: paramsPromise }: LoginPageProps) {
                   </div>
               </div>
 
-              <SubmitButton
-                pendingText={uiText.submitPending}
-                  className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
               >
-                  <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
-                {uiText.submitButton}
-                  <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-              </SubmitButton>
+                {loading ? (
+                  <>{uiText.submitPending}</>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2 animate-pulse" />
+                    {uiText.submitButton}
+                    <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+                  </>
+                )}
+              </Button>
             </form>
 
               {/* Signup Link */}

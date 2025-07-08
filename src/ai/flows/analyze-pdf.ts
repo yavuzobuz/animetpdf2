@@ -30,7 +30,7 @@ const prompt = ai.definePrompt({
   prompt: `Sen, PDF dokümanlarını derinlemesine analiz eden, ancak çıktıyı bir ilkokul öğretmeninin sadeliği ve akıcılığında sunan UZMAN BİR EĞİTİMCİSİN. Aşağıdaki PDF içeriğini inceleyerek **öğretici, anlaşılır ve madde madde** bir özet oluştur.
 
 ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
-- **{{narrativeStyle, "Varsayılan"}}**: Eğer "Varsayılan" ise, standart, net ve bilgilendirici bir dil kullan.
+- **{{narrativeStyle}}**: Eğer "Varsayılan" ise, standart, net ve bilgilendirici bir dil kullan.
 - **Basit ve Anlaşılır**: Karmaşık terimlerden kaçın, konuyu en temel düzeyde, herkesin anlayabileceği bir dille açıkla.
 - **Akademik**: Resmi, kaynaklara dayalı, detaylı ve yapılandırılmış bir dil kullan.
 - **Teknik Derinlik**: Alan jargonunu ve teknik detayları yoğun bir şekilde kullanarak uzmanlara yönelik bir anlatım sun.

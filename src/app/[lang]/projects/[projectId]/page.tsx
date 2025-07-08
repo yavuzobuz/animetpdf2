@@ -7,12 +7,13 @@ import { createBrowserClient } from '@/lib/supabase';
 import { useParams } from 'next/navigation';
 import { ScenarioDisplay } from '@/components/custom/scenario-display';
 import { ReactFlowDiagram } from '@/components/custom/react-flow-diagram';
+import { AnimationPreview } from '@/components/custom/animation-preview';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Loader2, Network, Play, FileText, Eye, Workflow, GitFork } from 'lucide-react';
+import { Loader2, Network, Play, FileText, Eye, Workflow, GitFork, Pause, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -85,6 +86,76 @@ export default function ProjectDetailPage() {
   const [currentLang] = React.useState<'en' | 'tr'>(language || 'tr');
   const [loading, setLoading] = React.useState(true);
   const [project, setProject] = React.useState<any | null>(null);
+  
+  // Animasyon oynatma state'leri
+  const [currentFrameIndex, setCurrentFrameIndex] = React.useState(0);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
+
+  // Animasyon kontrol fonksiyonları
+  const togglePlayback = React.useCallback(() => {
+    setIsPlaying(prev => !prev);
+  }, []);
+
+  const goToFrame = React.useCallback((frameIndex: number) => {
+    if (project?.animation_scenario) {
+      const maxIndex = project.animation_scenario.length - 1;
+      setCurrentFrameIndex(Math.max(0, Math.min(frameIndex, maxIndex)));
+    }
+  }, [project?.animation_scenario]);
+
+  const nextFrame = React.useCallback(() => {
+    goToFrame(currentFrameIndex + 1);
+  }, [currentFrameIndex, goToFrame]);
+
+  const prevFrame = React.useCallback(() => {
+    goToFrame(currentFrameIndex - 1);
+  }, [currentFrameIndex, goToFrame]);
+
+  // Otomatik oynatma
+  React.useEffect(() => {
+    if (!isPlaying || !project?.animation_scenario) return;
+
+    const interval = setInterval(() => {
+      setCurrentFrameIndex(prev => {
+        const next = prev + 1;
+        if (next >= project.animation_scenario.length) {
+          setIsPlaying(false);
+          return 0; // Başa döner
+        }
+        return next;
+      });
+    }, 3000 / playbackSpeed); // 3 saniye per frame
+
+    return () => clearInterval(interval);
+  }, [isPlaying, playbackSpeed, project?.animation_scenario]);
+
+  // Klavye event listener'ları
+  React.useEffect(() => {
+    const handleGlobalEvents = (event: Event) => {
+      switch (event.type) {
+        case 'prevFrame':
+          prevFrame();
+          break;
+        case 'nextFrame':
+          nextFrame();
+          break;
+        case 'playPause':
+          togglePlayback();
+          break;
+      }
+    };
+
+    window.addEventListener('prevFrame', handleGlobalEvents);
+    window.addEventListener('nextFrame', handleGlobalEvents);
+    window.addEventListener('playPause', handleGlobalEvents);
+
+    return () => {
+      window.removeEventListener('prevFrame', handleGlobalEvents);
+      window.removeEventListener('nextFrame', handleGlobalEvents);
+      window.removeEventListener('playPause', handleGlobalEvents);
+    };
+  }, [prevFrame, nextFrame, togglePlayback]);
 
   React.useEffect(() => {
     const fetchProject = async () => {
@@ -358,8 +429,10 @@ export default function ProjectDetailPage() {
       </Card>
         )}
 
-            {/* Animasyon Sahneleri */}
+            {/* Animasyon Sahneleri - Sesli Oynatma ile */}
             {(project.animation_svgs && project.animation_svgs.length > 0) && (
+              <div className="space-y-6">
+                {/* Animasyon Oynatma Kontrolleri */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -367,31 +440,87 @@ export default function ProjectDetailPage() {
                     Eğitici Animasyon
                   </CardTitle>
                   <CardDescription>
-                    {project.animation_svgs.length} sahne animasyonu
+                      {project.animation_svgs.length} sahne animasyonu - Sesli oynatma destekli
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 text-gray-800">Animasyon Sahneleri</h3>
-                    <Carousel className="w-full max-w-4xl mx-auto" opts={{ loop: true }}>
-                      <CarouselContent>
-                        {project.animation_svgs.map((svgContent: string, idx: number) => (
-                          <CarouselItem key={idx} className="flex flex-col items-center text-center">
-                            <div className="p-2 border bg-muted rounded-lg shadow-inner w-full h-[500px] flex items-center justify-center overflow-hidden">
-                              <div className="w-full h-full flex items-center justify-center scale-95" dangerouslySetInnerHTML={{ __html: svgContent || '' }} />
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-2 px-2 text-center leading-tight">
-                              {project.animation_scenario?.[idx]?.keyTopic || project.animation_scenario?.[idx]?.frameSummary || `Sahne ${idx + 1}`}
-                            </p>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious />
-                      <CarouselNext />
-                    </Carousel>
+                  <CardContent className="space-y-4">
+                    {/* Oynatma Kontrolleri */}
+                    <div className="flex items-center justify-center gap-4 p-4 bg-muted/20 rounded-lg">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={prevFrame}
+                        disabled={currentFrameIndex === 0}
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={togglePlayback}
+                        className="min-w-[100px]"
+                      >
+                        {isPlaying ? (
+                          <>
+                            <Pause className="w-4 h-4 mr-2" />
+                            Durdur
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 mr-2" />
+                            Oynat
+                          </>
+                        )}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={nextFrame}
+                        disabled={currentFrameIndex >= project.animation_svgs.length - 1}
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                      
+                      <Badge variant="outline">
+                        {currentFrameIndex + 1} / {project.animation_svgs.length}
+                      </Badge>
                   </div>
                 </CardContent>
               </Card>
+
+                {/* AnimationPreview Component - Sesli Oynatma */}
+                <AnimationPreview
+                  sceneDescriptions={project.animation_scenario?.map((scene: any) => 
+                    typeof scene === 'string' ? scene : (scene.sceneDescription || scene.frameSummary || scene.keyTopic || `Sahne ${currentFrameIndex + 1}`)
+                  ) || project.animation_svgs.map((_: any, idx: number) => `Sahne ${idx + 1}`)}
+                  currentSceneDescription={
+                    project.animation_scenario?.[currentFrameIndex]?.sceneDescription || 
+                    project.animation_scenario?.[currentFrameIndex]?.frameSummary || 
+                    `Sahne ${currentFrameIndex + 1} açıklaması`
+                  }
+                  currentKeyTopic={
+                    project.animation_scenario?.[currentFrameIndex]?.keyTopic || 
+                    project.animation_scenario?.[currentFrameIndex]?.frameSummary || 
+                    project.animation_scenario?.[currentFrameIndex] ||
+                    `Bu kare hakkında: Sahne ${currentFrameIndex + 1} eğitici içeriği`
+                  }
+                  currentFrameSummary={
+                    project.animation_scenario?.[currentFrameIndex]?.frameSummary || 
+                    project.animation_scenario?.[currentFrameIndex]?.keyTopic ||
+                    project.animation_scenario?.[currentFrameIndex] ||
+                    `Sahne ${currentFrameIndex + 1} - Eğitici animasyon karesi`
+                  }
+                  storyboardImages={project.animation_svgs?.map((svgContent: string) => 
+                    `data:image/svg+xml;base64,${btoa(svgContent)}`
+                  ) || []}
+                  currentAudioUrl={null}
+                  currentFrameIndex={currentFrameIndex}
+                  isGeneratingInitialContent={false}
+                  isPlaying={isPlaying}
+                />
+              </div>
             )}
 
             {/* Animasyon Senaryo metni yedek */}

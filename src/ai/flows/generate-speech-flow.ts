@@ -107,13 +107,13 @@ const generateSpeechFlow = ai.defineFlow(
       };
     } catch (error) {
       console.error('Error calling Text-to-Speech API:', error);
-      console.warn('Speech generation failed, returning empty audio. Configure Google Cloud credentials for speech functionality.');
-      
-      // Return empty audio as fallback instead of throwing error
-      return {
-        audioDataUri: '',
-      };
+      console.error('Speech generation failed. Ensure Google Cloud credentials are configured correctly.');
+      // Re-throw the error to make it visible to the caller
+      throw new Error(
+        `Failed to generate speech. Please check server logs for details. Error: ${
+          (error as Error).message
+        }`
+      );
     }
   }
 );
-

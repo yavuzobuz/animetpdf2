@@ -474,10 +474,15 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
   try {
     const supabase = typeof window !== 'undefined' ? createBrowserClient() : createAdminClient();
     
-    // Kullanıcı profil bilgisini al
+    // Kullanıcı profil bilgisini al - plan bilgisi ile birlikte
     const { data: profile } = await supabase
       .from('profiles')
-      .select('created_at, current_plan_id, subscription_status')
+      .select(`
+        created_at, 
+        current_plan_id, 
+        subscription_status,
+        subscription_plans(name, display_name_tr, display_name_en)
+      `)
       .eq('id', userId)
       .single();
 
@@ -557,22 +562,49 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
     // Downloads toplamı (şimdilik 0, ileride tracking eklenebilir)
     const totalDownloads = 0;
 
-    // Plan limitlerini belirle – dinamik olarak subscription_plans tablosundan al
-    const plan = profile?.subscription_status || 'free';
-
+    // Plan adını belirle - önce join edilen data'dan, yoksa fallback
+    let planDisplayName = 'Free';
     let monthlyLimit = 5; // Varsayılan Free limiti
-    try {
-      const { data: planRow } = await supabase
-        .from('subscription_plans')
-        .select('monthly_pdf_limit')
-        .eq('name', plan.toLowerCase())
-        .single();
 
-      if (planRow && typeof planRow.monthly_pdf_limit === 'number') {
-        monthlyLimit = planRow.monthly_pdf_limit;
+    if (profile?.subscription_plans) {
+      // Plan bilgisi join edilebildi
+      const planData = profile.subscription_plans as any;
+      planDisplayName = planData.display_name_tr || planData.display_name_en || planData.name || 'Free';
+      
+      // Plan limitini de al
+      try {
+        const { data: planRow } = await supabase
+          .from('subscription_plans')
+          .select('monthly_pdf_limit')
+          .eq('id', profile.current_plan_id)
+          .single();
+
+        if (planRow && typeof planRow.monthly_pdf_limit === 'number') {
+          monthlyLimit = planRow.monthly_pdf_limit;
+        }
+      } catch (e) {
+        console.warn('Plan limit fetch failed, varsayılan limit kullanılacak', e);
       }
-    } catch (e) {
-      console.warn('Plan limit fetch failed, varsayılan limit kullanılacak', e);
+    } else {
+      // Fallback: subscription_status'dan plan adını al ve limit bul
+      const plan = profile?.subscription_status || 'free';
+      
+      try {
+        const { data: planRow } = await supabase
+          .from('subscription_plans')
+          .select('monthly_pdf_limit, display_name_tr, display_name_en, name')
+          .eq('name', plan.toLowerCase())
+          .single();
+
+        if (planRow) {
+          planDisplayName = planRow.display_name_tr || planRow.display_name_en || planRow.name || 'Free';
+          if (typeof planRow.monthly_pdf_limit === 'number') {
+            monthlyLimit = planRow.monthly_pdf_limit;
+          }
+        }
+      } catch (e) {
+        console.warn('Plan fetch failed, varsayılan değerler kullanılacak', e);
+      }
     }
 
     const userStats: UserStats = {
@@ -580,7 +612,7 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
       created_animations: animationCount || 0,
       total_downloads: totalDownloads,
       storage_used: Math.round(storageUsed / (1024 * 1024 * 1024) * 100) / 100, // GB cinsinden
-      plan: plan,
+      plan: planDisplayName,
       joinDate: profile?.created_at || new Date().toISOString(),
       nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       monthly_pdf_count: monthlyPdfCount,
