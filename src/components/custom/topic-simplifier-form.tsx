@@ -941,16 +941,8 @@ const handlePdfIconClick = () => {
   };
 
   const resetProject = () => {
-    setProjectLocked(false);
-    setPdfFile(null);
-    setPdfAnalysisResult(null);
-    setScript(null);
-    setVisuals([]);
-    setDiagramResult(null);
-    setImageResults(null);
-    setQuizData([]);
-    setSubmittedTopic('');
-    form.reset({ topic: '' });
+    // Sayfayı tamamen yenile (F5 gibi)
+    window.location.reload();
   };
 
   return (
