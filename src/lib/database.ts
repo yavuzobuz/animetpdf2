@@ -763,7 +763,10 @@ export async function checkUserPDFLimit(userId: string): Promise<{ success: bool
     }
 
     const limitValue = (typeof plan.monthly_pdf_limit === 'number' && plan.monthly_pdf_limit > 0) ? plan.monthly_pdf_limit : 5;
-    const currentUsage = usage.data?.pdfs_processed || 0;
+    // Birleştirilmiş kredi sistemi: PDF + Animasyon
+    const pdfUsage = usage.data?.pdfs_processed || 0;
+    const animationUsage = usage.data?.animations_created || 0;
+    const currentUsage = pdfUsage + animationUsage;
     const canProcess = currentUsage < limitValue;
 
     return {

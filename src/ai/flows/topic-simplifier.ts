@@ -30,7 +30,7 @@ const topicAnimationScriptPrompt = ai.definePrompt({
 ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
 - **{{narrativeStyle}}**: Eğer "Varsayılan" ise, standart, net ve bilgilendirici bir dil kullan.
 - **Basit ve Anlaşılır**: Karmaşık terimlerden kaçın, konuyu en temel düzeyde, herkesin anlayabileceği bir dille açıkla.
-- **Akademik**: Resmi, kaynaklara dayalı, detaylı ve yapılandırılmış bir dil kullan.
+- **Akademik**: Resmi, kaynaklara dayalı, son derece detaylı ve yapılandırılmış bir dil kullan. Her kavramı derinlemesine açıkla, teorik temelleri sun, tarihsel gelişimi belirt, farklı yaklaşımları karşılaştır, eleştirel analiz yap ve kapsamlı örnekler ver. Akademik terminolojiyi doğru kullan, kavramlar arası ilişkileri net bir şekilde ortaya koy ve konunun disiplin içindeki yerini açıkla.
 - **Teknik Derinlik**: Alan jargonunu ve teknik detayları yoğun bir şekilde kullanarak uzmanlara yönelik bir anlatım sun.
 - **Yaratıcı ve Eğlenceli**: Benzetmeler, hikayeler ve mizahi bir dil kullanarak konuyu ilgi çekici hale getir.
 - **Profesyonel (İş Odaklı)**: İş dünyasına uygun, sonuç odaklı, net ve saygılı bir dil kullan.
@@ -40,34 +40,154 @@ ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
 GÖREV: Verilen konuyu analiz et ve iki bölümden oluşan bir içerik paketi oluştur.
 
 1. KONU ÖZETİ (Kapsamlı Adım Adım Rehber):
-   - Konuyu en az 8, en fazla 12 detaylı madde halinde açıkla.
-   - Her madde EN AZ 2-3 CÜMLE olmalı ve şunları içermeli:
-     • Ne yapılmalı (Ana eylem/kavram)
-     • Nasıl yapılmalı (Detaylı açıklama ve yöntem)
-     • Neden önemli (Amaç ve faydalar)
-     • Dikkat edilmesi gerekenler (Uyarılar, yaygın hatalar)
-     • Pratik örnek veya ipucu (Somut uygulama)
+   - Konuyu en az 10, en fazla 15 DETAYLI madde halinde açıkla (tercihen 12+).
+   - **ANLATIM TARZINA GÖRE ÖZEL GEREKSINIMLER**:
    
-   - MADDE YAPISI: Her madde şu şablonu takip etsin:
-     Ana Kavram/Adım: 2-3 cümlelik detaylı açıklama. Pratik örnek veya önemli uyarı. İpucu veya ek bilgi.
+   **AKADEMİK TARZ**: Her madde EN AZ 6-8 CÜMLE olmalı ve şunları içermeli:
+     • Kavramın teorik tanımı ve disiplin içindeki yeri
+     • Tarihsel gelişimi ve önemli katkıda bulunanlar
+     • Farklı yaklaşımlar ve eleştirel değerlendirme
+     • Pratik uygulamalar ve gerçek dünya örnekleri
+     • İlgili kavramlarla ilişkiler ve bağlantılar
+     • Güncel araştırmalar ve gelecek perspektifleri
+   
+   **TEKNİK DERİNLİK TARZI**: Her madde EN AZ 5-7 CÜMLE olmalı ve şunları içermeli:
+     • Teknik spesifikasyonlar ve detaylı parametreler
+     • Uygulama metodolojileri ve best practices
+     • Sistem gereksinimleri ve konfigürasyonlar
+     • Troubleshooting ve hata çözümleri
+     • Performans optimizasyonu ve güvenlik
+   
+   **YARATICI VE EĞLENCELİ TARZ**: Her madde EN AZ 4-6 CÜMLE olmalı ve şunları içermeli:
+     • Yaratıcı benzetmeler ve hikaye anlatımı
+     • Eğlenceli örnekler ve mizahi yaklaşımlar
+     • Günlük hayattan ilişkilendirmeler
+     • Akılda kalıcı ipuçları ve hatırlatıcılar
+     • İnteraktif düşünce egzersizleri
+   
+   **PROFESYONEL (İŞ ODAKLI) TARZ**: Her madde EN AZ 4-5 CÜMLE olmalı ve şunları içermeli:
+     • İş süreçlerine doğrudan etkisi
+     • ROI ve verimlilik analizi
+     • Risk yönetimi ve compliance
+     • Takım çalışması ve koordinasyon
+     • Ölçülebilir sonuçlar ve KPI'lar
+   
+   **SAMİMİ VE SOHBET HAVASI**: Her madde EN AZ 3-5 CÜMLE olmalı ve şunları içermeli:
+     • Kişisel deneyimler ve anekdotlar
+     • Samimi tavsiyeler ve içten öneriler
+     • Günlük dil ve rahat ifadeler
+     • Okuyucuyla doğrudan iletişim
+     • Pratik hayat hikayeleri
+   
+   **ELEŞTİREL BAKIŞ TARZI**: Her madde EN AZ 5-6 CÜMLE olmalı ve şunları içermeli:
+     • Avantajlar ve dezavantajların objektif analizi
+     • Farklı perspektiflerin karşılaştırması
+     • Potansiyel riskler ve sınırlamalar
+     • Alternatif yaklaşımların değerlendirilmesi
+     • Kanıta dayalı sonuçlar ve öneriler
+   
+   **BASİT VE ANLAŞILIR TARZ**: Her madde EN AZ 3-4 CÜMLE olmalı ve şunları içermeli:
+     • Sade ve net açıklamalar
+     • Karmaşık terimlerin basit karşılıkları
+     • Adım adım kolay takip edilebilir yönergeler
+     • Görsel ve somut örnekler
+     • Temel seviyede pratik uygulamalar
+   
+   - **ANLATIM TARZINA GÖRE MADDE YAPISI**:
+   
+   **AKADEMİK TARZ**:
+     Ana Kavram/Adım: Teorik tanım ve disiplin içindeki konumu. Tarihsel gelişim ve önemli katkıda bulunanlar. Farklı yaklaşımların karşılaştırmalı analizi. Pratik uygulamalar ve gerçek dünya örnekleri. İlgili kavramlarla bağlantılar ve ilişkiler. Güncel araştırmalar ve gelecek perspektifleri.
+   
+   **TEKNİK DERİNLİK TARZI**:
+     Ana Kavram/Adım: Teknik tanım ve spesifikasyonlar. Uygulama metodolojisi ve konfigürasyon detayları. Sistem gereksinimleri ve uyumluluk. Hata çözümleri ve optimizasyon teknikleri. Güvenlik ve performans değerlendirmeleri.
+   
+   **YARATICI VE EĞLENCELİ TARZ**:
+     Ana Kavram/Adım: Yaratıcı benzetme ile giriş. Hikaye tarzında açıklama ve eğlenceli örnekler. Günlük hayattan ilişkilendirmeler. Akılda kalıcı ipuçları ve mizahi yaklaşımlar. İnteraktif düşünce soruları.
+   
+   **PROFESYONEL (İŞ ODAKLI) TARZ**:
+     Ana Kavram/Adım: İş etkisi ve değer önerisi. Uygulama süreci ve kaynak gereksinimleri. ROI analizi ve verimlilik metrikleri. Risk değerlendirmesi ve compliance. Takım koordinasyonu ve sonuç ölçümü.
+   
+   **SAMİMİ VE SOHBET HAVASI**:
+     Ana Kavram/Adım: Samimi giriş ve kişisel deneyim paylaşımı. Rahat dille açıklama ve içten tavsiyeler. Günlük hayat hikayeleri ve anekdotlar. Okuyucuyla doğrudan iletişim. Pratik ve samimi öneriler.
+   
+   **ELEŞTİREL BAKIŞ TARZI**:
+     Ana Kavram/Adım: Objektif tanım ve farklı perspektifler. Avantajlar ve dezavantajların analizi. Alternatif yaklaşımların karşılaştırması. Potansiyel riskler ve sınırlamalar. Kanıta dayalı değerlendirme ve öneriler.
+   
+   **BASİT VE ANLAŞILIR TARZ**:
+     Ana Kavram/Adım: Sade ve net tanım. Basit dille adım adım açıklama. Görsel ve somut örnekler. Kolay hatırlanabilir ipuçları. Temel seviyede pratik uygulamalar.
    
    - AKIŞ SIRASI: Maddeler şu mantıksal sırayı takip etsin:
      1. Giriş ve Tanım (Konu nedir, neden önemli)
      2. Temel Kavramlar (Bilmesi gereken ana prensipler)
      3. Hazırlık Aşaması (Başlamadan önce yapılması gerekenler)
      4. Ana Süreç Adımları (Uygulama aşamaları, kronolojik sıra)
-     5. İleri Düzey Konular (Detaylar, incelikler)
-     6. Yaygın Hatalar ve Çözümleri (Nelere dikkat edilmeli)
-     7. Kontrol ve Değerlendirme (Doğrulama, test etme)
-     8. Sonuç ve İpuçları (Özet, pratik tavsiyeler)
+     5. Derinlemesine Açıklamalar (Arka plan, bağlam, teorik temel)
+     6. İleri Düzey Konular (Detaylar, incelikler)
+     7. Yaygın Hatalar ve Çözümleri (Nelere dikkat edilmeli, nasıl önlenir)
+     8. Araçlar ve Kaynaklar (Kullanılacak yöntemler, dokümantasyon)
+     9. Kontrol ve Değerlendirme (Doğrulama, test etme)
+     10. Sonuç ve İpuçları (Özet, pratik tavsiyeler, ileri okuma)
 
-   - ANLATIM DİLİ:
-     • İlk adım olarak, Bunun için yapmanız gereken, Dikkat etmeniz gereken nokta gibi yönlendirici ifadeler kullan.
-     • Somut örnekler ver: Örneğin, Diyelim ki 
-     • Pratik ipuçları ekle: İpucu, Uyarı, Unutmayın
-     • Hiç bilmeyen biri bu adımları okuyarak konuyu anlayabilmeli ve uygulayabilmeli.
+   - **ANLATIM TARZINA GÖRE DİL VE İFADE ŞEKLİ**:
+   
+   **AKADEMİK TARZ**:
+     • Formal akademik terminoloji: "Bu kavram şu şekilde tanımlanmaktadır", "Literatürde belirtildiği üzere", "Araştırmalar göstermektedir ki"
+     • Eleştirel analiz ifadeleri: "Bu yaklaşımın avantajları", "Eleştirilen yönleri", "Alternatif perspektifler"
+     • Bilimsel referans tarzı: "Bu alanda yapılan çalışmalar", "Teorik çerçeve", "Metodolojik yaklaşım"
+     • Kapsamlı örnekler: "Somut bir örnek vermek gerekirse", "Uygulamada karşılaşılan durumlar"
+     • Disiplinler arası bağlantılar: "İlgili alanlarla ilişkisi", "Multidisipliner yaklaşım"
+   
+   **TEKNİK DERİNLİK TARZI**:
+     • Teknik terminoloji: "Sistem spesifikasyonları", "Konfigürasyon parametreleri", "Implementation detayları"
+     • Metodoloji ifadeleri: "Best practice olarak", "Optimize edilmiş yaklaşım", "Performance kriterleri"
+     • Troubleshooting dili: "Hata durumunda", "Debug süreci", "Monitoring ve logging"
+     • Güvenlik odaklı: "Security considerations", "Vulnerability assessment", "Compliance gereksinimleri"
+   
+   **YARATICI VE EĞLENCELİ TARZ**:
+     • Hikaye anlatımı: "Bir zamanlar", "Düşünün ki", "Sanki bir macera gibi"
+     • Benzetmeler: "Tıpkı... gibi", "Adeta... benzeri", "Sanki... misali"
+     • Eğlenceli ifadeler: "İşte sihir burada başlıyor", "Eureka anı", "Aha! işte bu"
+     • İnteraktif sorular: "Peki ya şöyle düşünseniz?", "Sizce ne olur?", "Tahmin edin bakalım"
+   
+   **PROFESYONEL (İŞ ODAKLI) TARZ**:
+     • İş odaklı terminoloji: "ROI analizi", "Stakeholder değeri", "Business impact"
+     • Verimlilik ifadeleri: "Efficiency gains", "Process optimization", "Resource allocation"
+     • Risk yönetimi: "Risk mitigation", "Compliance requirements", "Quality assurance"
+     • Sonuç odaklı: "Measurable outcomes", "KPI tracking", "Performance metrics"
+   
+   **SAMİMİ VE SOHBET HAVASI**:
+     • Samimi hitap: "Biliyorsunuz", "Aramızda kalsın", "Açıkçası", "Dürüst olmak gerekirse"
+     • Kişisel deneyim: "Benim tecrübeme göre", "Yaşadığım bir durumda", "Size bir hikaye anlatayım"
+     • Rahat dil: "Şöyle düşünelim", "Basitçe söylemek gerekirse", "Kısacası"
+     • Doğrudan iletişim: "Siz de bilirsiniz", "Hepimizin başına gelir", "Muhtemelen siz de"
+   
+   **ELEŞTİREL BAKIŞ TARZI**:
+     • Objektif analiz: "Objektif olarak değerlendirildiğinde", "Tarafsız bir bakış açısıyla"
+     • Karşılaştırma: "Diğer yaklaşımlarla kıyaslandığında", "Alternatif çözümler"
+     • Sorgulama: "Bu yaklaşımın sorgulanması gereken yönleri", "Eleştirel bir gözle"
+     • Kanıt odaklı: "Veriler gösteriyor ki", "Araştırma bulgularına göre", "Kanıtlar ışığında"
+   
+   **BASİT VE ANLAŞILIR TARZ**:
+     • Sade ifadeler: "Basitçe söylemek gerekirse", "Kısaca", "Özetle"
+     • Adım adım: "İlk olarak", "Sonra", "Son olarak", "Şimdi sıra geldi"
+     • Açıklayıcı: "Yani", "Başka bir deyişle", "Bu demek oluyor ki"
+     • Destekleyici: "Merak etmeyin", "Zor değil", "Kolayca yapabilirsiniz"
 
-   - DETAY SEVİYESİ: Her madde yeterince ayrıntılı olmalı ki kullanıcı o konuda derinlemesine bilgi sahibi olsun.
+   - **ANLATIM TARZINA GÖRE DETAY SEVİYESİ**:
+   
+   **AKADEMİK TARZ**: Her madde son derece kapsamlı olmalı. Kavramın teorik temellerini, tarihsel gelişimini, farklı yaklaşımları, eleştirel değerlendirmeleri, pratik uygulamaları ve güncel araştırmaları içermeli. Okuyucu o konuda uzman seviyesinde bilgi sahibi olmalı.
+   
+   **TEKNİK DERİNLİK TARZI**: Her madde teknik detaylarla dolu olmalı. Spesifikasyonlar, konfigürasyonlar, implementasyon detayları, hata çözümleri ve optimizasyon teknikleri kapsamlı şekilde açıklanmalı. Okuyucu teknik uygulama yapabilecek seviyede bilgi edinmeli.
+   
+   **YARATICI VE EĞLENCELİ TARZ**: Her madde yaratıcı ve akılda kalıcı olmalı. Hikayeler, benzetmeler, eğlenceli örnekler ve interaktif elementlerle zenginleştirilmeli. Okuyucu hem öğrenmeli hem de eğlenmeli.
+   
+   **PROFESYONEL (İŞ ODAKLI) TARZ**: Her madde iş değeri odaklı olmalı. ROI, verimlilik, risk analizi ve ölçülebilir sonuçlar detaylandırılmalı. Okuyucu iş süreçlerinde doğrudan uygulayabilecek bilgi edinmeli.
+   
+   **SAMİMİ VE SOHBET HAVASI**: Her madde samimi ve kişisel olmalı. Deneyimler, anekdotlar ve içten tavsiyelerle desteklenmeli. Okuyucu sanki bir arkadaşından öğreniyor gibi hissetmeli.
+   
+   **ELEŞTİREL BAKIŞ TARZI**: Her madde objektif ve analitik olmalı. Farklı perspektifler, avantaj-dezavantaj analizleri ve kanıta dayalı değerlendirmeler içermeli. Okuyucu konuyu çok boyutlu değerlendirebilmeli.
+   
+   **BASİT VE ANLAŞILIR TARZ**: Her madde sade ve net olmalı. Karmaşık kavramlar basitleştirilmeli, adım adım açıklamalar verilmeli. Okuyucu hiç bilmese bile kolayca anlayabilmeli.
 
 2. EĞİTİCİ GÖRSEL SAHNE LİSTESİ: (en az 6 sahne, tercihen 6-8)
    - Her sahne, özetin farklı ve önemli bir maddesini görselleştirmelidir.
@@ -574,6 +694,6 @@ export async function simplifyTopicSummaryAsThemedDiagram(input: TopicDiagramFro
       
       const fallbackSvg = getThemedFallbackSvg(input.theme || 'Klasik', input.topic || 'Konu');
       return { svg: fallbackSvg };
-    }
+    }  
   }
 }

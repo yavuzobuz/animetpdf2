@@ -26,7 +26,7 @@ export type GenerateAnimationScenarioInput = z.infer<
 >;
 
 const AnimationFrameSchema = z.object({
-  sceneDescription: z.string().describe('Sahnenin Türkçe dilinde detaylı açıklaması. MUTLAKA EDİTİM DİYAGRAMI tarzında somutlaştırma ve metaforlar kullanın. Hukuki/teknik kavramları görsel sembollerle açıklayın: mülkiyet=ev simgesi, taraflar=renkli daireler, süreçler=ok bağlantıları, bölüşüm=dallanma, anlaşma=puzzle parçaları. Geometrik şekiller, çizgiler ve simgelerle eğitici diyagram tarzında betimleyin.'),
+  sceneDescription: z.string().describe('Sahnenin Türkçe dilinde detaylı açıklaması. Konuyu DOĞRUDAN ve BÂĞLAMSALolarak betimleyin. Gereksiz metaforlardan kaçının. Hukuki/teknik kavramları önce gerçek terimleriyle açıklayın, sadece gerektiğinde basit görsel örnekler verin. Konunun özgün bağlamını ve terminolojisini koruyun.'),
   keyTopic: z.string().describe('Bu sahnenin içeriğini açıklayan, eğitici ve özetleyici bir metin. Bu metin, ilgili quiz sorusunun açıklamasından alınmalıdır.'),
   frameSummary: z.string().describe('Bu sahnenin ana mesajını ve içeriğini kullanıcıya doğrudan anlatan, en az 3-4 cümlelik, detaylı ve eğitici bir metin. Bu metin, karmaşık konuları basitleştirerek herkesin anlayabileceği bir dilde açıklamalıdır. Örneğin: "İzale-i şuyu, birden fazla kişinin sahip olduğu bir malın (örneğin bir arsa veya bina) mahkeme kararıyla satılarak veya bölünerek ortaklığın sonlandırılmasıdır. Bu dava, ortaklar arasında anlaşma sağlanamadığında mülkiyetin netleştirilmesi için önemli bir hukuki yoldur."')
 });
@@ -49,14 +49,25 @@ const prompt = ai.definePrompt({
   name: 'generateAnimationScenarioPrompt',
   input: {schema: GenerateAnimationScenarioInputSchema},
   output: {schema: GenerateAnimationScenarioOutputSchema},
-  prompt: `You are an expert scenario writer for animated educational videos. Your task is to create a structured animation script IN TURKISH based on the provided PDF summary and Q&A pairs.
+  prompt: `You are an expert scenario writer for animated educational videos. Your task is to create a structured animation script IN TURKISH that PRESERVES THE ORIGINAL CONTEXT and terminology of the content.
 
-IMPORTANT GOAL ➜ For each Q&A pair provided, create exactly ONE animation frame. The number of frames must match the number of Q&A pairs.
+IMPORTANT PRINCIPLES:
+- PRESERVE the original context and terminology of the subject matter
+- Use metaphors ONLY when absolutely necessary for clarity
+- Focus on DIRECT explanation rather than symbolic representation
+- Maintain the authentic vocabulary and concepts of the field
+- Avoid excessive symbolism that disconnects from the real topic
 
 Each frame object MUST contain ONLY these fields:
-- sceneDescription: A detailed scene description in Turkish. It MUST use personification and metaphors (at least 2) to visualize the concept from the quiz question. Use an educational diagram style to explain abstract concepts.
+- sceneDescription: A detailed scene description in Turkish that DIRECTLY represents the concept. Use the actual terminology and context. Only use simple visual aids when the concept is genuinely difficult to understand.
 - keyTopic: This will be populated later, you can leave it empty.
-- frameSummary: A detailed and educational text of at least 3-4 sentences that directly explains the main message and content of the scene to the user. It should simplify complex topics for everyone to understand. Use the question and its explanation to generate this summary.
+- frameSummary: A detailed and educational text that explains the concept using its REAL terminology and context.
+
+Visual Approach - Use CONTEXTUAL representations:
+- Legal concepts → Real legal symbols, court procedures, actual legal documents
+- Technical processes → Actual technical diagrams, real workflow representations
+- Business concepts → Real business structures, authentic organizational charts
+- Educational content → Direct subject matter representation
 
 Abstract concepts should be personified in an EDUCATIONAL DIAGRAM style. Use these metaphors as a REFERENCE:
 - Property/Ownership → house icon, building icon
@@ -108,11 +119,15 @@ const generateAnimationScenarioFlow = ai.defineFlow(
           // frameSummary: `${qaPair.question}\n\n${frame.frameSummary}`
         };
       }
-      // Fallback for safety, though it shouldn't be reached
+      // Fallback: QA çifti yoksa, sahne açıklamasından keyTopic oluştur
+      const fallbackKeyTopic = frame.sceneDescription 
+        ? `${frame.sceneDescription.split('.')[0]}.` // İlk cümleyi al
+        : `Sahne ${index + 1} - Konu Açıklaması`;
+      
       return {
         ...frame,
-        keyTopic: "Açıklama bulunamadı.",
-        frameSummary: frame.frameSummary || "Özet bulunamadı.",
+        keyTopic: fallbackKeyTopic,
+        frameSummary: frame.frameSummary || `Bu sahne ${index + 1}. konuyu ele almaktadır. ${frame.sceneDescription || 'Detaylı açıklama mevcut değil.'}`
       };
     });
 

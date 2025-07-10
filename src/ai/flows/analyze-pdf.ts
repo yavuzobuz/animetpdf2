@@ -39,7 +39,80 @@ ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
 - **Samimi ve Sohbet Havasında**: Daha kişisel ve rahat bir tonla, okuyucuyla sohbet ediyormuş gibi yaz.
 - **Eleştirel Bakış**: Konunun farklı yönlerini sorgulayan, avantajları ve dezavantajları objektif bir şekilde sunan bir yaklaşım sergile.
 
-📝 **İstediğim Çıktı Biçimi**
+**MUTLAK UZUNLUK GEREKSİNİMLERİ:**
+
+📝 **İstediğim Çıktı Biçimi - ZORUNLU KURALLAR**
+• EN AZ **35-40** ayrı madde (20 değil!)
+• Her madde **EN AZ 4-6 CÜMLE** olacak şekilde (1-2 değil!)
+• Her madde **EN AZ 80-120 KELİME** içermeli
+• TOPLAM METİN UZUNLUĞU: **EN AZ 2500 KELİME**
+• Maddeler "• " (madde imi) ile başlasın
+• Her madde arasında **boş satır (\n\n)** bırak
+
+**ANLATIM TARZINA GÖRE DETAYLANDIRMA:**
+
+- **Akademik Tarz:**
+  • Her madde EN AZ 5-7 cümle, 120-150 kelime
+  • Teorik çerçeveleri açıkla
+  • Metodolojik yaklaşımları belirt
+  • Eleştirel değerlendirmeler ekle
+  • "Araştırmalar göstermektedir", "Literatürde" ifadeleri kullan
+  • EN AZ 40 madde oluştur
+
+- **Teknik Derinlik:**
+  • Her madde EN AZ 5-6 cümle, 100-130 kelime
+  • Teknik spesifikasyonları detaylandır
+  • Implementation detaylarını ver
+  • Sistem mimarisi açıklamalarını dahil et
+  • "Teknik açıdan", "Implementation olarak" ifadeleri kullan
+  • EN AZ 38 madde oluştur
+
+- **Yaratıcı ve Eğlenceli:**
+  • Her madde EN AZ 4-5 cümle, 90-110 kelime
+  • Hikaye tarzında anlat
+  • Metaforlar ve benzetmeler kullan
+  • Karakterizasyon yap
+  • "Hayal edin", "Sanki" ifadeleri kullan
+  • EN AZ 35 madde oluştur
+
+- **Profesyonel (İş Odaklı):**
+  • Her madde EN AZ 4-6 cümle, 100-120 kelime
+  • İş perspektifinden açıkla
+  • ROI ve verimlilik odaklı yaklaş
+  • Stratejik değerlendirmeler yap
+  • "İş açısından", "Operasyonel olarak" ifadeleri kullan
+  • EN AZ 37 madde oluştur
+
+- **Basit ve Anlaşılır:**
+  • Her madde EN AZ 3-4 cümle, 70-90 kelime
+  • Basit dilde açıkla
+  • Günlük hayattan örnekler ver
+  • "Yani", "Kısacası" ifadeleri kullan
+  • EN AZ 35 madde oluştur
+
+- **Samimi ve Sohbet:**
+  • Her madde EN AZ 3-5 cümle, 80-100 kelime
+  • Samimi dilde açıkla
+  • Kişisel deneyimler paylaş
+  • "Biliyor musun", "Aslında" ifadeleri kullan
+  • EN AZ 35 madde oluştur
+
+- **Eleştirel Bakış:**
+  • Her madde EN AZ 5-6 cümle, 110-140 kelime
+  • Çok perspektifli açıkla
+  • Avantaj ve dezavantajları sun
+  • Alternatif yaklaşımları karşılaştır
+  • "Öte yandan", "Ancak" ifadeleri kullan
+  • EN AZ 38 madde oluştur
+
+**KONTROL LİSTESİ - MUTLAKA KONTROL ET:**
+✓ Madde sayısı yeterli mi? (35+ olmalı)
+✓ Her madde yeterince uzun mu? (4+ cümle)
+✓ Toplam kelime sayısı 2500+ mı?
+✓ Anlatım tarzına uygun mu?
+✓ Detaylı açıklamalar var mı?
+
+**UYARI: Bu kurallara uymayan çıktılar KABUL EDİLMEZ!**
 • En az **20** ayrı madde (gerekiyorsa daha fazla)
 • Her madde **1-2 cümle** olacak şekilde, konunun farklı yönlerini kapsasın.
 • Maddeler "• " (madde imi) ile başlasın ve ardından boşluk gelsin.

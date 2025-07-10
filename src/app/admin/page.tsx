@@ -175,16 +175,7 @@ export default function AdminDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Projeler</CardTitle>
-                <FileText className="h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalProjects}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Animasyonlar</CardTitle>
+                <CardTitle className="text-sm font-medium">Oluşturulan Animasyon</CardTitle>
                 <Play className="h-4 w-4" />
               </CardHeader>
               <CardContent>
@@ -231,7 +222,15 @@ export default function AdminDashboard() {
                   <TableBody>
                     {users.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="link" 
+                            className="p-0" 
+                            onClick={() => router.push(`/admin/users/${user.id}`)}
+                          >
+                            {user.email}
+                          </Button>
+                        </TableCell>
                         <TableCell>
                           <Badge>{user.plan_name}</Badge>
                         </TableCell>

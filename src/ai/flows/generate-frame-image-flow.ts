@@ -54,26 +54,22 @@ const generateFrameImageFlow = ai.defineFlow(
       styleInstruction = `Visual Style: Clean, vibrant, suitable for an explanatory animation.`;
     }
 
-    const promptText = `Create an educational diagram-style animation frame with STRONG EMPHASIS on metaphors and concrete visualizations. CRUCIAL INSTRUCTIONS: 
+    const promptText = `Create an educational diagram that DIRECTLY represents the subject matter while maintaining its original context and terminology. CRUCIAL INSTRUCTIONS: 
     1. The image MUST be purely visual - NO text, letters, words, numbers, or writing.
-    2. Use EDUCATIONAL DIAGRAM style with:
-       - Simple geometric shapes (circles, rectangles, triangles)
-       - Clear connecting lines and arrows showing relationships
-       - Bright, contrasting colors on dark background for clarity
-       - Clean, minimalist design like technical diagrams
-    3. MANDATORY: Transform abstract concepts into concrete visual metaphors:
-       - Property/Ownership → house symbols, building icons
-       - Legal processes → connected flowcharts, step-by-step diagrams
-       - Parties/People → colored circles or simple human figures
-       - Relationships → connecting lines, arrows, bridges
-       - Division/Sharing → splitting objects, branching paths
-       - Agreements → handshake symbols, puzzle pieces fitting
-       - Time/Process → sequential steps, numbered stages
-       - Rights/Obligations → balanced scales, equal divisions
-    4. Use symbolic icons and everyday objects that people immediately recognize.
-    5. Create CLEAN TECHNICAL DIAGRAMS similar to educational presentations.
+    2. Use CONTEXTUAL EDUCATIONAL style with:
+       - Subject-appropriate visual elements
+       - Real symbols and representations from the field
+       - Clear, professional diagrams that match the topic
+       - Authentic visual language of the subject matter
+    3. CONTEXTUAL APPROACH: Represent concepts using their REAL visual context:
+       - Legal topics → Actual legal symbols, court layouts, legal document structures
+       - Technical subjects → Real technical diagrams, authentic process flows
+       - Business content → Genuine business structures, real organizational elements
+       - Educational material → Direct subject matter visualization
+    4. Avoid generic metaphors that disconnect from the topic's real context.
+    5. Create AUTHENTIC EDUCATIONAL VISUALS that professionals in the field would recognize.
     ${styleInstruction} Scene description: ${input.frameDescription}. 
-    REMEMBER: Focus on diagram-style educational visuals with concrete metaphors that make legal/technical concepts instantly understandable without words.`;
+    REMEMBER: Focus on authentic, contextual educational visuals that preserve the subject's real terminology and concepts.`;
 
     const response = await ai.generate({
       model: 'googleai/gemini-2.0-flash-exp', 

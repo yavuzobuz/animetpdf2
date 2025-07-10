@@ -33,6 +33,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { useSubscription } from '@/hooks/use-subscription';
 import { QaDisplay, QAPair } from '@/components/custom/qa-display';
 import AnimatedSection from '@/components/custom/animated-section';
 import { PdfChat } from '@/components/custom/pdf-chat';
@@ -187,13 +188,9 @@ export function TopicSimplifierForm() {
   const { language } = useLanguage();
   const t = useT();
 
-  // Kredi/limit kontrolü için state'ler
-  const [userCreditInfo, setUserCreditInfo] = useState<{
-    currentUsage: number;
-    limit: number;
-    limitType: string;
-  } | null>(null);
-  const [limitExceeded, setLimitExceeded] = useState(false);
+  // Merkezi subscription hook'u kullan
+  const subscriptionInfo = useSubscription();
+  const limitExceeded = !subscriptionInfo.canProcess;
 
   const [diagramLoading, setDiagramLoading] = useState(false);
   const [diagramResult, setDiagramResult] = useState<{ svg: string } | null>(null);
@@ -375,50 +372,23 @@ export function TopicSimplifierForm() {
   };
 
   // Kullanıcı limitini kontrol et (PDF ve animasyon için)
+  // Hook'tan limit kontrolü artık merkezi olarak yapılıyor
   const checkUserLimit = async (type: 'pdf' | 'animation' = 'pdf'): Promise<any> => {
-    try {
-      const supabaseClient = createBrowserClient();
-      const { data: { user } } = await supabaseClient.auth.getUser();
-      
-      if (user) {
-        const response = await fetch('/api/check-pdf-limit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId: user.id, type }),
-        });
-
-        const limitCheck = await response.json();
-        
-        if (limitCheck && typeof limitCheck.canProcess !== 'undefined') {
-          setUserCreditInfo({
-            currentUsage: limitCheck.currentUsage,
-            limit: limitCheck.limit,
-            limitType: limitCheck.limitType || 'Kredi'
-          });
-          setLimitExceeded(!limitCheck.canProcess);
-          return limitCheck;
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error('Limit kontrol hatası:', error);
-      return null;
-    }
+    return subscriptionInfo.checkCanProcess(type);
   };
 
   // Limit aşıldığında fiyatlandırma sayfasına yönlendir
-  const showLimitExceededModal = (limitType: string = 'Kredi', currentUsage: number, limit: number) => {
+  const showLimitExceededModal = () => {
     const currentLang = language || 'tr';
     const isEnglish = currentLang === 'en';
+    const { currentUsage, limit } = subscriptionInfo;
     
     toast({
       variant: 'destructive',
-      title: isEnglish ? `${limitType} Limit Exceeded` : `${limitType} Limiti Aşıldı`,
+      title: isEnglish ? 'Credit Limit Exceeded' : 'Kredi Limiti Aşıldı',
       description: isEnglish 
-        ? `You've reached your monthly limit of ${limit} ${limitType.toLowerCase()}s (${currentUsage}/${limit}). Please upgrade your plan to continue.`
-        : `Bu ay ${limit} ${limitType.toLowerCase()} limitinize ulaştınız (${currentUsage}/${limit}). Devam etmek için planınızı yükseltin.`,
+        ? `You've reached your monthly limit of ${limit} credits (${currentUsage}/${limit}). Please upgrade your plan to continue.`
+        : `Bu ay ${limit} kredi limitinize ulaştınız (${currentUsage}/${limit}). Devam etmek için planınızı yükseltin.`,
       action: (
         <button
           onClick={() => router.push(`/${currentLang}/pricing`)}
@@ -430,10 +400,7 @@ export function TopicSimplifierForm() {
     });
   };
 
-  // Bileşen yüklendiğinde limit kontrolü yap
-  useEffect(() => {
-    checkUserLimit('pdf');
-  }, []);
+  // Hook otomatik olarak verileri yüklüyor, ayrı useEffect gerekmiyor
 
   const generateVisuals = async (scriptForVisuals: AnimationScript, pageId: string) => {
     if (!scriptForVisuals?.frames?.length) return;
@@ -536,7 +503,7 @@ export function TopicSimplifierForm() {
 
     // Limit kontrolü
     if (limitExceeded) {
-      showLimitExceededModal(userCreditInfo?.limitType, userCreditInfo?.currentUsage || 0, userCreditInfo?.limit || 0);
+      showLimitExceededModal();
       return;
     }
 
@@ -750,11 +717,7 @@ const handlePdfIconClick = () => {
 
     const animationLimitCheck = await checkUserLimit('animation');
     if (animationLimitCheck && !animationLimitCheck.canProcess) {
-      showLimitExceededModal(
-        animationLimitCheck.limitType,
-        animationLimitCheck.currentUsage,
-        animationLimitCheck.limit
-      );
+      showLimitExceededModal();
       return;
     }
 
@@ -841,11 +804,8 @@ const handlePdfIconClick = () => {
       }
 
       if (user) {
-        fetch('/api/increment-usage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, type: 'animation' })
-        }).catch(e => console.error('Usage increment request failed', e));
+        // Hook'tan gelen incrementUsage fonksiyonunu kullan
+        await subscriptionInfo.incrementUsage('animation');
       }
 
     } catch (error) {
@@ -1103,7 +1063,7 @@ const handlePdfIconClick = () => {
                   )}
                   
                   {/* Kredi/Limit Uyarısı */}
-                  {userCreditInfo && (
+                  {!subscriptionInfo.isLoading && (
                     <div className={`relative mt-3 rounded-xl border shadow-sm p-3 text-xs overflow-hidden ${
                         limitExceeded
                           ? 'border-red-300 bg-red-50/60 dark:bg-red-900/40'
@@ -1112,17 +1072,17 @@ const handlePdfIconClick = () => {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1 font-medium">
                           <GaugeCircle className="h-4 w-4 text-purple-500" />
-                          <span>{userCreditInfo.limitType} Kullanımı</span>
+                          <span>Kredi Kullanımı</span>
                         </div>
                         <span className={`font-semibold ${limitExceeded ? 'text-red-600' : 'text-purple-600'}`}>
-                          {userCreditInfo.currentUsage}/{userCreditInfo.limit}
+                          {subscriptionInfo.currentUsage}/{subscriptionInfo.limit}
                         </span>
                       </div>
                       {!limitExceeded && (
                           <div className="w-full bg-gray-200/70 dark:bg-gray-700 rounded-full h-1 mt-2">
                             <div
                               className="h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                              style={{ width: `${Math.min((userCreditInfo.currentUsage / userCreditInfo.limit) * 100, 100)}%` }}
+                              style={{ width: `${Math.min(subscriptionInfo.usagePercentage, 100)}%` }}
                             ></div>
                           </div>
                       )}

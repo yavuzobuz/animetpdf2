@@ -11,10 +11,10 @@ import { Edit, Save, X, User, Mail, Calendar, Crown, Zap, FileText, TrendingUp, 
 import { updateProfile } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/language-context';
-import { getUserSubscription, getUserCurrentUsage, getAllSubscriptionPlans } from '@/lib/database';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useSubscription } from '@/hooks/use-subscription';
 
 interface ProfileInfoProps {
   profile: {
@@ -35,10 +35,7 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const { language } = useLanguage();
-  const [subscription, setSubscription] = React.useState<any>(null);
-  const [usage, setUsage] = React.useState<any>(null);
-  const [plans, setPlans] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const subscriptionInfo = useSubscription();
   
   const [state, formAction] = useActionState(async (prevState: any, formData: FormData) => {
     const result = await updateProfile(prevState, formData);
@@ -71,32 +68,7 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
     : profile.username ? profile.username[0].toUpperCase()
     : 'U';
 
-  React.useEffect(() => {
-    if (profile?.id) {
-      loadSubscriptionData();
-    }
-  }, [profile?.id]);
 
-  const loadSubscriptionData = async () => {
-    if (!profile?.id) return;
-    
-    setLoading(true);
-    try {
-      const [subResult, usageResult, plansResult] = await Promise.all([
-        getUserSubscription(profile.id),
-        getUserCurrentUsage(profile.id),
-        getAllSubscriptionPlans()
-      ]);
-
-      if (subResult.success) setSubscription(subResult.data);
-      if (usageResult.success) setUsage(usageResult.data);
-      if (plansResult.success) setPlans(plansResult.data);
-    } catch (error) {
-      console.error('Subscription data load error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getPlanIcon = (planName: string) => {
     switch (planName) {
@@ -122,12 +94,18 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
 
   if (!profile) return null;
 
-  // Get current plan details
-  const currentPlan = subscription?.plan || plans.find(p => p.name === 'free');
-  const currentUsage = usage?.pdfs_processed || 0;
-  const planLimit = currentPlan?.monthly_pdf_limit || 3;
-  const remainingPDFs = Math.max(0, planLimit - currentUsage);
-  const usagePercentage = planLimit > 0 ? (currentUsage / planLimit) * 100 : 0;
+  // Get current plan details from hook
+  const { 
+    plan: currentPlan, 
+    currentUsage, 
+    pdfUsage,
+    animationUsage,
+    limit: planLimit, 
+    remainingCredits, 
+    usagePercentage,
+    isLoading: loading,
+    subscription
+  } = subscriptionInfo;
 
   const text = {
     tr: {
@@ -224,6 +202,13 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2 text-muted-foreground">Abonelik bilgileri yükleniyor...</span>
+            </div>
+          ) : (
+            <>
           {/* Current Plan Display */}
           <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
             <div className="flex items-center gap-3">
@@ -265,7 +250,7 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
               </h5>
               <Badge variant="outline" className="gap-1">
                 <TrendingUp className="h-3 w-3" />
-                {currentUsage}/{planLimit} PDF
+                {currentUsage}/{planLimit} Kredi
               </Badge>
             </div>
             
@@ -279,7 +264,7 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
                 className="h-2"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{currentText.remaining}: {remainingPDFs} PDF</span>
+                <span>{currentText.remaining}: {remainingCredits} Kredi</span>
                 <span>
                   {new Date().toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', { 
                     year: 'numeric', 
@@ -301,6 +286,8 @@ export default function ProfileInfo({ profile, isOwner }: ProfileInfoProps) {
               </div>
             )}
           </div>
+          </>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -5,7 +5,7 @@ import {z} from 'genkit';
 
 // Topic Simplifier Schemas
 export const SimplifyTopicInputSchema = z.object({
-  topic: z.string().describe('The complex topic to simplify.'),
+  topic: z.string().max(1000).describe('The complex topic to simplify.'),
   narrativeStyle: z.string().optional().describe('The desired narrative style for the explanation.'),
 });
 export type SimplifyTopicInput = z.infer<typeof SimplifyTopicInputSchema>;

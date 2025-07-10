@@ -53,12 +53,12 @@ export async function POST(request: Request) {
     const currentPdfUsage = usage.data?.pdfs_processed || 0;
     const currentAnimationUsage = usage.data?.animations_created || 0;
     
-    // Birleştirilmiş kredi havuzu (PDF + Animasyon)
+    // Birleştirilmiş kredi havuzu (PDF + Animasyon) - Tutarlılık için açıkça belirtildi
     const limit = (typeof plan.monthly_pdf_limit === 'number' && plan.monthly_pdf_limit > 0)
       ? plan.monthly_pdf_limit
       : 5;
 
-    const currentUsage = currentPdfUsage + currentAnimationUsage;
+    const currentUsage = currentPdfUsage + currentAnimationUsage; // Her ikisi de aynı kredi havuzundan
     const canProcess = currentUsage < limit;
     const limitType = 'Kredi';
 

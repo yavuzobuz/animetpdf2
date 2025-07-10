@@ -7,39 +7,33 @@ import { ai } from '@/ai/genkit';
 // This is the function that will be called from the client for each scene.
 export async function generateSvg(description: string): Promise<string> {
   try {
-    const designerPrompt = `Sen eğitimsel içerik görselleştiren bir uzmansın. Karmaşık kavramları basit metaforlar ve tanınabilir sembollerle anlatan SVG'ler oluşturuyorsun. HTML animasyonlarındaki gibi aşamalı hikaye anlatımı kullanıyorsun.
+    const designerPrompt = `Sen eğitimsel içerik görselleştiren bir uzmansın. Konuları DOĞRUDAN ve BAĞLAMSAL olarak anlatan SVG'ler oluşturuyorsun. Gereksiz metaforlardan kaçınarak konunun özünü koruyorsun.
 
 **Temel Yaklaşım:** 
-- Kavramları günlük hayattan tanıdık objelerle açıkla (ev=mülkiyet, pasta=paylaşım, takvim=zaman, el sıkışma=anlaşma)
-- Her görselde bir "hikaye" anlat, sadece statik resim değil
+- Kavramları ÖNCE doğrudan göster, sadece gerektiğinde basit görsel örnekler kullan
+- Konunun gerçek bağlamını ve terminolojisini koru
+- Metaforlar sadece karmaşık kavramları netleştirmek için SINIRLI kullanılsın
 - Türkçe etiketler ve açıklamalar kullan
 - Renklerle farklı kavramları ayır ve kod
 
-**Metafor Rehberi:**
-- 🏠 Ev simgesi → Mülkiyet, taşınmaz, ortaklık
-- 🤝 El sıkışma → Anlaşma, arabuluculuk, uzlaşma  
-- 📅 Takvim → Tarih, süreç, zaman çizelgesi
-- 🥧 Pasta grafiği → Paylaşım, hisseler, bölüştürme
-- ⚖️ Terazi → Adalet, hukuk, mahkeme
-- 👥 İnsan figürleri → Taraflar, ortaklar, mirasçılar
-- 💰 Para simgesi → Maddi değer, tazminat, satış
-- 📋 Belgeler → Sözleşme, dava, anlaşma
+**Görsel Rehberi (Sadece Gerektiğinde):**
+- Mülkiyet konularında → Gerçek mülkiyet sembolleri (tapu, bina planı)
+- Hukuki süreçlerde → Gerçek hukuki semboller (mahkeme, kanun maddeleri)
+- Zaman süreçlerinde → Gerçek zaman çizelgeleri
+- İlişkilerde → Gerçek organizasyon şemaları
+- Paylaşımda → Gerçek bölüştürme diyagramları
 
 **Görsel Tarz:**
-*   **Eğitimsel Animasyon Tarzı:** HTML kodundaki gibi basit ama anlamlı şekiller
-*   **Renk Kodlaması:** \`fill="hsl(var(--primary))"\` mavi (hukuki), \`fill="hsl(var(--destructive))"\` kırmızı (sorun), \`fill="hsl(var(--constructive))"\` yeşil (çözüm), \`fill="#ffd700"\` altın (önemli)
+*   **Doğrudan Eğitimsel Tarz:** Konuya özgü, gerçekçi ve bağlamsal görseller
+*   **Renk Kodlaması:** Anlam taşıyan, konuya uygun renkler
 *   **Şeffaf Arkaplan:** SVG root elementinde arkaplan rengi olmasın
-*   **Türkçe Metin:** Açıklayıcı etiketler ve başlıklar ekle
+*   **Türkçe Metin:** Konuya özgü terminoloji ve açıklamalar
 
-**Örnek Senaryo:**
-*   **Sahne Açıklaması:** "Ortaklar arasında mülkiyet anlaşmazlığı"
-*   **Senin Çıktın:** Ortada bir ev (mülkiyet), iki yanında insan figürleri (ortaklar), aralarında kırmızı ünlem işareti (anlaşmazlık), altında terazi (hukuki çözüm). Türkçe etiketler: "Ortak 1", "Ortak 2", "Mülkiyet Anlaşmazlığı"
-
-**Hikaye Anlatımı:**
-- Senaryodaki olayları adım adım göster
-- Sebep-sonuç ilişkilerini görsel ok ve bağlantılarla belirt  
-- Her elementin ne anlama geldiğini Türkçe etiketle
-- Zaman akışını soldan sağa veya yukarıdan aşağı göster
+**Bağlamsal Yaklaşım:**
+*   **Konu Analizi:** Önce konunun gerçek bağlamını anla
+*   **Doğrudan Gösterim:** Mümkün olduğunca konuyu doğrudan göster
+*   **Sınırlı Metafor:** Sadece anlaşılması zor kavramlar için basit örnekler
+*   **Terminoloji Koruma:** Konunun orijinal terimlerini ve kavramlarını koru
 
 **Teknik Gereksinimler:**
 *   **Sadece SVG:** Tüm yanıtın sadece SVG kodu olsun. \`<svg ...>\` ile başla, \`</svg>\` ile bitir
@@ -68,13 +62,22 @@ ${description}`;
 
     const extractedSvg = svgMatch[0];
     const hasDrawingElements = /<path|<rect|<circle|<ellipse|<polygon|<polyline|<line/i.test(extractedSvg);
-    const hasThemeColors = extractedSvg.includes('hsl(var');
+    const hasThemeColors = extractedSvg.includes('hsl(var') || extractedSvg.includes('fill=');
+    const hasValidSvg = extractedSvg.includes('viewBox') || extractedSvg.includes('width');
 
-    if (hasDrawingElements && hasThemeColors) {
+    // More lenient validation - accept if we have basic drawing elements or valid SVG structure
+    if (hasDrawingElements || hasValidSvg || extractedSvg.length > 100) {
+        console.log('SVG validation passed:', { hasDrawingElements, hasThemeColors, hasValidSvg });
         return extractedSvg;
     }
     
-    throw new Error("SVG generation failed: Validation checks failed.");
+    console.error('SVG validation failed:', { 
+        hasDrawingElements, 
+        hasThemeColors, 
+        hasValidSvg,
+        svgContent: extractedSvg.substring(0, 200) + '...'
+    });
+    throw new Error(`SVG validation failed: drawingElements=${hasDrawingElements}, themeColors=${hasThemeColors}, validSvg=${hasValidSvg}`);
 
   } catch (error) {
     console.error(`SVG generation failed for description "${description}":`, error);

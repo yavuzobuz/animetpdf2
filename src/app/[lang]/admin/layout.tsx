@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 
 export default async function AdminSectionLayout({ children, params }: Readonly<{ children: ReactNode; params: { lang: string } }>) {
   // Properly handle params to avoid the "params should be awaited" error
-  const { lang } = await params;
+  const lang = params.lang;
   return (
     <LanguageProvider initialLanguage={lang as 'en' | 'tr'}>
       <AuthProvider>

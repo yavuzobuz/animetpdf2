@@ -41,6 +41,7 @@ import {
 import AnimatedSection from '@/components/custom/animated-section';
 import { useLanguage } from '@/contexts/language-context';
 import Link from 'next/link';
+import { useSubscription } from '@/hooks/use-subscription';
 
 interface LangPageProps {
   params: Promise<{ lang: 'en' | 'tr' }>;
@@ -49,22 +50,27 @@ interface LangPageProps {
 export default function ProfilePage({ params }: LangPageProps) {
   const { user, loading, signOut } = useAuth();
   const { language } = useLanguage();
+  const subscriptionInfo = useSubscription();
   const [currentLang, setCurrentLang] = useState<'en' | 'tr'>('tr');
   const [userProjects, setUserProjects] = useState<any[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
-  const [stats, setStats] = useState<UserStats>({
-    converted_pdfs: 0,
-    created_animations: 0,
+  const [profile, setProfile] = useState<any>(null);
+  
+  // Hook'tan gelen verilerle stats oluştur
+  const stats: UserStats = {
+    converted_pdfs: subscriptionInfo.pdfUsage,
+    created_animations: subscriptionInfo.animationUsage,
     total_downloads: 0,
     storage_used: 0,
-    plan: 'Free',
-    joinDate: new Date().toISOString(),
-    nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    monthly_pdf_count: 0,
-    monthly_limit: 5,
+    plan: subscriptionInfo.planDisplayName.tr || 'Ücretsiz',
+    joinDate: profile?.created_at || user?.created_at || new Date().toISOString(),
+    nextBilling: subscriptionInfo.subscription?.current_period_end || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    monthly_pdf_count: subscriptionInfo.currentUsage,
+    monthly_limit: subscriptionInfo.limit,
     achievements: [],
-  });
-  const [loadingStats, setLoadingStats] = useState(true);
+  };
+  
+  const loadingStats = subscriptionInfo.isLoading;
 
   // Güvenli tarih formatı için yardımcı fonksiyon
   const formatDate = (dateString: string) => {
@@ -89,6 +95,22 @@ export default function ProfilePage({ params }: LangPageProps) {
   
   useEffect(() => {
     if (user?.id) {
+      const fetchProfile = async () => {
+        try {
+          const response = await fetch('/api/get-user-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setProfile(data.profile);
+          }
+        } catch (error) {
+          console.error("Failed to fetch profile", error);
+        }
+      };
+
       const fetchProjects = async () => {
         setLoadingProjects(true);
         const { success, data } = await getUserProjects(user.id);
@@ -115,20 +137,10 @@ export default function ProfilePage({ params }: LangPageProps) {
         setLoadingProjects(false);
       };
 
-      const fetchStats = async () => {
-        setLoadingStats(true);
-        const res = await getUserStats(user.id);
-        if (res.success) {
-          setStats(res.data);
-        }
-        setLoadingStats(false);
-      };
-
+      fetchProfile();
       fetchProjects();
-      fetchStats();
     } else {
       setLoadingProjects(false);
-      setLoadingStats(false);
       setUserProjects([]);
     }
   }, [user]);
@@ -184,6 +196,7 @@ export default function ProfilePage({ params }: LangPageProps) {
       currentPlan: "Current Plan",
       nextBilling: "Next Billing",
       upgradeToEnterprise: "Upgrade to Enterprise",
+      animationsCreated: "Animations Created",
       projectsCreated: "Projects Created",
       totalDownloads: "Total Downloads",
       storageUsed: "Storage Used",
@@ -439,7 +452,7 @@ export default function ProfilePage({ params }: LangPageProps) {
                         <Sparkles className="h-6 w-6 text-purple-600" />
                       </div>
                       <div className="text-3xl font-bold headline-modern mb-2">{stats.created_animations}</div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{content.projectsCreated}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{content.animationsCreated}</p>
                     </CardContent>
                   </Card>
 

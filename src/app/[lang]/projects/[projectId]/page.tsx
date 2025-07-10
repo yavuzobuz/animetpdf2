@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -13,7 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Loader2, Network, Play, FileText, Eye, Workflow, GitFork, Pause, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, Network, Play, FileText, Eye, Workflow, GitFork, Pause, ArrowLeft, ArrowRight, Info } from 'lucide-react';
+import { QaDisplay } from '@/components/custom/qa-display';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -379,29 +381,44 @@ export default function ProjectDetailPage() {
                 <CardContent>
                   <div className="w-full overflow-auto border rounded-lg p-4 bg-muted/20">
                     <div
-                      className="w-full h-full"
+                      className="w-full h-full min-h-[400px] flex items-center justify-center"
                       dangerouslySetInnerHTML={{ __html: project.diagram_svg }}
                     />
                   </div>
+                  
+                  {/* SVG Açıklaması - QA verilerinden */}
+                  {(project.qa_pairs || project.qa_data?.questions) && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Diyagram Açıklaması
+                      </h4>
+                      <div className="space-y-2 text-sm text-blue-700">
+                        {project.qa_pairs ? (
+                          project.qa_pairs.slice(0, 3).map((qa: any, idx: number) => (
+                            <p key={idx} className="leading-relaxed">
+                              <strong>• {qa.question}</strong><br />
+                              <span className="text-blue-600">{qa.explanation}</span>
+                            </p>
+                          ))
+                        ) : project.qa_data?.questions ? (
+                          project.qa_data.questions.slice(0, 3).map((qa: any, idx: number) => (
+                            <p key={idx} className="leading-relaxed">
+                              <strong>• {qa.question}</strong><br />
+                              <span className="text-blue-600">{qa.explanation || 'Açıklama mevcut değil.'}</span>
+                            </p>
+                          ))
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
             </CardContent>
           </Card>
         )}
 
         {/* QA Display */}
         {(project.qa_pairs || project.qa_data) && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="w-5 h-5" />
-                Soru & Cevaplar
-              </CardTitle>
-        </CardHeader>
-        <CardContent>
-              <div className="text-sm text-muted-foreground">
-                📋 {(project.qa_data?.questions?.length || project.qa_pairs?.length || 0)} soru mevcut
-              </div>
-            </CardContent>
-          </Card>
+          <QaDisplay qaPairs={project.qa_pairs || project.qa_data?.questions || []} />
         )}
 
             {/* Animasyon Senaryosu: PDF özeti yoksa göster */}
@@ -492,28 +509,12 @@ export default function ProjectDetailPage() {
 
                 {/* AnimationPreview Component - Sesli Oynatma */}
                 <AnimationPreview
-                  sceneDescriptions={project.animation_scenario?.map((scene: any) => 
-                    typeof scene === 'string' ? scene : (scene.sceneDescription || scene.frameSummary || scene.keyTopic || `Sahne ${currentFrameIndex + 1}`)
-                  ) || project.animation_svgs.map((_: any, idx: number) => `Sahne ${idx + 1}`)}
-                  currentSceneDescription={
-                    project.animation_scenario?.[currentFrameIndex]?.sceneDescription || 
-                    project.animation_scenario?.[currentFrameIndex]?.frameSummary || 
-                    `Sahne ${currentFrameIndex + 1} açıklaması`
-                  }
-                  currentKeyTopic={
-                    project.animation_scenario?.[currentFrameIndex]?.keyTopic || 
-                    project.animation_scenario?.[currentFrameIndex]?.frameSummary || 
-                    project.animation_scenario?.[currentFrameIndex] ||
-                    `Bu kare hakkında: Sahne ${currentFrameIndex + 1} eğitici içeriği`
-                  }
-                  currentFrameSummary={
-                    project.animation_scenario?.[currentFrameIndex]?.frameSummary || 
-                    project.animation_scenario?.[currentFrameIndex]?.keyTopic ||
-                    project.animation_scenario?.[currentFrameIndex] ||
-                    `Sahne ${currentFrameIndex + 1} - Eğitici animasyon karesi`
-                  }
+                  sceneDescriptions={project.animation_scenario?.map((scene: any) => scene.sceneDescription || '') || []}
+                  currentSceneDescription={project.animation_scenario?.[currentFrameIndex]?.sceneDescription || ''}
+                  currentKeyTopic={project.animation_scenario?.[currentFrameIndex]?.keyTopic || ''}
+                  currentFrameSummary={project.animation_scenario?.[currentFrameIndex]?.frameSummary || ''}
                   storyboardImages={project.animation_svgs?.map((svgContent: string) => 
-                    `data:image/svg+xml;base64,${btoa(svgContent)}`
+                    `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgContent)))}`
                   ) || []}
                   currentAudioUrl={null}
                   currentFrameIndex={currentFrameIndex}
@@ -535,7 +536,7 @@ export default function ProjectDetailPage() {
                 <CardContent>
                   <div className="space-y-4">
                     {project.animation_scenario.map((scene: any, idx: number) => {
-                        const text = typeof scene === 'string' ? scene : (scene.sceneDescription || scene.frameSummary || scene.keyTopic || `Sahne ${idx+1}`);
+                        const text = scene?.frameSummary || scene?.sceneDescription || `Sahne ${idx+1} açıklaması`;
                         return (
                           <div key={idx} className="p-4 border rounded-lg bg-muted/20">
                             <div className="flex items-start gap-4">
