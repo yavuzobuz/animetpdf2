@@ -1455,16 +1455,12 @@ const handlePdfIconClick = () => {
                         <div className="p-2 border bg-muted rounded-lg shadow-inner w-full h-[500px] flex items-center justify-center overflow-hidden">
                                       <img 
                                         src={imageUrl} 
-                            alt={visuals[index]?.description && visuals[index]!.description.length > 750
-                              ? visuals[index]!.description.slice(0, 747) + '…'
-                              : visuals[index]?.description || `Sahne ${index + 1}`}
+                            alt={visuals[index]?.keyTopic || `Sahne ${index + 1}`}
                             className="w-full h-full object-contain"
                                       />
                                 </div>
                         <p className="text-sm text-muted-foreground mt-2 px-2 text-center leading-tight">
-                          {visuals[index]?.description && visuals[index]!.description.length > 750
-                            ? visuals[index]!.description.slice(0, 747) + '…'
-                            : visuals[index]?.description || `Sahne ${index + 1}`}
+                          {visuals[index]?.keyTopic || `Sahne ${index + 1}`}
                         </p>
                               </CarouselItem>
                             ))}
