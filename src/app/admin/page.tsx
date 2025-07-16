@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/hooks/use-toast';
 import { LogOut, Users, FolderKanban, TicketCheck, Activity, Shield, FileText, Play } from "lucide-react";
 import { TicketReplyDialog } from '@/components/admin/ticket-reply-dialog';
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -189,6 +190,40 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats.newUsersThisMonth}</div>
+              </CardContent>
+            </Card>
+            <Card className="col-span-1 md:col-span-4 shadow-lg">
+              <CardHeader>
+                <CardTitle>İstatistik Grafikleri</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Yeni Kullanıcılar (Son 6 Ay)</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={[{name: 'Ocak', value: 10}, {name: 'Şubat', value: 20}, {name: 'Mart', value: 15}, {name: 'Nisan', value: 25}, {name: 'Mayıs', value: 30}, {name: 'Haziran', value: 35}]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="value" stroke="#8884d8" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Plan Dağılımı</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={[{name: 'Free', value: 50}, {name: 'Starter', value: 30}, {name: 'Pro', value: 20}]} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} fill="#8884d8" label>
+                        <Cell fill="#ff7300" />
+                        <Cell fill="#387908" />
+                        <Cell fill="#003366" />
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </div>

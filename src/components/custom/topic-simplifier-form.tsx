@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Sparkles, Wand2, FileText, Network, Film, Image as ImageIcon, Upload, File, HelpCircle, MessageSquare, AlertTriangle, GaugeCircle, Play, PlayIcon } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, FileText, Network, Film, Image as ImageIcon, Upload, File, HelpCircle, MessageSquare, AlertTriangle, GaugeCircle, Play, PlayIcon, Volume2, Pause } from 'lucide-react';
+import { useSpeech } from '@/hooks/use-speech';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { createBrowserClient } from '@/lib/supabase';
@@ -187,6 +188,7 @@ export function TopicSimplifierForm() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const t = useT();
+  const { speak, stop, isPlaying } = useSpeech();
 
   // Merkezi subscription hook'u kullan
   const subscriptionInfo = useSubscription();
@@ -195,6 +197,7 @@ export function TopicSimplifierForm() {
   const [diagramLoading, setDiagramLoading] = useState(false);
   const [diagramResult, setDiagramResult] = useState<{ svg: string } | null>(null);
   const [submittedTopic, setSubmittedTopic] = useState<string>('');
+  const [projectId, setProjectId] = useState<string | null>(null);
 
   const [imageLoading, setImageLoading] = useState(false);
   const [imageResults, setImageResults] = useState<{ images: string[] } | null>(null);
@@ -254,30 +257,37 @@ export function TopicSimplifierForm() {
   // Drag & Drop state & handlers for PDF upload
   const [isDragOver, setIsDragOver] = useState(false);
 
-  // Özet paragraflarını önceden hesapla (PDF analizi varsa onu, yoksa script.summary)
-  const rawSummary = (pdfAnalysisResult ?? script?.summary ?? '') as string;
-  let displayedParagraphs = rawSummary
-    .split('\n\n')
-    .filter(p => p.trim());
-  if (displayedParagraphs.length < 2) {
-    // Deneme 2: madde işareti "• " karakterine göre böl
+  // Animasyon sahnelerinin metinlerini al
+  let displayedParagraphs: string[] = [];
+  if (script?.frames && script.frames.length > 0) {
+    displayedParagraphs = script.frames.map(frame => {
+      // Animasyonun altındaki metin (keyTopic) ile aynı olması için onu kullanalım.
+      // Yoksa frameSummary, o da yoksa sceneDescription.
+      return sanitizeKeyTopic(frame.keyTopic) || frame.frameSummary || frame.sceneDescription;
+    }).filter(Boolean); // Boş olanları filtrele
+  } else {
+    // Fallback: eski mantık
+    const rawSummary = (pdfAnalysisResult ?? script?.summary ?? '') as string;
     displayedParagraphs = rawSummary
-      .split(/•\s+/)
-      .map(p => p.trim())
-      .filter(p => p);
-  }
-  if (displayedParagraphs.length < 2) {
-    // Deneme 3: tek satır sonu
-    displayedParagraphs = rawSummary
-      .split('\n')
+      .split('\n\n')
       .filter(p => p.trim());
-  }
-  if (displayedParagraphs.length < 2) {
-    // Deneme 4: numaralı madde '1. ' desenine göre böl
-    displayedParagraphs = rawSummary
-      .split(/\n?\s*\d+\.\s+/)
-      .map(p => p.trim())
-      .filter(p => p);
+    if (displayedParagraphs.length < 2) {
+      displayedParagraphs = rawSummary
+        .split(/•\s+/)
+        .map(p => p.trim())
+        .filter(p => p);
+    }
+    if (displayedParagraphs.length < 2) {
+      displayedParagraphs = rawSummary
+        .split('\n')
+        .filter(p => p.trim());
+    }
+    if (displayedParagraphs.length < 2) {
+      displayedParagraphs = rawSummary
+        .split(/\n?\s*\d+\.\s+/)
+        .map(p => p.trim())
+        .filter(p => p);
+    }
   }
   displayedParagraphs = displayedParagraphs.slice(0, 15);
 
@@ -800,6 +810,7 @@ const handlePdfIconClick = () => {
 
       if (!insErr && insertData) {
         setAnimationPageId(insertData.id);
+        setProjectId(insertData.id); // Set project ID for chat history
         await generateVisuals(scriptData, insertData.id);
       }
 
@@ -1197,14 +1208,20 @@ const handlePdfIconClick = () => {
                   <div className="mt-4">
                     <PdfChat 
                       pdfSummary={(pdfAnalysisResult ?? '') as string} 
+                      narrativeStyle={narrativeStyle}
                       chatWithPdfFlow={async (input) => {
-                        const { chatWithPdf } = await import('@/ai/flows/chat-with-pdf-flow');
-                        const result = await chatWithPdf({
-                          pdfSummary: input.pdfContent,
-                          userQuery: input.prompt
-                        });
-                        return { response: result.botResponse };
-                      }}
+  try {
+    const { chatWithPdf } = await import('@/ai/flows/chat-with-pdf-flow');
+    const result = await chatWithPdf({
+      pdfSummary: input.pdfContent,
+      userQuery: input.prompt,
+      narrativeStyle: input.narrativeStyle
+    });
+    return { success: true, response: result.botResponse };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}}
                     />
                   </div>
                 </DialogContent>
@@ -1275,6 +1292,25 @@ const handlePdfIconClick = () => {
                               {paragraph}
                             </p>
                           </div>
+                          <div className="flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                if (isPlaying) {
+                                  stop();
+                                } else {
+                                  speak(paragraph, 'tr-TR');
+                                }
+                              }}
+                              className="p-2 rounded-full bg-white/80 hover:bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 text-gray-600 hover:text-blue-600"
+                              title={isPlaying ? 'Konuşmayı durdur' : 'Sesli oku'}
+                            >
+                              {isPlaying ? (
+                                <Pause className="h-4 w-4" />
+                              ) : (
+                                <Volume2 className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                         {/* Decorative gradient line */}
                         <div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-blue-200 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -1294,6 +1330,49 @@ const handlePdfIconClick = () => {
                         <span className="font-medium">~{Math.ceil((pdfAnalysisResult ?? script.summary).length / 1000)} Dakika Okuma</span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Konu Sohbet Botu */}
+                  <div className="mt-6 flex justify-center">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-lg rounded-full px-6 py-2.5 font-medium transition-all duration-200 hover:shadow-xl hover:scale-105"
+                          size="sm"
+                        >
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          Konu Hakkında Sohbet Et
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <MessageSquare className="h-5 w-5 text-violet-600" />
+                            Konu Sohbet Botu
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="h-[60vh] overflow-auto">
+                          <PdfChat
+                             pdfSummary={pdfAnalysisResult ?? script.summary}
+                             projectId={projectId || undefined}
+                             narrativeStyle={narrativeStyle}
+                             chatWithPdfFlow={async (input) => {
+  try {
+    const { chatWithPdf } = await import('@/ai/flows/chat-with-pdf-flow');
+    const result = await chatWithPdf({
+      pdfSummary: input.pdfContent,
+      userQuery: input.prompt,
+      narrativeStyle: input.narrativeStyle
+    });
+    return { success: true, response: result.botResponse };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}}
+                           />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </CardContent>

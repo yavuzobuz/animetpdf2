@@ -92,7 +92,7 @@ export function useSubscription() {
             
             if (profileResponse.ok) {
               const profileData = await profileResponse.json();
-              if (profileData.profile?.current_plan_id) {
+              if (profileData.success && profileData.profile?.current_plan_id) {
                 const planFromProfile = plansResult.data.find(p => p.id === profileData.profile.current_plan_id);
                 if (planFromProfile) {
                   currentPlan = planFromProfile;
@@ -105,6 +105,7 @@ export function useSubscription() {
                 currentPlan = plansResult.data.find(p => p.name === 'free') || plansResult.data[0];
               }
             } else {
+              console.warn('Profile API failed:', profileResponse.status, profileResponse.statusText);
               // API çağrısı başarısız, free plan kullan
               currentPlan = plansResult.data.find(p => p.name === 'free') || plansResult.data[0];
             }
@@ -212,4 +213,4 @@ export function useSubscription() {
       en: subscriptionInfo.plan.display_name_en
     }
   };
-} 
+}

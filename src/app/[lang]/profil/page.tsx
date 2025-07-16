@@ -102,9 +102,14 @@ export default function ProfilePage({ params }: LangPageProps) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.id })
           });
+          
           if (response.ok) {
             const data = await response.json();
-            setProfile(data.profile);
+            if (data.success && data.profile) {
+              setProfile(data.profile);
+            }
+          } else {
+            console.warn('Profile fetch failed:', response.status, response.statusText);
           }
         } catch (error) {
           console.error("Failed to fetch profile", error);

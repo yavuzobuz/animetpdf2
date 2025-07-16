@@ -511,9 +511,17 @@ export default function AnimatePdfAppPage({ params }: AnimatePdfAppPageProps) {
   const totalFrames = storyboardSceneDescriptions.length;
 
   // PdfChat type adaptörü
-  const chatWithPdfAdapter = async (input: { prompt: string; pdfContent: string }) => {
-    const result = await chatWithPdf({ pdfSummary: input.pdfContent, userQuery: input.prompt });
-    return { response: result.botResponse };
+  const chatWithPdfAdapter = async (input: { prompt: string; pdfContent: string; narrativeStyle?: string }) => {
+    try {
+      const result = await chatWithPdf({ 
+        pdfSummary: input.pdfContent, 
+        userQuery: input.prompt,
+        narrativeStyle: input.narrativeStyle 
+      });
+      return { success: true, response: result.botResponse };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Bir hata oluştu' };
+    }
   };
 
   return (

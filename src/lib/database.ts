@@ -197,6 +197,7 @@ export async function getUserProjects(userId: string): Promise<{ success: boolea
   const { data, error } = await supabase
     .from('pdf_projects')
     .select('*')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -214,22 +215,43 @@ export async function getUserProjects(userId: string): Promise<{ success: boolea
 // Ana getUserProfile fonksiyonu
 export const getUserProfile = async (userId: string) => {
   try {
-    // Browser'da çalışabilir hale getir
     const supabase = typeof window !== 'undefined' 
       ? createBrowserClient() 
       : createAdminClient();
-    const { data, error } = await supabase
+    
+    // Önce profil bilgisini al
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
 
-    if (error) {
-      console.error('Profile fetch error:', error);
-      return { success: false, data: null, error: error.message };
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      return { success: false, data: null, error: profileError.message };
     }
 
-    return { success: true, data };
+    // Eğer current_plan_id varsa, plan adını al
+    let planName = 'Free';
+    if (profile.current_plan_id) {
+      const { data: planData } = await supabase
+        .from('subscription_plans')
+        .select('display_name_tr')
+        .eq('id', profile.current_plan_id)
+        .single();
+      
+      if (planData) {
+        planName = planData.display_name_tr;
+      }
+    }
+
+    // Plan adını profile'a ekle
+    const profileWithPlan = {
+      ...profile,
+      plan_name: planName
+    };
+
+    return { success: true, data: profileWithPlan };
   } catch (error) {
     console.error('Profile fetch exception:', error);
     return { success: false, data: null, error: 'Bilinmeyen hata oluştu' };
@@ -1321,5 +1343,161 @@ export async function createSupportTicket(data: { user_id?: string | null; email
     return { success:true };
   } catch(err:any) {
     return { success:false, error:'Bilinmeyen hata' };
+  }
+}
+
+// Chat History Interface
+export interface ChatMessage {
+  id: string;
+  project_id: string | null;
+  user_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+// Sohbet mesajını kaydet
+export async function saveChatMessage(
+  projectId: string | undefined,
+  role: 'user' | 'assistant',
+  content: string
+): Promise<boolean> {
+  try {
+    const supabase = createBrowserClient();
+    
+    // Get current user ID for security
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.error('Save chat message auth error:', authError.message || authError);
+      return true; // Return true to not break the chat flow
+    }
+    
+    if (!user) {
+      console.error('Save chat message error: No authenticated user');
+      return true; // Return true to not break the chat flow
+    }
+    
+    // If projectId is provided, verify that the project belongs to the current user
+    if (projectId) {
+      let { data: projects, error: projectError } = await supabase
+        .from('pdf_projects')
+        .select('id')
+        .eq('id', projectId)
+        .eq('user_id', user.id);
+      
+      if (!projects || projects.length === 0) {
+        ({ data: projects, error: projectError } = await supabase
+          .from('animation_pages')
+          .select('id')
+          .eq('id', projectId)
+          .eq('user_id', user.id));
+      }
+      
+      if (projectError || !projects || projects.length === 0) {
+        console.warn('Save chat message: Project not found or access denied, saving without project_id');
+        projectId = undefined; // Reset projectId if project not found
+      }
+    }
+    
+    console.log('Saving chat message for project:', projectId || 'none', 'user:', user.id, 'role:', role);
+    
+    const { error } = await supabase
+      .from('chat_history')
+      .insert({
+        project_id: projectId || null,
+        user_id: user.id,
+        role,
+        content,
+        created_at: new Date().toISOString()
+      });
+    
+    if (error) {
+      console.error('Save chat message error:', error.message || error);
+      return true; // Return true to not break the chat flow even if save fails
+    }
+    
+    console.log('Chat message saved successfully');
+    return true;
+  } catch (err: any) {
+    console.error('Save chat message exception:', err.message || err);
+    return true; // Return true to not break the chat flow
+  }
+}
+
+// Proje sohbet geçmişini getir
+export async function getChatHistory(projectId: string | undefined): Promise<ChatMessage[]> {
+  try {
+    // If projectId is undefined or null, return empty array
+    if (!projectId) {
+      console.log('Get chat history: No projectId provided, returning empty array');
+      return [];
+    }
+
+    const supabase = createBrowserClient();
+    
+    // Get current user ID for security
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      console.error('Chat history auth error:', authError.message || authError);
+      return [];
+    }
+    
+    if (!user) {
+      console.error('Chat history fetch error: No authenticated user');
+      return [];
+    }
+    
+    console.log('Fetching chat history for project:', projectId, 'user:', user.id);
+    
+    const { data, error } = await supabase
+      .from('chat_history')
+      .select('*')
+      .eq('project_id', projectId)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+    
+    if (error) {
+      console.error('Chat history fetch error:', error.message || error);
+      return [];
+    }
+    
+    console.log('Chat history data:', data);
+     
+     // Convert to the format expected by PdfChat component
+     return (data || []).map(msg => ({
+       role: msg.role as 'user' | 'assistant',
+       content: msg.content,
+       // Include required ChatMessage fields
+       id: msg.id,
+       project_id: msg.project_id,
+       user_id: msg.user_id,
+       created_at: msg.created_at
+     }));
+  } catch (err: any) {
+    console.error('Chat history exception:', err.message || err);
+    return [];
+  }
+}
+
+// Sohbet geçmişini temizle
+// ... existing code ...
+export async function clearChatHistory(projectId: string | undefined): Promise<{ success: boolean; error?: string }> {
+  try {
+    // If projectId is undefined or null, return success without doing anything
+    if (!projectId) {
+      console.log('Clear chat history: No projectId provided, skipping database operation');
+      return { success: true };
+    }
+    
+    const supabase = typeof window !== 'undefined' ? createBrowserClient() : createAdminClient();
+    const { error } = await supabase
+      .from('chat_history')
+      .delete()
+      .eq('project_id', projectId);
+    
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: 'Bilinmeyen hata' };
   }
 }

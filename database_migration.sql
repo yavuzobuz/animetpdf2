@@ -161,3 +161,28 @@ CREATE TABLE IF NOT EXISTS public.support_tickets (
 -- Index for faster filtering by status and date
 CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON public.support_tickets(status);
 CREATE INDEX IF NOT EXISTS idx_support_tickets_created_at ON public.support_tickets(created_at);
+
+-- Chat history table for topic conversations
+CREATE TABLE IF NOT EXISTS public.chat_history (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id uuid REFERENCES public.pdf_projects(id) ON DELETE CASCADE,
+    user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
+    role text NOT NULL CHECK (role IN ('user', 'assistant')),
+    content text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Enable RLS for chat history
+ALTER TABLE public.chat_history ENABLE ROW LEVEL SECURITY;
+
+-- RLS policy for chat history
+CREATE POLICY "Users can view own chat history" ON public.chat_history
+FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own chat history" ON public.chat_history
+FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Index for faster filtering by project and date
+CREATE INDEX IF NOT EXISTS idx_chat_history_project_id ON public.chat_history(project_id);
+CREATE INDEX IF NOT EXISTS idx_chat_history_created_at ON public.chat_history(created_at);
+CREATE INDEX IF NOT EXISTS idx_chat_history_user_project ON public.chat_history(user_id, project_id);

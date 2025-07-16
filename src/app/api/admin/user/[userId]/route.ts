@@ -3,7 +3,9 @@ import { cookies } from 'next/headers';
 import {
   getUserProfile,
   getUserProjects,
+  getUserAnimationPages,
   getAllSupportTickets,
+  getUserStats,
 } from '@/lib/database';
 
 // Admin auth kontrolü
@@ -16,10 +18,10 @@ async function checkAdminAuth() {
 //  /api/admin/user/[userId]  -> kullanıcıya özel detaylar
 export async function GET(
   _request: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params; // await işlemlerinden önce alınmalı
+    const { userId } = await params; // await işlemlerinden önce alınmalı
 
     // yetki kontrolü
     if (!(await checkAdminAuth())) {
@@ -41,6 +43,24 @@ export async function GET(
       return NextResponse.json({ error: projectsRes.error }, { status: 500 });
     }
 
+    // kullanıcı animasyon sayfaları
+    const animationsRes = await getUserAnimationPages(userId);
+    if (!animationsRes.success) {
+      return NextResponse.json({ error: animationsRes.error }, { status: 500 });
+    }
+
+    // kullanıcı istatistikleri
+    const statsRes = await getUserStats(userId);
+    if (!statsRes.success) {
+      return NextResponse.json({ error: statsRes.error }, { status: 500 });
+    }
+
+    // Tüm projeleri birleştir (PDF + Animasyon)
+    const allProjects = [
+      ...projectsRes.data.map(p => ({ ...p, project_type: 'pdf' })),
+      ...animationsRes.data.map(a => ({ ...a, project_type: 'animation', title: a.topic }))
+    ];
+
     // Destek talepleri (filtrele)
     const ticketsRes = await getAllSupportTickets();
     const userTickets = ticketsRes.success
@@ -50,8 +70,9 @@ export async function GET(
     return NextResponse.json({
       data: {
         user: profileRes.data,
-        projects: projectsRes.data,
+        projects: allProjects,
         tickets: userTickets,
+        stats: statsRes.data,
       },
     });
   } catch (err) {

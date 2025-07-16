@@ -1,13 +1,13 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { HelpCircle, CheckCircle2, XCircle, Info, Award } from "lucide-react";
+import { HelpCircle, CheckCircle2, XCircle, Info, Award, Play, Pause, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface QAPair {
@@ -33,12 +33,77 @@ interface SingleQaItemProps {
   answerData?: AnswerData;
 }
 
+// Web Speech API hook for text-to-speech
+function useSpeech() {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  useEffect(() => {
+    setIsSupported('speechSynthesis' in window);
+    
+    const handleEnd = () => setIsSpeaking(false);
+    const handleError = () => setIsSpeaking(false);
+    
+    return () => {
+      if (speechRef.current) {
+        speechRef.current.removeEventListener('end', handleEnd);
+        speechRef.current.removeEventListener('error', handleError);
+      }
+    };
+  }, []);
+
+  const speak = (text: string) => {
+    if (!isSupported) return;
+    
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'tr-TR';
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    speechRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stop = () => {
+    if (!isSupported) return;
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
+  return { speak, stop, isSpeaking, isSupported };
+}
+
 function SingleQaItem({ qaItem, index, onAttempt, answerData }: SingleQaItemProps) {
   const [localSelectedOption, setLocalSelectedOption] = useState<number | null>(null);
+  const { speak, stop, isSpeaking, isSupported } = useSpeech();
 
   const isAnswered = answerData !== undefined;
   const displayedSelection = isAnswered ? answerData.selectedOption : localSelectedOption;
   const isCorrectIfAnswered = isAnswered ? answerData.isCorrect : false;
+
+  const handleSpeechToggle = () => {
+    if (isSpeaking) {
+      stop();
+    } else {
+      const textToSpeak = `Soru ${index + 1}: ${qaItem.question}. Seçenekler: ${qaItem.options.map((opt, i) => `${i + 1}. ${opt}`).join('. ')}`;
+      speak(textToSpeak);
+    }
+  };
+
+  const speakExplanation = () => {
+    if (isAnswered) {
+      const explanationText = `Açıklama: ${qaItem.explanation}`;
+      speak(explanationText);
+    }
+  };
 
   const handleCheckAnswer = () => {
     if (localSelectedOption !== null && !isAnswered) {
@@ -65,7 +130,26 @@ function SingleQaItem({ qaItem, index, onAttempt, answerData }: SingleQaItemProp
     <AccordionItem value={`item-${index}`} className="border-b-0">
       <div className="border rounded-md hover:border-primary/50 transition-colors">
         <AccordionTrigger className="text-left hover:no-underline font-semibold px-4 py-3">
-          {index + 1}. {qaItem.question}
+          <div className="flex items-center justify-between w-full pr-4">
+            <span>{index + 1}. {qaItem.question}</span>
+            {isSupported && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSpeechToggle();
+                }}
+                className="ml-2 h-8 w-8 p-0 hover:bg-primary/10"
+              >
+                {isSpeaking ? (
+                  <Pause className="h-4 w-4 text-primary" />
+                ) : (
+                  <Volume2 className="h-4 w-4 text-primary" />
+                )}
+              </Button>
+            )}
+          </div>
         </AccordionTrigger>
         <AccordionContent className="space-y-4 px-4 pb-4">
           <RadioGroup
@@ -104,10 +188,22 @@ function SingleQaItem({ qaItem, index, onAttempt, answerData }: SingleQaItemProp
             )}>
               <div className="flex items-start">
                 <Info className="h-5 w-5 mr-2 mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-semibold mb-1">
-                    {isCorrectIfAnswered ? "Doğru Cevap!" : "Yanlış Cevap."}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-semibold">
+                      {isCorrectIfAnswered ? "Doğru Cevap!" : "Yanlış Cevap."}
+                    </p>
+                    {isSupported && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={speakExplanation}
+                        className="h-6 w-6 p-0 hover:bg-white/20"
+                      >
+                        <Volume2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
                   <p>{qaItem.explanation}</p>
                   {!isCorrectIfAnswered && (
                     <p className="mt-1">Doğru şık: <span className="font-semibold">{qaItem.options[qaItem.correctAnswerIndex]}</span></p>

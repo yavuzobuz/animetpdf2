@@ -7,7 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 // Client Component (Browser) - cookies import yok
 export const createBrowserClient = () => {
   return createClientComponentClient();
-  }
+}
 
 // Server Component için
 export const createServerClient = () => {
@@ -26,14 +26,7 @@ export const createRouteClient = () => {
 export const createAdminClient = () => {
   return createClient(
     supabaseUrl,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
-    }
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }
 

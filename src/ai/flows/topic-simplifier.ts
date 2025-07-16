@@ -40,58 +40,64 @@ ANLATIM TARZI: Cevabını aşağıdaki anlatım tarzına göre ayarla:
 GÖREV: Verilen konuyu analiz et ve iki bölümden oluşan bir içerik paketi oluştur.
 
 1. KONU ÖZETİ (Kapsamlı Adım Adım Rehber):
-   - Konuyu en az 10, en fazla 15 DETAYLI madde halinde açıkla (tercihen 12+).
-   - **ANLATIM TARZINA GÖRE ÖZEL GEREKSINIMLER**:
+   - Konuyu en az 12, en fazla 18 DETAYLI madde halinde açıkla (tercihen 15+).
+   - **ANLATIM TARZINA GÖRE ZORUNLU GEREKSINIMLER**:
    
-   **AKADEMİK TARZ**: Her madde EN AZ 6-8 CÜMLE olmalı ve şunları içermeli:
-     • Kavramın teorik tanımı ve disiplin içindeki yeri
-     • Tarihsel gelişimi ve önemli katkıda bulunanlar
-     • Farklı yaklaşımlar ve eleştirel değerlendirme
-     • Pratik uygulamalar ve gerçek dünya örnekleri
-     • İlgili kavramlarla ilişkiler ve bağlantılar
-     • Güncel araştırmalar ve gelecek perspektifleri
+   **AKADEMİK TARZ**: Her madde MUTLAKA EN AZ 12-18 CÜMLE olmalı ve şunları içermeli:
+     • Kavramın teorik tanımı ve disiplin içindeki yeri (3-4 cümle)
+     • Tarihsel gelişimi ve önemli katkıda bulunanlar (3-4 cümle)
+     • Farklı yaklaşımlar ve eleştirel değerlendirme (3-4 cümle)
+     • Pratik uygulamalar ve gerçek dünya örnekleri (3-4 cümle)
+     • İlgili kavramlarla ilişkiler ve bağlantılar (2-3 cümle)
+     • Güncel araştırmalar ve gelecek perspektifleri (2-3 cümle)
    
-   **TEKNİK DERİNLİK TARZI**: Her madde EN AZ 5-7 CÜMLE olmalı ve şunları içermeli:
-     • Teknik spesifikasyonlar ve detaylı parametreler
-     • Uygulama metodolojileri ve best practices
-     • Sistem gereksinimleri ve konfigürasyonlar
-     • Troubleshooting ve hata çözümleri
-     • Performans optimizasyonu ve güvenlik
+   **TEKNİK DERİNLİK TARZI**: Her madde MUTLAKA EN AZ 10-14 CÜMLE olmalı ve şunları içermeli:
+     • Teknik spesifikasyonlar ve detaylı parametreler (3-4 cümle)
+     • Uygulama metodolojileri ve best practices (3-4 cümle)
+     • Sistem gereksinimleri ve konfigürasyonlar (2-3 cümle)
+     • Troubleshooting ve hata çözümleri (2-3 cümle)
+     • Performans optimizasyonu ve güvenlik (2-3 cümle)
    
-   **YARATICI VE EĞLENCELİ TARZ**: Her madde EN AZ 4-6 CÜMLE olmalı ve şunları içermeli:
-     • Yaratıcı benzetmeler ve hikaye anlatımı
-     • Eğlenceli örnekler ve mizahi yaklaşımlar
-     • Günlük hayattan ilişkilendirmeler
-     • Akılda kalıcı ipuçları ve hatırlatıcılar
-     • İnteraktif düşünce egzersizleri
+   **YARATICI VE EĞLENCELİ TARZ**: Her madde MUTLAKA EN AZ 8-12 CÜMLE olmalı ve şunları içermeli:
+     • Yaratıcı benzetmeler ve hikaye anlatımı (3-4 cümle)
+     • Eğlenceli örnekler ve mizahi yaklaşımlar (3-4 cümle)
+     • Günlük hayattan ilişkilendirmeler (2-3 cümle)
+     • Akılda kalıcı ipuçları ve hatırlatıcılar (2-3 cümle)
+     • İnteraktif düşünce egzersizleri (1-2 cümle)
    
-   **PROFESYONEL (İŞ ODAKLI) TARZ**: Her madde EN AZ 4-5 CÜMLE olmalı ve şunları içermeli:
-     • İş süreçlerine doğrudan etkisi
-     • ROI ve verimlilik analizi
-     • Risk yönetimi ve compliance
-     • Takım çalışması ve koordinasyon
-     • Ölçülebilir sonuçlar ve KPI'lar
+   **PROFESYONEL (İŞ ODAKLI) TARZ**: Her madde MUTLAKA EN AZ 8-12 CÜMLE olmalı ve şunları içermeli:
+     • İş süreçlerine doğrudan etkisi (3 cümle)
+     • ROI ve verimlilik analizi (3 cümle)
+     • Risk yönetimi ve compliance (2-3 cümle)
+     • Takım çalışması ve koordinasyon (2-3 cümle)
+     • Ölçülebilir sonuçlar ve KPI'lar (2-3 cümle)
    
-   **SAMİMİ VE SOHBET HAVASI**: Her madde EN AZ 3-5 CÜMLE olmalı ve şunları içermeli:
-     • Kişisel deneyimler ve anekdotlar
-     • Samimi tavsiyeler ve içten öneriler
-     • Günlük dil ve rahat ifadeler
-     • Okuyucuyla doğrudan iletişim
-     • Pratik hayat hikayeleri
+   **SAMİMİ VE SOHBET HAVASI**: Her madde MUTLAKA EN AZ 7-10 CÜMLE olmalı ve şunları içermeli:
+     • Kişisel deneyimler ve anekdotlar (3 cümle)
+     • Samimi tavsiyeler ve içten öneriler (3 cümle)
+     • Günlük dil ve rahat ifadeler (2-3 cümle)
+     • Okuyucuyla doğrudan iletişim (2 cümle)
+     • Pratik hayat hikayeleri (2 cümle)
    
-   **ELEŞTİREL BAKIŞ TARZI**: Her madde EN AZ 5-6 CÜMLE olmalı ve şunları içermeli:
-     • Avantajlar ve dezavantajların objektif analizi
-     • Farklı perspektiflerin karşılaştırması
-     • Potansiyel riskler ve sınırlamalar
-     • Alternatif yaklaşımların değerlendirilmesi
-     • Kanıta dayalı sonuçlar ve öneriler
+   **ELEŞTİREL BAKIŞ TARZI**: Her madde MUTLAKA EN AZ 10-14 CÜMLE olmalı ve şunları içermeli:
+     • Avantajlar ve dezavantajların objektif analizi (3-4 cümle)
+     • Farklı perspektiflerin karşılaştırması (3 cümle)
+     • Potansiyel riskler ve sınırlamalar (2-3 cümle)
+     • Alternatif yaklaşımların değerlendirilmesi (2-3 cümle)
+     • Kanıta dayalı sonuçlar ve öneriler (2-3 cümle)
    
-   **BASİT VE ANLAŞILIR TARZ**: Her madde EN AZ 3-4 CÜMLE olmalı ve şunları içermeli:
-     • Sade ve net açıklamalar
-     • Karmaşık terimlerin basit karşılıkları
-     • Adım adım kolay takip edilebilir yönergeler
-     • Görsel ve somut örnekler
-     • Temel seviyede pratik uygulamalar
+   **BASİT VE ANLAŞILIR TARZ**: Her madde MUTLAKA EN AZ 7-10 CÜMLE olmalı ve şunları içermeli:
+     • Sade ve net açıklamalar (3 cümle)
+     • Karmaşık terimlerin basit karşılıkları (2-3 cümle)
+     • Adım adım kolay takip edilebilir yönergeler (3 cümle)
+     • Görsel ve somut örnekler (2-3 cümle)
+     • Temel seviyede pratik uygulamalar (2 cümle)
+   
+   **VARSAYILAN TARZ**: Her madde MUTLAKA EN AZ 7-10 CÜMLE olmalı ve şunları içermeli:
+     • Net tanım ve açıklama (3 cümle)
+     • Önemli detaylar ve özellikler (3-4 cümle)
+     • Pratik örnekler ve uygulamalar (2-3 cümle)
+     • Önemli notlar ve dikkat edilecek hususlar (2 cümle)
    
    - **ANLATIM TARZINA GÖRE MADDE YAPISI**:
    
@@ -173,21 +179,23 @@ GÖREV: Verilen konuyu analiz et ve iki bölümden oluşan bir içerik paketi ol
      • Açıklayıcı: "Yani", "Başka bir deyişle", "Bu demek oluyor ki"
      • Destekleyici: "Merak etmeyin", "Zor değil", "Kolayca yapabilirsiniz"
 
-   - **ANLATIM TARZINA GÖRE DETAY SEVİYESİ**:
+   - **ANLATIM TARZINA GÖRE ZORUNLU DETAY SEVİYESİ**:
    
-   **AKADEMİK TARZ**: Her madde son derece kapsamlı olmalı. Kavramın teorik temellerini, tarihsel gelişimini, farklı yaklaşımları, eleştirel değerlendirmeleri, pratik uygulamaları ve güncel araştırmaları içermeli. Okuyucu o konuda uzman seviyesinde bilgi sahibi olmalı.
+   **AKADEMİK TARZ**: Her madde SON DERECE KAPSAMLI ve UZUN olmalı (minimum 250-350 kelime). Kavramın teorik temellerini, tarihsel gelişimini, farklı yaklaşımları, eleştirel değerlendirmeleri, pratik uygulamaları ve güncel araştırmaları DETAYLI şekilde içermeli. Akademik terminoloji, kaynak referansları, metodolojik yaklaşımlar ve disiplinler arası bağlantılar MUTLAKA bulunmalı. Okuyucu o konuda uzman seviyesinde bilgi sahibi olmalı.
    
-   **TEKNİK DERİNLİK TARZI**: Her madde teknik detaylarla dolu olmalı. Spesifikasyonlar, konfigürasyonlar, implementasyon detayları, hata çözümleri ve optimizasyon teknikleri kapsamlı şekilde açıklanmalı. Okuyucu teknik uygulama yapabilecek seviyede bilgi edinmeli.
+   **TEKNİK DERİNLİK TARZI**: Her madde teknik detaylarla DOLU olmalı (minimum 200-280 kelime). Spesifikasyonlar, konfigürasyonlar, implementasyon detayları, hata çözümleri ve optimizasyon teknikleri KAPSAMLI şekilde açıklanmalı. Kod örnekleri, sistem gereksinimleri, güvenlik protokolleri ve performans metrikleri DETAYLI olarak verilmeli. Okuyucu teknik uygulama yapabilecek seviyede bilgi edinmeli.
    
-   **YARATICI VE EĞLENCELİ TARZ**: Her madde yaratıcı ve akılda kalıcı olmalı. Hikayeler, benzetmeler, eğlenceli örnekler ve interaktif elementlerle zenginleştirilmeli. Okuyucu hem öğrenmeli hem de eğlenmeli.
+   **YARATICI VE EĞLENCELİ TARZ**: Her madde yaratıcı ve akılda kalıcı olmalı (minimum 180-250 kelime). Hikayeler, benzetmeler, eğlenceli örnekler ve interaktif elementlerle ZENGIN şekilde desteklenmeli. Mizahi yaklaşımlar, günlük hayat örnekleri ve yaratıcı analojiler MUTLAKA kullanılmalı. Okuyucu hem öğrenmeli hem de eğlenmeli.
    
-   **PROFESYONEL (İŞ ODAKLI) TARZ**: Her madde iş değeri odaklı olmalı. ROI, verimlilik, risk analizi ve ölçülebilir sonuçlar detaylandırılmalı. Okuyucu iş süreçlerinde doğrudan uygulayabilecek bilgi edinmeli.
+   **PROFESYONEL (İŞ ODAKLI) TARZ**: Her madde iş değeri odaklı olmalı (minimum 180-250 kelime). ROI, verimlilik, risk analizi ve ölçülebilir sonuçlar DETAYLI şekilde açıklanmalı. İş süreçleri, maliyet analizi, zaman yönetimi ve takım koordinasyonu KAPSAMLI olarak ele alınmalı. Okuyucu iş süreçlerinde doğrudan uygulayabilecek bilgi edinmeli.
    
-   **SAMİMİ VE SOHBET HAVASI**: Her madde samimi ve kişisel olmalı. Deneyimler, anekdotlar ve içten tavsiyelerle desteklenmeli. Okuyucu sanki bir arkadaşından öğreniyor gibi hissetmeli.
+   **SAMİMİ VE SOHBET HAVASI**: Her madde samimi ve kişisel olmalı (minimum 150-220 kelime). Deneyimler, anekdotlar ve içten tavsiyelerle GÜÇLÜ şekilde desteklenmeli. Kişisel hikayeler, samimi öneriler ve günlük dil MUTLAKA kullanılmalı. Okuyucu sanki bir arkadaşından öğreniyor gibi hissetmeli.
    
-   **ELEŞTİREL BAKIŞ TARZI**: Her madde objektif ve analitik olmalı. Farklı perspektifler, avantaj-dezavantaj analizleri ve kanıta dayalı değerlendirmeler içermeli. Okuyucu konuyu çok boyutlu değerlendirebilmeli.
+   **ELEŞTİREL BAKIŞ TARZI**: Her madde objektif ve analitik olmalı (minimum 200-280 kelime). Farklı perspektifler, avantaj-dezavantaj analizleri ve kanıta dayalı değerlendirmeler DETAYLI şekilde içermeli. Alternatif yaklaşımlar, risk değerlendirmeleri ve objektif karşılaştırmalar KAPSAMLI olarak sunulmalı. Okuyucu konuyu çok boyutlu değerlendirebilmeli.
    
-   **BASİT VE ANLAŞILIR TARZ**: Her madde sade ve net olmalı. Karmaşık kavramlar basitleştirilmeli, adım adım açıklamalar verilmeli. Okuyucu hiç bilmese bile kolayca anlayabilmeli.
+   **BASİT VE ANLAŞILIR TARZ**: Her madde sade ve net olmalı (minimum 150-200 kelime). Karmaşık kavramlar basitleştirilmeli, adım adım açıklamalar DETAYLI şekilde verilmeli. Basit örnekler, görsel açıklamalar ve kolay hatırlanabilir ipuçları MUTLAKA bulunmalı. Okuyucu hiç bilmese bile kolayca anlayabilmeli.
+   
+   **VARSAYILAN TARZ**: Her madde dengeli ve kapsamlı olmalı (minimum 150-220 kelime). Net açıklamalar, önemli detaylar ve pratik örnekler DENGELI şekilde sunulmalı. Hem teorik bilgi hem de pratik uygulamalar UYGUN oranda verilmeli. Okuyucu konuyu hem anlayabilmeli hem de uygulayabilmeli.
 
 2. EĞİTİCİ GÖRSEL SAHNE LİSTESİ: (en az 6 sahne, tercihen 6-8)
    - Her sahne, özetin farklı ve önemli bir maddesini görselleştirmelidir.
@@ -200,6 +208,12 @@ KESİN YAZIM KURALLARI:
 - REHBERLİK EDİCİ ÜSLUP: Her maddeyi, okuyucuya adım adım yol gösteren, açıklayıcı ve eğitici bir tonda yaz.
 - YAPI: Maddeler mantıksal bir akış içinde olmalı ve birbirini tamamlamalıdır.
 - FORMAT: Her madde YENİ BİR SATIRDA başlamalı ve MADDELER ARASINDA bir boş satır (çift satır sonu) bulunmalıdır; böylece çıktıyı \n\n ile ayırabilirim.
+- UZUNLUK ZORUNLULUĞU: Yukarıda belirtilen minimum kelime sayıları ve cümle sayıları MUTLAKA karşılanmalıdır. Kısa cevaplar KESİNLİKLE kabul edilmez. Her madde UZUN ve KAPSAMLI olmalıdır.
+- DETAY ZORUNLULUĞU: Her madde seçilen anlatım tarzına uygun olarak MAKSIMUM detay seviyesinde yazılmalıdır. Yüzeysel açıklamalar yapılmamalıdır. DERINLEMESINE açıklama şarttır.
+- İÇERİK ZENGİNLİĞİ: Her madde örnekler, açıklamalar, detaylar ve anlatım tarzına uygun özel elementlerle ZENGİNLEŞTİRİLMELİDİR. Boş ve anlamsız cümleler YASAKTIR.
+- KAPSAMLILIK: Konunun her yönü ele alınmalı, hiçbir önemli nokta atlanmamalıdır. Her madde KENDİ BAŞINA KAPSAMLI bir açıklama olmalıdır.
+- ZORUNLU UZUNLUK KONTROLÜ: Her madde yazıldıktan sonra kelime sayısı kontrol edilmeli, minimum gereksinimler karşılanmadıysa MUTLAKA genişletilmelidir.
+- DETAY YOĞUNLUĞU: Her cümle bilgi yüklü olmalı, gereksiz dolgu kelimeler kullanılmamalıdır. Maksimum bilgi aktarımı hedeflenmelidir.
 
 Topic: {{topic}}`,
 });

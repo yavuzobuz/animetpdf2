@@ -1,39 +1,62 @@
 "use client";
 
-import React, { useState, useRef, useEffect, FormEvent } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, MessageSquare, Send, User, Bot } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import type { ChatWithPdfInput, ChatWithPdfOutput } from '@/ai/flows/chat-with-pdf-flow';
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { MessageSquare, Send, User, Bot, Loader2 } from 'lucide-react';
+import { saveChatMessage, getChatHistory, ChatMessage } from '@/lib/database';
 
 interface PdfChatProps {
   pdfSummary: string;
-  chatWithPdfFlow: (input: { prompt: string; pdfContent: string }) => Promise<{ response: string }>;
+  chatWithPdfFlow: (input: { prompt: string; pdfContent: string; narrativeStyle?: string }) => Promise<{ success: boolean; response?: string; error?: string }>;
+  projectId?: string | undefined;
+  narrativeStyle?: string;
 }
 
-export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function PdfChat({ pdfSummary, chatWithPdfFlow, projectId, narrativeStyle = 'Varsayılan' }: PdfChatProps) {
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-      const scrollViewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-      if (scrollViewport) {
-        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = scrollContainer.scrollHeight;
       }
     }
   };
+
+  // Load chat history on component mount
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      if (!projectId) {
+        setLoadingHistory(false);
+        return;
+      }
+
+      setLoadingHistory(true);
+      try {
+        const history = await getChatHistory(projectId);
+        if (history && history.length > 0) {
+          setMessages(history.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    loadChatHistory();
+  }, [projectId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -45,22 +68,54 @@ export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    
+    // Add user message to state
+    const newUserMessage = { role: 'user' as const, content: userMessage };
+    setMessages(prev => [...prev, newUserMessage]);
+    
+    // Save user message to database (only if projectId exists)
+    if (projectId) {
+      const saved = await saveChatMessage(projectId, 'user', userMessage);
+      if (!saved) {
+        console.warn('Failed to save user message to database');
+      }
+    }
+    
     setLoading(true);
 
     try {
       const result = await chatWithPdfFlow({
         prompt: userMessage,
-        pdfContent: pdfSummary
+        pdfContent: pdfSummary,
+        narrativeStyle: narrativeStyle
       });
       
-      setMessages(prev => [...prev, { role: 'assistant', content: result.response }]);
+      // Add assistant message to state
+      const assistantMessage = { role: 'assistant' as const, content: result.response || 'Özür dilerim, bir hata oluştu.' };
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      // Save assistant response to database (only if projectId exists)
+      if (projectId && result.response) {
+        const saved = await saveChatMessage(projectId, 'assistant', result.response);
+        if (!saved) {
+          console.warn('Failed to save assistant response to database');
+        }
+      }
     } catch (error) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
+      const errorMessage = { 
+        role: 'assistant' as const, 
         content: 'Özür dilerim, bir hata oluştu. Lütfen tekrar deneyin.' 
-      }]);
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      
+      // Save error message to database (only if projectId exists)
+      if (projectId) {
+        const saved = await saveChatMessage(projectId, 'assistant', errorMessage.content);
+        if (!saved) {
+          console.warn('Failed to save error message to database');
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -79,8 +134,15 @@ export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="h-80 p-3 text-sm">
-            {messages.length === 0 ? (
+          <ScrollArea className="h-80 p-3 text-sm" ref={scrollAreaRef}>
+            {loadingHistory ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-green-600" />
+                  <span className="text-sm text-gray-600">Sohbet geçmişi yükleniyor...</span>
+                </div>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-4 space-y-2">
                 <div className="p-2 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full">
                   <MessageSquare className="h-6 w-6 text-green-600" />
@@ -103,7 +165,7 @@ export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
                     <span>"Bu konu hangi alanlarda kullanılır?"</span>
-              </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -135,8 +197,8 @@ export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
                         </p>
                       </div>
                     </div>
-            </div>
-          ))}
+                  </div>
+                ))}
                 {loading && (
                   <div className="flex gap-3 justify-start">
                     <div className="flex gap-3 max-w-[80%]">
@@ -148,22 +210,22 @@ export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
                           <Loader2 className="h-4 w-4 animate-spin text-green-600" />
                           <span className="text-sm text-gray-600">Düşünüyor...</span>
                         </div>
-                </div>
-                </div>
+                      </div>
+                    </div>
                   </div>
                 )}
-            </div>
-          )}
-        </ScrollArea>
+              </div>
+            )}
+          </ScrollArea>
           <div className="p-3 border-t border-white/20 bg-gradient-to-r from-white/50 to-blue-50/50">
             <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
+              <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="PDF hakkında soru sorun..."
                 disabled={loading}
                 className="flex-1 backdrop-blur-sm bg-white/80 border-white/40 focus:border-green-300 focus:ring-green-200 text-sm h-8 px-2"
-          />
+              />
               <Button 
                 type="submit" 
                 disabled={loading || !input.trim()}
@@ -174,11 +236,11 @@ export function PdfChat({ pdfSummary, chatWithPdfFlow }: PdfChatProps) {
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-          </Button>
-        </form>
+              </Button>
+            </form>
           </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

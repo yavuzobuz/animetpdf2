@@ -12,14 +12,25 @@ export async function GET(request: NextRequest) {
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
     
     try {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (!error) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      
+      if (!error && data.session) {
         // Session başarılı - profil sayfasına yönlendir
         return NextResponse.redirect(`${requestUrl.origin}${next}`);
-    }
+      }
       
-      console.error('Auth callback error:', error.message);
+      if (error) {
+        console.error('Auth callback error:', error.message);
+        
+        // Refresh token hatalarını özel olarak handle et
+        if (error.message.includes('refresh_token_not_found') || 
+            error.message.includes('Invalid Refresh Token')) {
+          // Session'ı temizle ve login'e yönlendir
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${requestUrl.origin}/tr/login?error=session_expired`);
+        }
+      }
+      
     } catch (err) {
       console.error('Auth callback exception:', err);
     }

@@ -13,6 +13,7 @@ import {z} from 'genkit';
 const ChatWithPdfInputSchema = z.object({
   pdfSummary: z.string().describe('The summary of the PDF document (in Turkish).'),
   userQuery: z.string().describe('The user\'s question about the PDF document (in Turkish).'),
+  narrativeStyle: z.string().optional().describe('The narrative style for the response (e.g., "Varsayılan", "Akademik", "Basit ve Anlaşılır", etc.).'),
 });
 export type ChatWithPdfInput = z.infer<typeof ChatWithPdfInputSchema>;
 
@@ -31,32 +32,32 @@ const prompt = ai.definePrompt({
   output: {schema: ChatWithPdfOutputSchema},
   prompt: `Sen, PDF belgesi ile sohbet eden dostane ve yardımsever bir asistansın. Sıcak, samimi ve doğal bir şekilde konuşmalısın.
 
-SELAMLAŞMA YÖNETİMİ:
-Eğer kullanıcı seni selamlıyorsa ("selam", "merhaba", "hello", "hi" gibi), samimi bir şekilde karşılık ver ve nasıl yardımcı olabileceğini sor.
+ANLATIM TARZI: {{narrativeStyle}}
 
-ANA GÖREV:
-Sana verilen PDF özeti hakkında soruları yanıtla. Sadece PDF özetindeki bilgilere dayanarak cevap ver ama bunu doğal ve samimi bir dille yap.
+**ANLATIM TARZLARINA GÖRE YANITLAMA:**
 
-YANIT REHBERI:
-- Doğal, insan gibi konuş, robotik olma
-- Samimi ve anlayışlı ol
-- Kullanıcının sorusunu özet içeriğiyle bağlantılı kısaltmalar ve eş anlamlı ifadeler göz önünde bulundurarak yorumla
-- Eğer sorunun cevabı özette varsa: Samimi bir şekilde açıkla
-- Eğer sorunun cevabı özette yoksa: "Bu konuda belgede detaylı bilgi bulamadım ama..." gibi doğal ifadelerle belirt
+**AKADEMİK**: Formal akademik dil, teorik açıklamalar, literatür referansları (8-12 cümle)
+**TEKNİK DERİNLİK**: Teknik detaylar, spesifikasyonlar, implementasyon bilgileri (7-10 cümle)
+**YARATICI VE EĞLENCELİ**: Benzetmeler, hikayeler, mizahi yaklaşım (6-9 cümle)
+**PROFESYONEL**: İş odaklı, ROI analizi, verimlilik metrikleri (6-9 cümle)
+**SAMİMİ VE SOHBET**: Rahat dil, kişisel deneyimler, günlük örnekler (5-8 cümle)
+**ELEŞTİREL BAKIŞ**: Objektif analiz, avantaj-dezavantaj karşılaştırması, alternatif yaklaşımlar (7-10 cümle)
+**BASİT VE ANLAŞILIR**: Sade dil, adım adım açıklama, somut örnekler (5-7 cümle)
+**VARSAYILAN**: Net ve bilgilendirici, pratik örnekler (5-7 cümle)
 
-TON ÖRNEKLERİ:
-- "Bu bilgi özette yer almıyor" yerine → "Bu konuda belgede net bir bilgi göremiyorum"
-- "Cevap veremem" yerine → "Maalesef bu soruya belgeden hareketle tam cevap veremiyorum"
+GÖREV: PDF özetindeki bilgilere dayanarak soruları yanıtla. Seçilen anlatım tarzına uygun uzunluk ve formatta cevap ver.
 
-PDF özetinde olmayan bilgileri uydurma. Sadece özetteki bilgileri kullan ama bunu samimi bir dille yap.
+KURALLAR:
+- Sadece PDF özetindeki bilgileri kullan
+- Seçilen anlatım tarzına uygun minimum cümle sayısını karşıla
+- Bilgi yoksa "Bu konuda belgede detaylı bilgi bulamadım" de ama yine de tarzına uygun uzunlukta yanıt ver
+- Bilgi uydurma, sadece özetteki bilgileri kullan
 
-PDF Özeti (Türkçe):
-{{{pdfSummary}}}
+PDF Özeti: {{{pdfSummary}}}
+Kullanıcı Sorusu: {{{userQuery}}}
+Anlatım Tarzı: {{{narrativeStyle}}}
 
-Kullanıcı Sorusu (Türkçe):
-{{{userQuery}}}
-
-Cevabın (Türkçe, samimi ve özete dayanarak):`,
+Cevabın (Türkçe, seçilen anlatım tarzına uygun):`,
 });
 
 const chatWithPdfFlow = ai.defineFlow(

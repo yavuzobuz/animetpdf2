@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Loader2, Network, Play, FileText, Eye, Workflow, GitFork, Pause, ArrowLeft, ArrowRight, Info } from 'lucide-react';
 import { QaDisplay } from '@/components/custom/qa-display';
+import { PdfChat } from '@/components/custom/pdf-chat';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -412,6 +413,54 @@ export default function ProjectDetailPage() {
                       </div>
                     </div>
                   )}
+
+        {/* PDF Chat */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5" />
+              AI Sohbet
+            </CardTitle>
+            <CardDescription>
+              Bu proje hakkında sorularınızı sorun
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PdfChat 
+              pdfSummary={project.analysis_result?.summary || ''}
+              projectId={projectId}
+              chatWithPdfFlow={async (input: { prompt: string; pdfContent: string }) => {
+                // Basit bir chat flow implementasyonu
+                try {
+                  const response = await fetch('/api/chat-with-pdf', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      message: input.prompt,
+                      summary: input.pdfContent,
+                      projectTitle: project.title
+                    }),
+                  });
+                  
+                  if (!response.ok) {
+                    throw new Error('Chat API hatası');
+                  }
+                  
+                  const data = await response.json();
+                  return { success: true, response: data.response };
+                } catch (error) {
+                  console.error('Chat error:', error);
+                  return { 
+                    success: false, 
+                    error: 'Sohbet sırasında bir hata oluştu. Lütfen tekrar deneyin.' 
+                  };
+                }
+              }}
+            />
+          </CardContent>
+        </Card>
             </CardContent>
           </Card>
         )}
@@ -459,6 +508,11 @@ export default function ProjectDetailPage() {
                   <CardDescription>
                       {project.animation_svgs.length} sahne animasyonu - Sesli oynatma destekli
                   </CardDescription>
+                  <div className="mt-3 p-3 bg-gradient-to-r from-orange-50 to-purple-50 rounded-lg border border-orange-200">
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      ✨ Herhangi bir konuyu yazın veya PDF yükleyin, yapay zeka ile büyüleyici animasyonlara ve interaktif deneyimlere dönüştürelim!
+                    </p>
+                  </div>
                 </CardHeader>
                   <CardContent className="space-y-4">
                     {/* Oynatma Kontrolleri */}
@@ -529,12 +583,17 @@ export default function ProjectDetailPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Play className="w-5 h-5" />
-                    Eğitici Animasyon
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <Play className="w-5 h-5" />
+                Eğitici Animasyon
+              </CardTitle>
+              <div className="mt-3 p-3 bg-gradient-to-r from-orange-50 to-purple-50 rounded-lg border border-orange-200">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  ✨ Herhangi bir konuyu yazın veya PDF yükleyin, yapay zeka ile büyüleyici animasyonlara ve interaktif deneyimlere dönüştürelim!
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                     {project.animation_scenario.map((scene: any, idx: number) => {
                         const text = scene?.frameSummary || scene?.sceneDescription || `Sahne ${idx+1} açıklaması`;
                         return (

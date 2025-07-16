@@ -23,9 +23,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Mevcut kullanıcıyı al
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.warn('Auth error:', error.message);
+          // Refresh token hatası durumunda session'ı temizle
+          if (error.message.includes('refresh_token_not_found') || 
+              error.message.includes('Invalid Refresh Token')) {
+            console.log('Clearing invalid session...');
+            await supabase.auth.signOut();
+            setUser(null);
+          }
+        } else {
+          setUser(user);
+        }
+      } catch (error) {
+        console.error('Failed to get user:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     getUser();
@@ -33,7 +51,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Auth durumu değişikliklerini dinle
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null);
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setUser(session?.user ?? null);
+        } else if (event === 'SIGNED_IN') {
+          setUser(session?.user ?? null);
+        } else if (event === 'USER_UPDATED') {
+          setUser(session?.user ?? null);
+        }
+        
         setLoading(false);
       }
     );
@@ -42,23 +69,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase.auth]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Hata olsa bile kullanıcıyı null yap
+      setUser(null);
+    }
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/profil`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=/profil`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
       }
-    });
-    
-    if (error) {
-      console.error('Google sign in error:', error);
+    } catch (error) {
+      console.error('Google sign in failed:', error);
+      throw error;
     }
   };
 
