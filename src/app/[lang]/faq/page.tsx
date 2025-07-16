@@ -107,21 +107,41 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
 
     const newMessage: ChatMessage = { sender: 'user', text: userInput }
     setChatMessages(prev => [...prev, newMessage])
+    const currentInput = userInput
     setUserInput('')
     setIsChatLoading(true)
 
     try {
-      // Simulated bot response
-      setTimeout(() => {
-        const botResponse: ChatMessage = {
-          sender: 'bot',
-          text: "Bu özellik şu anda geliştirme aşamasındadır. Sorularınız için lütfen yukarıdaki SSS listesini kontrol edin veya destek ekibimizle iletişime geçin."
-        }
-        setChatMessages(prev => [...prev, botResponse])
-        setIsChatLoading(false)
-      }, 1000)
+      const response = await fetch('/api/faq-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userQuery: currentInput,
+          userLanguage: currentLang
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('API request failed')
+      }
+
+      const data = await response.json()
+      
+      const botResponse: ChatMessage = {
+        sender: 'bot',
+        text: data.botResponse || 'Üzgünüm, şu anda bir sorun yaşıyorum.'
+      }
+      setChatMessages(prev => [...prev, botResponse])
+      
     } catch (error) {
-      setChatMessages(prev => [...prev, { sender: 'bot', text: "Üzgünüm, şu anda bir sorun yaşıyorum." }])
+      console.error('Chat error:', error)
+      setChatMessages(prev => [...prev, { 
+        sender: 'bot', 
+        text: "Üzgünüm, şu anda bir sorun yaşıyorum. Lütfen daha sonra tekrar deneyin." 
+      }])
+    } finally {
       setIsChatLoading(false)
     }
   }

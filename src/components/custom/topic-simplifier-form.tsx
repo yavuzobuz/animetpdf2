@@ -40,6 +40,7 @@ import AnimatedSection from '@/components/custom/animated-section';
 import { PdfChat } from '@/components/custom/pdf-chat';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { VideoGenerator, downloadVideo, generateAudioFromText } from '@/lib/video-generator';
 
 // Dinamik form schema - PDF analizi varsa validation daha esnek
 const createFormSchema = (hasPdfAnalysis: boolean) => z.object({
@@ -256,6 +257,9 @@ export function TopicSimplifierForm() {
 
   // Drag & Drop state & handlers for PDF upload
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Video generation states
+  const [videoLoading, setVideoLoading] = useState(false);
 
   // Animasyon sahnelerinin metinlerini al
   let displayedParagraphs: string[] = [];
@@ -951,6 +955,49 @@ const handlePdfIconClick = () => {
     }
   };
 
+  const handleGenerateVideo = async () => {
+    if (!visuals || visuals.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'Video oluşturulamıyor',
+        description: 'Önce görseller oluşturulmalı.',
+      });
+      return;
+    }
+
+    setVideoLoading(true);
+    try {
+      const videoGenerator = new VideoGenerator();
+      
+      // Her görsel için metin ve görsel URL'sini hazırla
+      const slides = visuals.map((visual, index) => ({
+        text: visual.keyTopic || visual.description || `Sahne ${index + 1}`,
+        imageUrl: visual.image || '', // Görsel URL'si
+        duration: 3000 // Her sahne 3 saniye
+      }));
+
+      // Video oluştur
+      const videoBlob = await videoGenerator.createVideo(slides);
+      
+      // Video dosyasını indir
+      downloadVideo(videoBlob, `${submittedTopic || 'video'}.mp4`);
+      
+      toast({
+        title: 'Video oluşturuldu!',
+        description: 'Video başarıyla oluşturuldu ve indiriliyor.',
+      });
+    } catch (error) {
+      console.error('Video generation error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Video oluşturma hatası',
+        description: 'Video oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.',
+      });
+    } finally {
+      setVideoLoading(false);
+    }
+  };
+
   const resetProject = () => {
     // Sayfayı tamamen yenile (F5 gibi)
     window.location.reload();
@@ -1108,6 +1155,9 @@ const handlePdfIconClick = () => {
               <Button onClick={handleGenerateImage} disabled={imageLoading || (!script?.frames && !script?.summary)} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
                 <ImageIcon className="mr-2 h-4 w-4" /> Görsel Oluştur
               </Button>
+              <Button onClick={handleGenerateVideo} disabled={videoLoading || !visuals || visuals.length === 0 || !imageResults?.images || imageResults.images.length === 0} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed">
+                {videoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Film className="mr-2 h-4 w-4" />} Video Oluştur
+              </Button>
               <Button onClick={handleGenerateQuiz} disabled={quizLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
                 <HelpCircle className="mr-2 h-4 w-4" /> Mini Quiz
               </Button>
@@ -1187,12 +1237,28 @@ const handlePdfIconClick = () => {
               </CardContent>
             </Card>
             
+            {/* PDF Analiz Sonucu için Aksiyon Butonları */}
+            <div className="mt-4 flex flex-wrap justify-center gap-4">
+              <Button onClick={handleGenerateDiagram} disabled={diagramLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
+                <Network className="mr-2 h-4 w-4" /> Diyagram Oluştur
+              </Button>
+              <Button onClick={handleGenerateImage} disabled={imageLoading || (!script?.frames && !script?.summary)} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
+                <ImageIcon className="mr-2 h-4 w-4" /> Görsel Oluştur
+              </Button>
+              <Button onClick={handleGenerateVideo} disabled={videoLoading || !visuals || visuals.length === 0 || !imageResults?.images || imageResults.images.length === 0} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed">
+                {videoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Film className="mr-2 h-4 w-4" />} Video Oluştur
+              </Button>
+              <Button onClick={handleGenerateQuiz} disabled={quizLoading || !script?.summary} className="flex-1 min-w-[180px] px-5 h-9 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white">
+                <HelpCircle className="mr-2 h-4 w-4" /> Mini Quiz
+              </Button>
+            </div>
+
             {/* PDF ile Sohbet - Popup */}
             <div className="mt-4 flex justify-center">
               <Dialog open={pdfChatOpen} onOpenChange={setPdfChatOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    className="block mx-auto px-6 h-10 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                    className="block mx-auto px-6 h-10 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     PDF ile Sohbet Et
@@ -1468,6 +1534,18 @@ const handlePdfIconClick = () => {
                           <CarouselPrevious />
                           <CarouselNext />
                         </Carousel>
+                        
+                        {/* Video Oluştur Butonu - Eğitici Görseller Altında */}
+                        <div className="mt-4 flex justify-center">
+                          <Button 
+                            onClick={handleGenerateVideo} 
+                            disabled={videoLoading || !visuals || visuals.length === 0 || !imageResults?.images || imageResults.images.length === 0} 
+                            className="px-6 py-2.5 text-sm rounded-lg shadow-lg flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-xl hover:scale-105"
+                          >
+                            {videoLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Film className="mr-2 h-4 w-4" />} 
+                            Video Oluştur
+                          </Button>
+                        </div>
                       </div>
                   )}
 
