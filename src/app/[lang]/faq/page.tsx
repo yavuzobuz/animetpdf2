@@ -219,7 +219,7 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
                   </DialogHeader>
 
                   <div className="flex-1 flex flex-col">
-                    <ScrollArea className="flex-1 p-4 border rounded-lg bg-gray-50">
+                    <ScrollArea className="flex-1 p-4 border rounded-lg bg-gray-50 h-96 max-h-96">
                       {chatMessages.length === 0 ? (
                         <div className="text-center text-gray-500 py-8">
                           <Bot className="w-12 h-12 mx-auto mb-4 text-gray-400" />
