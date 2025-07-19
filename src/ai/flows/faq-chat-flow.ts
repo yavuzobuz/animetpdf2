@@ -103,9 +103,6 @@ const faqChatFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output || !output.botResponse) {
-      throw new Error("Chatbot response generation failed or did not return content.");
-    }
     return output;
   }
 );

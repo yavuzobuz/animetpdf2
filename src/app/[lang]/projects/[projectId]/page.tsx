@@ -14,11 +14,79 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Loader2, Network, Play, FileText, Eye, Workflow, GitFork, Pause, ArrowLeft, ArrowRight, Info } from 'lucide-react';
+import { 
+  FileText, 
+  Network, 
+  Play, 
+  Pause, 
+  ArrowLeft, 
+  ArrowRight, 
+  Eye, 
+  Info,
+  GitFork,
+  Workflow,
+  Sparkles, 
+  Wand2, 
+  Star, 
+  Brain,
+  Zap,
+  Upload,
+  Palette
+} from 'lucide-react';
 import { QaDisplay } from '@/components/custom/qa-display';
 import { PdfChat } from '@/components/custom/pdf-chat';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+
+// Translation dictionary for project detail page
+const I18N = {
+  en: {
+    badge: 'AI Wizard',
+    heroLine1: "Transform Your Questions, Text and PDFs into ",
+    heroHighlight: 'Magical Animations',
+    heroDescription: 'Write any topic or upload a PDF, and let AI turn it into captivating animations and interactive experiences! ✨',
+    howTitle: 'How It Works?',
+    howSubtitle: 'Create awesome animations in just 3 simple steps',
+    steps: [
+      {title: 'Write Topic or Upload PDF', desc: 'Type the topic you want to learn or upload your existing PDF', iconColor: 'bg-orange-500'},
+      {title: 'AI Analyzes', desc: 'Artificial intelligence analyzes your content and prepares the best animation scenario', iconColor: 'bg-blue-500'},
+      {title: 'Watch Animation', desc: 'Watch your interactive animation and enjoy learning', iconColor: 'bg-green-500'},
+    ],
+    showcaseTitle: 'What Will You Get?',
+    showcaseSubtitle: 'We create a comprehensive learning experience from every PDF',
+    showcase: [
+      {title:'Animated Stories', desc:'We turn your content into animations enriched with visual metaphors', iconColor:'bg-red-500', bg:'bg-red-50'},
+      {title:'Interactive Quizzes', desc:'Smart multiple-choice quizzes to reinforce what you have learned', iconColor:'bg-blue-500', bg:'bg-blue-50'},
+      {title:'PDF Chatbot', desc:'AI-powered assistant you can ask questions about the content', iconColor:'bg-purple-500', bg:'bg-purple-50'},
+      {title:'Voice Narration', desc:'Professional-quality voice-over for each animation frame', iconColor:'bg-green-500', bg:'bg-green-50'},
+      {title:'Flow Diagrams', desc:'Visual flowcharts explaining complex processes', iconColor:'bg-orange-500', bg:'bg-orange-50'},
+      {title:'PDF Summaries', desc:'Comprehensive summaries highlighting main topics', iconColor:'bg-pink-500', bg:'bg-pink-50'},
+    ],
+  },
+  tr: {
+    badge: 'AI Sihirbazı',
+    heroLine1: "Sorularınızı, metinlerinizi ve PDF'lerinizi ",
+    heroHighlight: 'Sihirli Animasyonlara',
+    heroDescription: 'Herhangi bir konuyu yazın veya PDF yükleyin, yapay zeka ile büyüleyici animasyonlara ve interaktif deneyimlere dönüştürelim! ✨',
+    howTitle: 'Nasıl Kullanılır?',
+    howSubtitle: 'Sadece 3 basit adımda harika animasyonlar oluşturun',
+    steps: [
+      {title: 'Konuyu Yazın veya PDF Yükleyin', desc: 'Öğrenmek istediğiniz konuyu yazın ya da mevcut PDF dosyanızı yükleyin', iconColor: 'bg-orange-500'},
+      {title: 'AI Analiz Etsin', desc: 'Yapay zeka içeriğinizi analiz ederek en uygun animasyon senaryosunu hazırlasın', iconColor: 'bg-blue-500'},
+      {title: 'Animasyonu İzleyin', desc: 'Hazır olan interaktif animasyonunuzu izleyin ve öğrenmenin keyfini çıkarın', iconColor: 'bg-green-500'},
+    ],
+    showcaseTitle: 'Neler Elde Edeceksiniz?',
+    showcaseSubtitle: 'Her PDF\'den kapsamlı bir öğrenme deneyimi yaratıyoruz',
+    showcase: [
+      {title:'Animasyonlu Hikayeler', desc:'İçeriğinizi görsel metaforlarla zenginleştirilmiş animasyonlara dönüştürüyoruz', iconColor:'bg-red-500', bg:'bg-red-50'},
+      {title:'İnteraktif Testler', desc:'Öğrendiklerinizi pekiştirmek için akıllı çoktan seçmeli testler', iconColor:'bg-blue-500', bg:'bg-blue-50'},
+      {title:'PDF Sohbet Botu', desc:'İçerik hakkında soru sorabileceğiniz yapay zeka destekli asistan', iconColor:'bg-purple-500', bg:'bg-purple-50'},
+      {title:'Sesli Anlatım', desc:'Her animasyon karesi için profesyonel kalitede seslendirme', iconColor:'bg-green-500', bg:'bg-green-50'},
+      {title:'Akış Diyagramları', desc:'Karmaşık süreçleri anlatan görsel akış şemaları', iconColor:'bg-orange-500', bg:'bg-orange-50'},
+      {title:'PDF Özetleri', desc:'Ana konuların vurgulandığı kapsamlı özetler', iconColor:'bg-pink-500', bg:'bg-pink-50'},
+    ],
+  }
+} as const;
 
 // Proje tipini belirle
 const getProjectType = (project: any) => {
@@ -82,18 +150,18 @@ const ClassicDiagramView = ({ steps }: { steps: any[] }) => {
 };
 
 export default function ProjectDetailPage() {
-  const params = useParams();
-  const projectId = params?.projectId as string;
   const { user, loading: authLoading } = useAuth();
   const { language } = useLanguage();
-  const [currentLang] = React.useState<'en' | 'tr'>(language || 'tr');
-  const [loading, setLoading] = React.useState(true);
+  const params = useParams();
+  const projectId = params?.projectId as string;
   const [project, setProject] = React.useState<any | null>(null);
-  
-  // Animasyon oynatma state'leri
+  const [loading, setLoading] = React.useState(true);
   const [currentFrameIndex, setCurrentFrameIndex] = React.useState(0);
   const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isVisible, setIsVisible] = React.useState(false);
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1);
+  
+  const t = I18N[language] ?? I18N.tr;
 
   // Animasyon kontrol fonksiyonları
   const togglePlayback = React.useCallback(() => {
