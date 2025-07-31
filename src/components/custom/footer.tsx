@@ -150,7 +150,7 @@ export function Footer() {
           <SupportTicketButton inline />
         </div>
         <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-          <p>© 2024 AnimatePDF. {content.footerRights}</p>
+          <p>© 2025 AnimatePDF. {content.footerRights}</p>
         </div>
       </div>
     </footer>

@@ -165,7 +165,7 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
                 <HelpCircle className="w-4 h-4 mr-2" />
                 Sıkça Sorulan Sorular
               </Badge>
-              </div>
+            </div>
 
             <h1 className="text-5xl sm:text-6xl font-black text-gray-900 mb-8 leading-tight">
               Merak Ettiklerinizin{" "}
@@ -176,7 +176,7 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
                 <div className="absolute -bottom-2 left-0 right-0 h-3 bg-orange-200 -rotate-1 -z-10 animate-pulse"></div>
               </span>{" "}
               Burada
-          </h1>
+            </h1>
 
             <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
               AnimatePDF hakkında her şeyi burada bulabilirsiniz. Aşağıdaki chatbot'u kullanarak da hızlıca yanıt alabilirsiniz!
@@ -196,93 +196,11 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
 
             {/* Quick Actions */}
             <div className="flex flex-wrap justify-center gap-4 mb-16">
-              <Dialog open={isChatbotDialogOpen} onOpenChange={setIsChatbotDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    size="lg"
-                    className="bg-blue-500 hover:bg-blue-600 text-white h-12 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-                  >
-                    <Bot className="w-5 h-5 mr-2" />
-                    AI Asistan ile Sohbet
-                    <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl h-[600px] flex flex-col">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Bot className="w-5 h-5 text-blue-500" />
-                      SSS Asistanı
-                    </DialogTitle>
-                    <DialogDescription>
-                      Sorularınızı yanıtlamak için buradayım. Aşağıdaki SSS listesindeki bilgilere dayanarak cevap verebilirim.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="flex-1 flex flex-col">
-                    <ScrollArea className="flex-1 p-4 border rounded-lg bg-gray-50 h-96 max-h-96">
-                      {chatMessages.length === 0 ? (
-                        <div className="text-center text-gray-500 py-8">
-                          <Bot className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                          <p>Sorularınızı bekliyorum...</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {chatMessages.map((message, index) => (
-                            <div
-                              key={index}
-                              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                            >
-                              <div
-                                className={`max-w-[80%] p-3 rounded-lg ${
-                                  message.sender === 'user'
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-white border'
-                                }`}
-                              >
-                                <div className="flex items-start gap-2">
-                                  {message.sender === 'bot' && <Bot className="w-4 h-4 text-blue-500 mt-0.5" />}
-                                  {message.sender === 'user' && <User className="w-4 h-4 text-white mt-0.5" />}
-                                  <p className="text-sm">{message.text}</p>
-                                </div>
-                              </div>
-                </div>
-                          ))}
-                          {isChatLoading && (
-                            <div className="flex justify-start">
-                              <div className="bg-white border p-3 rounded-lg">
-                                <div className="flex items-center gap-2">
-                                  <Bot className="w-4 h-4 text-blue-500" />
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                  <span className="text-sm text-gray-500">Yanıt hazırlanıyor...</span>
-                </div>
-                </div>
-              </div>
-                          )}
-                        </div>
-                      )}
-                    </ScrollArea>
-
-                    <form onSubmit={handleChatSubmit} className="flex gap-2 mt-4">
-                      <Input
-                        value={userInput}
-                        onChange={(e) => setUserInput(e.target.value)}
-                        placeholder="Sorunuzu buraya yazın..."
-                        disabled={isChatLoading}
-                        className="flex-1"
-                      />
-                      <Button type="submit" disabled={isChatLoading || !userInput.trim()}>
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </form>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
               <Link href={getLocalizedPath('/pricing')}>
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 h-12 px-6 rounded-xl transition-all duration-300 hover:scale-105"
+                  className="border-2 border-gray-300 hover:border-orange-500 hover:bg-orange-50 text-gray-700 hover:text-orange-600 h-14 px-8 rounded-xl font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                 >
                   Fiyatlandırma
                 </Button>
@@ -290,17 +208,102 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
 
               <Link href={getLocalizedPath('/animate')}>
                 <Button
-                  variant="outline"
                   size="lg"
-                  className="border-2 border-gray-300 hover:border-green-500 hover:bg-green-50 h-12 px-6 rounded-xl transition-all duration-300 hover:scale-105"
+                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white h-14 px-8 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
                 >
                   Hemen Deneyin
+                  <ArrowRight className="w-5 h-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Floating Chat Bot Button */}
+      <Dialog open={isChatbotDialogOpen} onOpenChange={setIsChatbotDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            size="lg"
+            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white h-14 w-14 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 group animate-bounce"
+          >
+            <Bot className="w-6 h-6" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl h-[600px] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bot className="w-5 h-5 text-orange-500" />
+              SSS Asistanı
+            </DialogTitle>
+            <DialogDescription>
+              Sorularınızı yanıtlamak için buradayım. Aşağıdaki SSS listesindeki bilgilere dayanarak cevap verebilirim.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 flex flex-col">
+            <ScrollArea className="p-4 border rounded-lg bg-gray-50 h-96 overflow-y-auto">
+              {chatMessages.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">
+                  <Bot className="w-12 h-12 mx-auto mb-4 text-orange-400" />
+                  <p>Sorularınızı bekliyorum...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {chatMessages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg ${
+                          message.sender === 'user'
+                            ? 'bg-orange-500 text-white'
+                            : 'bg-white border'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {message.sender === 'bot' && <Bot className="w-4 h-4 text-orange-500 mt-0.5" />}
+                          {message.sender === 'user' && <User className="w-4 h-4 text-white mt-0.5" />}
+                          <p className="text-sm">{message.text}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white border p-3 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Bot className="w-4 h-4 text-orange-500" />
+                          <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
+                          <span className="text-sm text-gray-500">Yanıt hazırlanıyor...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+
+            <form onSubmit={handleChatSubmit} className="flex gap-2 mt-4">
+              <Input
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="Sorunuzu buraya yazın..."
+                disabled={isChatLoading}
+                className="flex-1"
+              />
+              <Button 
+                type="submit" 
+                disabled={isChatLoading || !userInput.trim()}
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Stats Section */}
       <section className="py-16 bg-white">
@@ -352,7 +355,7 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
                             {item.category}
                           </Badge>
                           <span>{item.question}</span>
-              </div>
+                        </div>
                       </AccordionTrigger>
                       <AccordionContent className="text-gray-600 leading-relaxed pb-6">
                         <div className="pl-16">
@@ -370,9 +373,9 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
                     <p className="text-gray-600 mb-6">
                       Aradığınız terim için herhangi bir sonuç bulunamadı. Lütfen farklı anahtar kelimeler deneyin.
                     </p>
-          <Button
+                    <Button
                       onClick={() => setSearchTerm("")}
-            variant="outline"
+                      variant="outline"
                       className="hover:bg-orange-50 hover:border-orange-500"
                     >
                       Tüm SSS'leri Göster
@@ -386,10 +389,11 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
       </section>
 
       {/* Contact CTA */}
-      <section className="py-20 bg-gradient-to-r from-blue-500 to-purple-500 relative overflow-hidden">
+      <section className="py-20 bg-gradient-to-r from-orange-500 to-red-500 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full animate-float-slow"></div>
           <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full animate-float-delayed"></div>
+          <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-white/5 rounded-full animate-pulse"></div>
         </div>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -397,7 +401,7 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
             <h2 className="text-4xl font-black text-white mb-6">
               Aradığınız Cevabı Bulamadınız mı?
             </h2>
-            <p className="text-xl text-blue-100 mb-8">
+            <p className="text-xl text-orange-100 mb-8">
               Destek ekibimiz size yardımcı olmaktan mutluluk duyar. 
               <br />
               24/7 canlı destek ile sorularınızı yanıtlıyoruz.
@@ -407,7 +411,7 @@ export default function FaqPage({ params: paramsPromise }: LangPageProps) {
               <Link href="mailto:support@animatepdf.com">
                 <Button
                   size="lg"
-                  className="bg-white text-blue-500 hover:bg-gray-100 font-bold h-14 px-8 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group"
+                  className="bg-white text-orange-500 hover:bg-gray-100 font-bold h-14 px-8 rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group"
                 >
                   <MessageSquare className="w-5 h-5 mr-2" />
                   Destek Ekibiyle İletişime Geçin

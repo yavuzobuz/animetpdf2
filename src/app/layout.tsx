@@ -7,6 +7,13 @@ import './animation-slow.css';
 export const metadata: Metadata = {
   title: 'AnimatePDF',
   description: 'Upload a PDF, get an animation scenario, and preview it!',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '32x32' },
+    ],
+    apple: '/apple-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -19,11 +26,16 @@ export default function RootLayout({
   // The lang attribute on <html> will be set in src/app/[lang]/layout.tsx
   return (
     // The lang attribute will be set in the [lang]/layout.tsx
-    <html>
+    <html lang="tr">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#f97316" />
       </head>
       <body className="font-body antialiased min-h-screen bg-background">
         <div className="min-h-screen flex flex-col">
