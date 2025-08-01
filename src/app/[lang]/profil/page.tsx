@@ -56,21 +56,20 @@ export default function ProfilePage({ params }: LangPageProps) {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   
-  // Hook'tan gelen verilerle stats oluştur
-  const stats: UserStats = {
-    converted_pdfs: subscriptionInfo.pdfUsage,
-    created_animations: subscriptionInfo.animationUsage,
+  // Gerçek kullanıcı istatistikleri
+  const [stats, setStats] = useState<UserStats>({
+    converted_pdfs: 0,
+    created_animations: 0,
     total_downloads: 0,
     storage_used: 0,
-    plan: subscriptionInfo.planDisplayName.tr || 'Ücretsiz',
-    joinDate: profile?.created_at || user?.created_at || new Date().toISOString(),
-    nextBilling: subscriptionInfo.subscription?.current_period_end || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    monthly_pdf_count: subscriptionInfo.currentUsage,
-    monthly_limit: subscriptionInfo.limit,
+    plan: 'Ücretsiz',
+    joinDate: new Date().toISOString(),
+    nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    monthly_pdf_count: 0,
+    monthly_limit: 5,
     achievements: [],
-  };
-  
-  const loadingStats = subscriptionInfo.isLoading;
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
 
   // Güvenli tarih formatı için yardımcı fonksiyon
   const formatDate = (dateString: string) => {
@@ -116,6 +115,20 @@ export default function ProfilePage({ params }: LangPageProps) {
         }
       };
 
+      const fetchStats = async () => {
+        setLoadingStats(true);
+        try {
+          const { success, data } = await getUserStats(user.id);
+          if (success) {
+            setStats(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user stats", error);
+        } finally {
+          setLoadingStats(false);
+        }
+      };
+
       const fetchProjects = async () => {
         setLoadingProjects(true);
         const { success, data } = await getUserProjects(user.id);
@@ -143,9 +156,11 @@ export default function ProfilePage({ params }: LangPageProps) {
       };
 
       fetchProfile();
+      fetchStats();
       fetchProjects();
     } else {
       setLoadingProjects(false);
+      setLoadingStats(false);
       setUserProjects([]);
     }
   }, [user]);
@@ -288,7 +303,7 @@ export default function ProfilePage({ params }: LangPageProps) {
                   <div className="flex flex-wrap gap-4">
                     <Badge className="bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-700">
                       <Crown className="h-3 w-3 mr-1" />
-                      {stats.plan} Plan
+                      {subscriptionInfo.planDisplayName.tr} Plan
                     </Badge>
                     <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">
                       <Activity className="h-3 w-3 mr-1" />
@@ -370,9 +385,9 @@ export default function ProfilePage({ params }: LangPageProps) {
                       <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Crown className="h-8 w-8 text-white" />
                       </div>
-                      <h3 className="text-2xl font-bold headline-modern mb-2">{stats.plan} Plan</h3>
+                      <h3 className="text-2xl font-bold headline-modern mb-2">{subscriptionInfo.planDisplayName.tr} Plan</h3>
                       <p className="text-gray-600 dark:text-gray-300 text-sm">
-                        {content.nextBilling}: {formatDate(stats.nextBilling)}
+                        {content.nextBilling}: {formatDate(subscriptionInfo.subscription?.current_period_end || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())}
                       </p>
                     </div>
                     
@@ -381,22 +396,22 @@ export default function ProfilePage({ params }: LangPageProps) {
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span>{content.monthlyUsage}</span>
-                        <span className="font-medium">{stats.monthly_pdf_count}/{stats.monthly_limit}</span>
+                        <span className="font-medium">{subscriptionInfo.currentUsage}/{subscriptionInfo.limit}</span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div 
                           className={`h-2 rounded-full transition-all duration-300 ${
-                            stats.monthly_pdf_count >= stats.monthly_limit 
+                            subscriptionInfo.currentUsage >= subscriptionInfo.limit 
                               ? 'bg-gradient-to-r from-red-500 to-red-600' 
                               : 'bg-gradient-to-r from-purple-600 to-pink-600'
                           }`}
-                          style={{ width: `${Math.min((stats.monthly_pdf_count / stats.monthly_limit) * 100, 100)}%` }}
+                          style={{ width: `${Math.min(subscriptionInfo.usagePercentage, 100)}%` }}
                         ></div>
                       </div>
-                      {stats.monthly_pdf_count >= stats.monthly_limit && (
+                      {subscriptionInfo.currentUsage >= subscriptionInfo.limit && (
                         <div className="bg-red-50 border border-red-200 rounded-lg p-3 dark:bg-red-900/20 dark:border-red-800">
                           <p className="text-sm text-red-700 dark:text-red-300 text-center">
-                            ⚠️ Bu ay PDF limitinize ulaştınız! Plan yükseltin.
+                            ⚠️ Bu ay kredi limitinize ulaştınız! Plan yükseltin.
                           </p>
                         </div>
                       )}

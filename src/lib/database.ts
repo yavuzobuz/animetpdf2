@@ -515,32 +515,41 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
       .eq('user_id', userId)
       .eq('is_deleted', false);
 
-    // Bu ayki PDF kullanımını öncelikle user_usage tablosundan al
+    // Bu ayki PDF kullanımını hesapla - önce user_usage tablosundan, sonra fallback
     const monthYear = new Date().toISOString().slice(0, 7); // YYYY-MM
     let monthlyPdfCount = 0;
+    let monthlyAnimationCount = 0;
 
     const { data: usageRow, error: usageErr } = await supabase
       .from('user_usage')
-      .select('pdfs_processed')
+      .select('pdfs_processed, animations_created')
       .eq('user_id', userId)
       .eq('month_year', monthYear)
       .maybeSingle();
 
-    if (!usageErr && usageRow && typeof usageRow.pdfs_processed === 'number') {
-      monthlyPdfCount = usageRow.pdfs_processed;
+    if (!usageErr && usageRow) {
+      monthlyPdfCount = usageRow.pdfs_processed || 0;
+      monthlyAnimationCount = usageRow.animations_created || 0;
     } else {
-      // Fallback: pdf_projects tablosundan say
-    const currentMonth = new Date();
-    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    
-      const { count: fallbackCount } = await supabase
-      .from('pdf_projects')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('is_deleted', false)
-      .gte('created_at', firstDayOfMonth.toISOString());
+      // Fallback: Gerçek tablolardan say
+      const currentMonth = new Date();
+      const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+      
+      const { count: pdfFallbackCount } = await supabase
+        .from('pdf_projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .gte('created_at', firstDayOfMonth.toISOString());
 
-      monthlyPdfCount = fallbackCount || 0;
+      const { count: animFallbackCount } = await supabase
+        .from('animation_pages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('created_at', firstDayOfMonth.toISOString());
+
+      monthlyPdfCount = pdfFallbackCount || 0;
+      monthlyAnimationCount = animFallbackCount || 0;
     }
 
     // Animasyon sayfalarını say
@@ -637,16 +646,14 @@ export async function getUserStats(userId: string): Promise<{ success: boolean; 
       plan: planDisplayName,
       joinDate: profile?.created_at || new Date().toISOString(),
       nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      monthly_pdf_count: monthlyPdfCount,
+      monthly_pdf_count: monthlyPdfCount + monthlyAnimationCount, // Birleştirilmiş kredi sistemi
       monthly_limit: monthlyLimit,
       achievements: achievements?.map(a => {
-        // Supabase'in yanlış tip çıkarımı yapmasına karşın 'any' kullanarak hatayı gideriyoruz.
-        const achievement = a.achievements as any;
         return {
-          id: achievement.id,
-          title: achievement.title,
-          description: achievement.description,
-          icon: achievement.icon,
+          id: a.id,
+          title: a.title || 'Başarım',
+          description: a.description || 'Açıklama yok',
+          icon: a.icon || '🏆',
           unlocked_at: a.unlocked_at
         };
       }) || []
@@ -747,7 +754,42 @@ export async function getUserCurrentUsage(userId: string): Promise<{ success: bo
       return { success: false, data: null, error: error.message };
     }
 
-    return { success: true, data: data || null };
+    // Eğer user_usage tablosunda kayıt yoksa, gerçek tablolardan hesapla
+    if (!data) {
+      const currentMonthDate = new Date();
+      const firstDayOfMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
+      
+      // Bu ayki PDF ve animasyon sayılarını say
+      const { count: pdfCount } = await supabase
+        .from('pdf_projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .gte('created_at', firstDayOfMonth.toISOString());
+
+      const { count: animationCount } = await supabase
+        .from('animation_pages')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('created_at', firstDayOfMonth.toISOString());
+
+      // Fallback UserUsage objesi oluştur
+      const fallbackUsage: UserUsage = {
+        id: `fallback-${userId}-${currentMonth}`,
+        user_id: userId,
+        month_year: currentMonth,
+        pdfs_processed: pdfCount || 0,
+        animations_created: animationCount || 0,
+        storage_used_mb: 0,
+        last_reset_at: firstDayOfMonth.toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      return { success: true, data: fallbackUsage };
+    }
+
+    return { success: true, data: data };
   } catch (error) {
     console.error('User usage fetch exception:', error);
     return { success: false, data: null, error: 'Bilinmeyen hata oluştu' };

@@ -1258,16 +1258,18 @@ const handlePdfIconClick = () => {
               <Dialog open={pdfChatOpen} onOpenChange={setPdfChatOpen}>
                 <DialogTrigger asChild>
                   <Button
-                    className="block mx-auto px-6 h-10 text-sm rounded-md shadow-md flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 font-semibold"
                   >
-                    <MessageSquare className="mr-2 h-4 w-4" />
+                    <MessageSquare className="w-5 h-5" />
                     PDF ile Sohbet Et
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto backdrop-blur-md bg-white/95 border border-white/20 rounded-xl shadow-xl">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-gray-900">
-                      <MessageSquare className="h-5 w-5" />
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-100 shadow-2xl rounded-2xl">
+                  <DialogHeader className="pb-4 border-b border-gray-100">
+                    <DialogTitle className="flex items-center gap-3 text-gray-900 text-xl font-bold">
+                      <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-white" />
+                      </div>
                       PDF İçeriği ile Sohbet
                     </DialogTitle>
                   </DialogHeader>
@@ -1403,21 +1405,22 @@ const handlePdfIconClick = () => {
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button 
-                          className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white shadow-lg rounded-full px-6 py-2.5 font-medium transition-all duration-200 hover:shadow-xl hover:scale-105"
-                          size="sm"
+                          className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-lg rounded-xl px-6 py-3 font-semibold transition-all duration-300 hover:shadow-xl"
                         >
-                          <MessageSquare className="mr-2 h-4 w-4" />
+                          <MessageSquare className="mr-2 h-5 w-5" />
                           Konu Hakkında Sohbet Et
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            <MessageSquare className="h-5 w-5 text-violet-600" />
+                      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-white border-2 border-gray-100 shadow-2xl rounded-2xl">
+                        <DialogHeader className="pb-4 border-b border-gray-100">
+                          <DialogTitle className="flex items-center gap-3 text-gray-900 text-xl font-bold">
+                            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                              <MessageSquare className="h-5 w-5 text-white" />
+                            </div>
                             Konu Sohbet Botu
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="h-[60vh] overflow-auto">
+                        <div className="h-[70vh] overflow-auto pt-4">
                           <PdfChat
                              pdfSummary={pdfAnalysisResult ?? script.summary}
                              projectId={projectId || undefined}
