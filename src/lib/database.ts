@@ -371,22 +371,64 @@ export async function deleteFrame(frameId: string): Promise<boolean> {
   return true;
 }
 
-export const getProjectDetails = async (projectId: string, userId: string) => {
+export const getProjectDetails = async (projectId: string, userId?: string) => {
   try {
     const supabase = createAdminClient();
-    const { data, error } = await supabase
+    
+    // Önce pdf_projects tablosunda ara
+    let query = supabase
       .from('pdf_projects')
       .select('*')
-      .eq('id', projectId)
-      .eq('user_id', userId)
-      .single();
+      .eq('id', projectId);
+    
+    // Eğer userId verilmişse, sadece o kullanıcının projelerini getir
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+    
+    const { data, error } = await query.single();
 
-    if (error) {
-      console.error('Project details fetch error:', error);
-      return { success: false, data: null, error: error.message };
+    if (!error && data) {
+      return { success: true, data };
     }
 
-    return { success: true, data };
+    // pdf_projects'te bulunamadıysa, animation_pages'te ara
+    let animQuery = supabase
+      .from('animation_pages')
+      .select('*')
+      .eq('id', projectId);
+    
+    if (userId) {
+      animQuery = animQuery.eq('user_id', userId);
+    }
+    
+    const { data: animData, error: animError } = await animQuery.single();
+
+    if (!animError && animData) {
+      // Animation page verisini pdf_project formatına dönüştür
+      const convertedData = {
+        id: animData.id,
+        user_id: animData.user_id,
+        title: animData.topic,
+        description: animData.script_summary,
+        pdf_file_url: null,
+        pdf_file_name: animData.topic,
+        pdf_file_size: null,
+        status: 'completed',
+        analysis_result: { summary: animData.script_summary },
+        qa_pairs: animData.qa_pairs,
+        animation_scenario: animData.scenes,
+        animation_settings: { type: 'animation' },
+        created_at: animData.created_at,
+        updated_at: animData.created_at,
+        is_deleted: false,
+        deleted_at: null
+      };
+      return { success: true, data: convertedData };
+    }
+
+    console.error('Project details fetch error:', error || animError);
+    return { success: false, data: null, error: (error || animError)?.message || 'Proje bulunamadı' };
   } catch (error) {
     console.error('Project details fetch exception:', error);
     return { success: false, data: null, error: 'Bilinmeyen hata oluştu' };
@@ -754,34 +796,95 @@ export async function getUserCurrentUsage(userId: string): Promise<{ success: bo
       return { success: false, data: null, error: error.message };
     }
 
-    // Eğer user_usage tablosunda kayıt yoksa, gerçek tablolardan hesapla
+    // Eğer user_usage tablosunda kayıt yoksa, profiles tablosundan ve gerçek tablolardan hesapla
     if (!data) {
-      const currentMonthDate = new Date();
-      const firstDayOfMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), 1);
-      
-      // Bu ayki PDF ve animasyon sayılarını say
-      const { count: pdfCount } = await supabase
-        .from('pdf_projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_deleted', false)
-        .gte('created_at', firstDayOfMonth.toISOString());
+      // Önce profiles tablosundaki usage_reset_at tarihini kontrol et
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('monthly_usage_count, usage_reset_at')
+        .eq('id', userId)
+        .single();
 
-      const { count: animationCount } = await supabase
-        .from('animation_pages')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .gte('created_at', firstDayOfMonth.toISOString());
+      let pdfCount = 0;
+      let animationCount = 0;
+
+      if (profile && profile.usage_reset_at) {
+        const resetDate = new Date(profile.usage_reset_at);
+        const now = new Date();
+        
+        // Eğer reset tarihi bu ayın başındaysa, profiles tablosundaki sayıyı kullan
+        if (resetDate.getMonth() === now.getMonth() && resetDate.getFullYear() === now.getFullYear()) {
+          // Profiles tablosundaki monthly_usage_count'u kullan
+          const totalUsage = profile.monthly_usage_count || 0;
+          
+          // Bu toplam kullanımı PDF ve animasyon olarak böl (gerçek verilerden hesapla)
+          const { count: realPdfCount } = await supabase
+            .from('pdf_projects')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('is_deleted', false)
+            .gte('created_at', resetDate.toISOString());
+
+          const { count: realAnimationCount } = await supabase
+            .from('animation_pages')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .gte('created_at', resetDate.toISOString());
+
+          pdfCount = realPdfCount || 0;
+          animationCount = realAnimationCount || 0;
+        } else {
+          // Reset tarihi eski, bu ayki verileri say
+          const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          
+          const { count: monthlyPdfCount } = await supabase
+            .from('pdf_projects')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('is_deleted', false)
+            .gte('created_at', firstDayOfMonth.toISOString());
+
+          const { count: monthlyAnimationCount } = await supabase
+            .from('animation_pages')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .gte('created_at', firstDayOfMonth.toISOString());
+
+          pdfCount = monthlyPdfCount || 0;
+          animationCount = monthlyAnimationCount || 0;
+        }
+      } else {
+        // Profiles tablosunda veri yok, bu ayki verileri say
+        const firstDayOfMonth = new Date().getMonth() === new Date().getMonth() 
+          ? new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+          : new Date();
+
+        const { count: monthlyPdfCount } = await supabase
+          .from('pdf_projects')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('is_deleted', false)
+          .gte('created_at', firstDayOfMonth.toISOString());
+
+        const { count: monthlyAnimationCount } = await supabase
+          .from('animation_pages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .gte('created_at', firstDayOfMonth.toISOString());
+
+        pdfCount = monthlyPdfCount || 0;
+        animationCount = monthlyAnimationCount || 0;
+      }
 
       // Fallback UserUsage objesi oluştur
       const fallbackUsage: UserUsage = {
         id: `fallback-${userId}-${currentMonth}`,
         user_id: userId,
         month_year: currentMonth,
-        pdfs_processed: pdfCount || 0,
-        animations_created: animationCount || 0,
+        pdfs_processed: pdfCount,
+        animations_created: animationCount,
         storage_used_mb: 0,
-        last_reset_at: firstDayOfMonth.toISOString(),
+        last_reset_at: profile?.usage_reset_at || new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
