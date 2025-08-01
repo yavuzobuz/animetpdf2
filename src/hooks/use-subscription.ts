@@ -2,10 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { 
-  getUserSubscription, 
-  getUserCurrentUsage, 
-  getAllSubscriptionPlans,
+import {
   SubscriptionPlan,
   UserSubscription,
   UserUsage
@@ -64,11 +61,28 @@ export function useSubscription() {
     setSubscriptionInfo(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      // Paralel olarak tüm verileri çek
+      // API routes kullanarak verileri çek
+      const [subscriptionResponse, usageResponse, plansResponse] = await Promise.all([
+        fetch('/api/get-user-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id })
+        }),
+        fetch('/api/get-user-usage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id })
+        }),
+        fetch('/api/get-subscription-plans', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        })
+      ]);
+
       const [subscriptionResult, usageResult, plansResult] = await Promise.all([
-        getUserSubscription(user.id),
-        getUserCurrentUsage(user.id),
-        getAllSubscriptionPlans()
+        subscriptionResponse.json(),
+        usageResponse.json(),
+        plansResponse.json()
       ]);
 
       // Plan bilgisini belirle - Güçlendirilmiş mantık
@@ -89,29 +103,29 @@ export function useSubscription() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId: user.id })
             });
-            
+
             if (profileResponse.ok) {
               const profileData = await profileResponse.json();
               if (profileData.success && profileData.profile?.current_plan_id) {
-                const planFromProfile = plansResult.data.find(p => p.id === profileData.profile.current_plan_id);
+                const planFromProfile = plansResult.data.find((p: SubscriptionPlan) => p.id === profileData.profile.current_plan_id);
                 if (planFromProfile) {
                   currentPlan = planFromProfile;
                 } else {
                   // Fallback: Free plan
-                  currentPlan = plansResult.data.find(p => p.name === 'free') || plansResult.data[0];
+                  currentPlan = plansResult.data.find((p: SubscriptionPlan) => p.name === 'free') || plansResult.data[0];
                 }
               } else {
                 // Free plan
-                currentPlan = plansResult.data.find(p => p.name === 'free') || plansResult.data[0];
+                currentPlan = plansResult.data.find((p: SubscriptionPlan) => p.name === 'free') || plansResult.data[0];
               }
             } else {
               console.warn('Profile API failed:', profileResponse.status, profileResponse.statusText);
               // API çağrısı başarısız, free plan kullan
-              currentPlan = plansResult.data.find(p => p.name === 'free') || plansResult.data[0];
+              currentPlan = plansResult.data.find((p: SubscriptionPlan) => p.name === 'free') || plansResult.data[0];
             }
           } catch (error) {
             console.warn('Profile fetch error, using free plan:', error);
-            currentPlan = plansResult.data.find(p => p.name === 'free') || plansResult.data[0];
+            currentPlan = plansResult.data.find((p: SubscriptionPlan) => p.name === 'free') || plansResult.data[0];
           }
         } else {
           throw new Error('Plan bilgileri alınamadı');
@@ -123,7 +137,7 @@ export function useSubscription() {
       const pdfUsage = currentUsageData?.pdfs_processed || 0;
       const animationUsage = currentUsageData?.animations_created || 0;
       const totalUsage = pdfUsage + animationUsage; // Birleştirilmiş kredi sistemi
-      
+
       // Limit ve kalan kredi hesapla
       const limit = currentPlan.monthly_pdf_limit || 5;
       const remainingCredits = Math.max(0, limit - totalUsage);
@@ -167,7 +181,7 @@ export function useSubscription() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Verileri güncelle
         await refreshSubscriptionData();
@@ -190,7 +204,7 @@ export function useSubscription() {
       limitType: 'Kredi',
       planName: subscriptionInfo.plan.name,
       remainingCredits: subscriptionInfo.remainingCredits,
-      message: !subscriptionInfo.canProcess 
+      message: !subscriptionInfo.canProcess
         ? `Bu ay ${subscriptionInfo.currentUsage}/${subscriptionInfo.limit} kredi kullandınız. Limitinizi aştınız, lütfen planınızı yükseltin.`
         : undefined
     };

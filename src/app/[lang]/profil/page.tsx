@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getUserProjects, getUserAnimationPages, PDFProject, AnimationPage, deleteProject, getSiteStatistics, SiteStatistics, getUserStats, UserStats } from '@/lib/database'; // PDFProject türünü ve fonksiyonu import et
+import { PDFProject, AnimationPage, deleteProject, getSiteStatistics, SiteStatistics, UserStats } from '@/lib/database'; // PDFProject türünü ve fonksiyonu import et
 import UserProjects from '@/components/custom/profile/user-projects';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -118,9 +118,17 @@ export default function ProfilePage({ params }: LangPageProps) {
       const fetchStats = async () => {
         setLoadingStats(true);
         try {
-          const { success, data } = await getUserStats(user.id);
-          if (success) {
-            setStats(data);
+          const response = await fetch('/api/get-user-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              setStats(result.data);
+            }
           }
         } catch (error) {
           console.error("Failed to fetch user stats", error);
@@ -131,28 +139,24 @@ export default function ProfilePage({ params }: LangPageProps) {
 
       const fetchProjects = async () => {
         setLoadingProjects(true);
-        const { success, data } = await getUserProjects(user.id);
-        const animRes = await getUserAnimationPages(user.id);
-        if (success) {
-          let combined: any[] = [...data];
-          if (animRes.success) {
-            const mapped = animRes.data.map((ap: AnimationPage) => ({
-              id: ap.id,
-              title: ap.topic,
-              animation_scenario: ap.scenes,
-              animation_svgs: ap.animation_svgs,
-              qa_pairs: ap.qa_pairs,
-              status: 'completed',
-              created_at: ap.created_at,
-              updated_at: ap.updated_at || ap.created_at,
-              analysis_result: { summary: ap.script_summary },
-              animation_settings: { type: 'animation' }
-            }));
-            combined = [...combined, ...mapped];
+        try {
+          const response = await fetch('/api/get-user-projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              setUserProjects(result.data);
+            }
           }
-          setUserProjects(combined);
+        } catch (error) {
+          console.error("Failed to fetch user projects", error);
+        } finally {
+          setLoadingProjects(false);
         }
-        setLoadingProjects(false);
       };
 
       fetchProfile();
