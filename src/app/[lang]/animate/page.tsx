@@ -79,6 +79,7 @@ export default function AnimatePdfAppPage({ params: paramsPromise }: AnimatePdfA
   const urlParams = useParams()
   const currentLang = urlParams.lang as string || 'tr'
   const [isVisible, setIsVisible] = useState(false)
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false)
   const t = I18N[language] ?? I18N.tr;
 
   useEffect(() => {
@@ -136,86 +137,90 @@ export default function AnimatePdfAppPage({ params: paramsPromise }: AnimatePdfA
               </div>
 
               {/* Single frame: directly render the form without extra wrapper */}
-                  <TopicSimplifierForm />
+                  <TopicSimplifierForm onFormSubmit={() => setIsFormSubmitted(true)} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* How to Use Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-black text-gray-900 mb-6">{t.howTitle}</h2>
-              <p className="text-xl text-gray-600">
-                {t.howSubtitle}
-              </p>
-            </div>
+      {/* How to Use Section - Sadece form gönderilmemişse göster */}
+      {!isFormSubmitted && (
+        <section className="py-20 bg-gray-50">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-black text-gray-900 mb-6">{t.howTitle}</h2>
+                <p className="text-xl text-gray-600">
+                  {t.howSubtitle}
+                </p>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {t.steps.map((stepObj, index) => ({...stepObj, step:`${index+1}`, icon: [Upload, Brain, Play][index] })).map((step, index) => (
-                <Card
-                  key={index}
-                  className="text-center p-8 hover:shadow-xl transition-all duration-500 hover:scale-105 border-2 border-gray-100 group bg-white"
-                >
-                  <CardContent className="p-0">
-                    <div className="relative mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {t.steps.map((stepObj, index) => ({...stepObj, step:`${index+1}`, icon: [Upload, Brain, Play][index] })).map((step, index) => (
+                  <Card
+                    key={index}
+                    className="text-center p-8 hover:shadow-xl transition-all duration-500 hover:scale-105 border-2 border-gray-100 group bg-white"
+                  >
+                    <CardContent className="p-0">
+                      <div className="relative mb-6">
+                        <div
+                          className={`w-20 h-20 ${step.iconColor} rounded-full flex items-center justify-center mx-auto shadow-lg transition-all duration-500 group-hover:scale-110`}
+                        >
+                          <step.icon className="w-10 h-10 text-white" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          {step.step}
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{step.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Features Showcase - Sadece form gönderilmemişse göster */}
+      {!isFormSubmitted && (
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-black text-gray-900 mb-6">{t.showcaseTitle}</h2>
+                <p className="text-xl text-gray-600">
+                  {t.showcaseSubtitle}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {t.showcase.map((f, index) => ({...f, icon:[Play,Brain,Sparkles,Star,Wand2,FileText][index]})).map((feature, index) => (
+                  <Card
+                    key={index}
+                    className={`${feature.bg} border-0 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 hover:rotate-1 group cursor-pointer`}
+                  >
+                    <CardContent className="p-6 text-center">
                       <div
-                        className={`w-20 h-20 ${step.iconColor} rounded-full flex items-center justify-center mx-auto shadow-lg transition-all duration-500 group-hover:scale-110`}
+                        className={`w-16 h-16 ${feature.iconColor} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-all duration-500 group-hover:scale-125 group-hover:rotate-12`}
                       >
-                        <step.icon className="w-10 h-10 text-white" />
+                        <feature.icon className="w-8 h-8 text-white transition-transform duration-500 group-hover:scale-110" />
                       </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        {step.step}
-                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors duration-300">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm leading-relaxed group-hover:text-gray-500 transition-colors duration-300">
+                        {feature.desc}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">{step.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{step.desc}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Features Showcase */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-black text-gray-900 mb-6">{t.showcaseTitle}</h2>
-              <p className="text-xl text-gray-600">
-                {t.showcaseSubtitle}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {t.showcase.map((f, index) => ({...f, icon:[Play,Brain,Sparkles,Star,Wand2,FileText][index]})).map((feature, index) => (
-                <Card
-                  key={index}
-                  className={`${feature.bg} border-0 hover:shadow-xl transition-all duration-500 hover:-translate-y-2 hover:rotate-1 group cursor-pointer`}
-                >
-                  <CardContent className="p-6 text-center">
-                    <div
-                      className={`w-16 h-16 ${feature.iconColor} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transition-all duration-500 group-hover:scale-125 group-hover:rotate-12`}
-                    >
-                      <feature.icon className="w-8 h-8 text-white transition-transform duration-500 group-hover:scale-110" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors duration-300">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed group-hover:text-gray-500 transition-colors duration-300">
-                      {feature.desc}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-                  </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }

@@ -190,14 +190,13 @@ export async function createPDFProject(
 // Ana getUserProjects fonksiyonu
 export async function getUserProjects(userId: string): Promise<{ success: boolean; data: PDFProject[]; error?: string }> {
   try {
-    // Browser'da çalışabilir hale getir
-    const supabase = typeof window !== 'undefined' 
-      ? createBrowserClient() 
-      : createAdminClient();
+    // Server-side admin client kullan (RLS bypass için)
+    const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('pdf_projects')
     .select('*')
     .eq('user_id', userId)
+    .eq('is_deleted', false)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -490,7 +489,8 @@ export async function deleteProject(projectId: string, userId: string): Promise<
 // Animation pages
 export async function getUserAnimationPages(userId: string): Promise<{ success: boolean; data: AnimationPage[]; error?: string }> {
   try {
-    const supabase = typeof window !== 'undefined' ? createBrowserClient() : createAdminClient();
+    // Server-side admin client kullan (RLS bypass için)
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('animation_pages')
       .select('*')

@@ -137,7 +137,7 @@ export default function ProfilePage({ params }: LangPageProps) {
         }
       };
 
-      const fetchProjects = async () => {
+      const fetchProjects = async (retryCount = 0) => {
         setLoadingProjects(true);
         try {
           const response = await fetch('/api/get-user-projects', {
@@ -149,11 +149,37 @@ export default function ProfilePage({ params }: LangPageProps) {
           if (response.ok) {
             const result = await response.json();
             if (result.success) {
-              setUserProjects(result.data);
+              setUserProjects(result.data || []);
+              console.log('Projects loaded successfully:', result.data?.length || 0);
+            } else {
+              console.error('API returned error:', result.error);
+              // Retry bir kez daha dene
+              if (retryCount < 1) {
+                console.log('Retrying project fetch...');
+                setTimeout(() => fetchProjects(retryCount + 1), 1000);
+                return;
+              }
+              setUserProjects([]); // Hata durumunda boş array
             }
+          } else {
+            console.error('API request failed:', response.status, response.statusText);
+            // Retry bir kez daha dene
+            if (retryCount < 1) {
+              console.log('Retrying project fetch due to HTTP error...');
+              setTimeout(() => fetchProjects(retryCount + 1), 1000);
+              return;
+            }
+            setUserProjects([]); // HTTP hata durumunda boş array
           }
         } catch (error) {
           console.error("Failed to fetch user projects", error);
+          // Retry bir kez daha dene
+          if (retryCount < 1) {
+            console.log('Retrying project fetch due to network error...');
+            setTimeout(() => fetchProjects(retryCount + 1), 1000);
+            return;
+          }
+          setUserProjects([]); // Network hata durumunda boş array
         } finally {
           setLoadingProjects(false);
         }

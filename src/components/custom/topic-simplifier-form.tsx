@@ -179,7 +179,11 @@ const PDFIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
   </svg>
 );
 
-export function TopicSimplifierForm() {
+interface TopicSimplifierFormProps {
+  onFormSubmit?: () => void;
+}
+
+export function TopicSimplifierForm({ onFormSubmit }: TopicSimplifierFormProps = {}) {
   const [loading, setLoading] = useState(false);
   const [script, setScript] = useState<AnimationScript | null>(null);
   const [visuals, setVisuals] = useState<Visual[]>([]);
@@ -743,6 +747,9 @@ const handlePdfIconClick = () => {
       });
       return;
     }
+
+    // Form gönderildiğini parent component'e bildir
+    onFormSubmit?.();
 
     setLoading(true);
     setProjectLocked(true);

@@ -12,19 +12,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Fetching projects for user:', userId);
+
     // Get both PDF projects and animation pages
     const [pdfResult, animResult] = await Promise.all([
       getUserProjects(userId),
       getUserAnimationPages(userId)
     ]);
 
-    if (!pdfResult.success) {
-      return NextResponse.json(pdfResult);
-    }
+    let combined: any[] = [];
 
-    let combined: any[] = [...pdfResult.data];
+    // PDF projelerini ekle (başarısızsa boş array kullan)
+    if (pdfResult.success) {
+      console.log('PDF projects found:', pdfResult.data.length);
+      combined = [...pdfResult.data];
+    } else {
+      console.warn('PDF projects fetch failed:', pdfResult.error);
+    }
     
+    // Animation projelerini ekle (başarısızsa sadece PDF projelerini döndür)
     if (animResult.success) {
+      console.log('Animation pages found:', animResult.data.length);
       const mapped = animResult.data.map((ap: any) => ({
         id: ap.id,
         title: ap.topic,
@@ -38,7 +46,11 @@ export async function POST(request: NextRequest) {
         animation_settings: { type: 'animation' }
       }));
       combined = [...combined, ...mapped];
+    } else {
+      console.warn('Animation pages fetch failed:', animResult.error);
     }
+
+    console.log('Total projects combined:', combined.length);
 
     return NextResponse.json({
       success: true,
